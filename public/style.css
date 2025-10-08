@@ -9,7 +9,7 @@ html, body {
   color: #222;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  font-size: 15px; /* ✅ 기존 14px → 15px */
+  font-size: 15px;
 }
 
 /* -----------------------------
@@ -20,7 +20,7 @@ header {
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   padding: 12px 0;
   text-align: center;
-  font-size: 1.05rem; /* 기존 1rem */
+  font-size: 1.05rem;
   font-weight: 700;
   color: #111;
 }
@@ -58,7 +58,7 @@ main {
 }
 
 .card h3 {
-  font-size: 1rem; /* 기존 0.95rem */
+  font-size: 1rem;
   margin-bottom: 8px;
   font-weight: 600;
   color: #111;
@@ -75,24 +75,16 @@ main {
   justify-content: space-between;
   padding: 5px 0;
   border-bottom: 1px solid #eee;
-  font-size: 0.95rem; /* 기존 0.85rem */
+  font-size: 0.95rem;
 }
 
 .top5-item:last-child { border-bottom: none; }
 
-.rank {
-  font-weight: 700;
-  color: #888;
-  width: 22px;
-  text-align: center;
-  font-size: 0.9rem; /* 기존 0.8 */
-}
-
 .name {
   flex: 1;
-  padding-left: 8px;
   color: #333;
   font-weight: 500;
+  text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -102,11 +94,11 @@ main {
   font-weight: 600;
   min-width: 60px;
   text-align: right;
-  font-size: 0.9rem; /* 기존 0.8 */
+  font-size: 0.9rem;
 }
 
 /* -----------------------------
-   테이블 스타일
+   테이블
 ----------------------------- */
 .table-wrap {
   background: #ffffff;
@@ -119,7 +111,7 @@ main {
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.95rem; /* 기존 0.85 */
+  font-size: 0.95rem;
 }
 
 thead th {
@@ -146,7 +138,7 @@ button {
   padding: 7px 12px;
   background: #0d6efd;
   color: #fff;
-  font-size: 0.9rem; /* 기존 0.8 */
+  font-size: 0.9rem;
   font-weight: 500;
   border: none;
   border-radius: 5px;
@@ -165,7 +157,7 @@ footer {
   border-top: 1px solid #e5e7eb;
   padding: 12px;
   text-align: center;
-  font-size: 0.85rem; /* 기존 0.75 */
+  font-size: 0.85rem;
   color: #777;
   margin-top: 26px;
 }
@@ -174,14 +166,14 @@ footer {
    반응형 (모바일 2단)
 ----------------------------- */
 @media (max-width: 768px) {
-  html, body { font-size: 14px; } /* 기존 13px */
+  html, body { font-size: 14px; }
   .cards { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   table { font-size: 0.9rem; }
   button { width: 100%; }
 }
 
 @media (max-width: 480px) {
-  html, body { font-size: 13px; } /* 기존 12px */
+  html, body { font-size: 13px; }
   .cards { grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .card { padding: 12px; }
 }
