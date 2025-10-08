@@ -29,7 +29,7 @@ table tbody tr:hover { background-color: #f9fafb; }
 .clickable-stock { cursor: pointer; }
 .clickable-stock:hover { text-decoration: underline; }
 
-/* 모바일 높이 줄이기 */
+/* 모바일 */
 @media (max-width: 640px) {
   .table-wrapper { max-height: 420px; }
 }
