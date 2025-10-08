@@ -1,24 +1,32 @@
-/* 반응형 스타일 - responsive_styles.css */
-
-/* 1. 모바일에서 테이블이 화면을 벗어나지 않도록 래퍼에 수평 스크롤 기능 추가 */
+/* 테이블 컨테이너에 overflow-x를 적용하여 모바일에서 수평 스크롤 가능하게 함 */
 .table-wrapper {
-    /* overflow-x: auto 속성이 핵심입니다. */
-    overflow-x: auto; 
+    overflow-x: auto;
     width: 100%;
-    /* 모바일에서 보기 좋게 래퍼에도 약간의 패딩을 줄 수 있습니다. */
-    padding-bottom: 10px; 
+    margin-top: 20px;
+    
+    /* *** 전체 테이블 스크롤 기능 추가 *** */
+    /* 테이블 행 20개 분량에 해당하는 높이로 제한 (대략 20*48px) */
+    max-height: 480px; 
+    overflow-y: auto; /* 수직 스크롤 활성화 */
+    border: 1px solid #e5e7eb; /* 경계선 추가 */
+    border-radius: 8px; /* 둥근 모서리 추가 */
 }
 
-/* 2. 작은 화면(모바일)에 맞춘 테이블 스타일 */
-@media (max-width: 640px) {
-    /* 테이블 자체는 100% 폭을 사용하되, 내용이 많으면 래퍼가 스크롤되도록 함 */
-    table {
-        min-width: 600px; /* 테이블의 최소 폭을 설정하여 데이터가 찌그러지지 않게 함 */
-    }
+/* 차트 컨테이너 스타일 */
+#chart-container {
+    width: 100%;
+    height: 400px; /* 차트 기본 높이 지정 */
+    margin-top: 30px;
+    /* Tailwind 클래스를 사용하는 index.html의 스타일과 일치하도록 border 및 배경색 설정 */
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background-color: #ffffff;
+    overflow: hidden;
+}
 
-    /* 3. 테이블 헤더와 셀의 패딩을 줄여 공간 확보 */
-    th, td {
-        padding: 8px 12px;
-        font-size: 0.875rem; /* 글꼴 크기 줄이기 */
+/* 모바일 환경에서는 차트 높이를 줄여서 표시 */
+@media (max-width: 640px) {
+    #chart-container {
+        height: 300px;
     }
 }
