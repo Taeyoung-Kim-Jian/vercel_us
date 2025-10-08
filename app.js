@@ -137,11 +137,12 @@ async function renderChart(stockName) {
     
     try {
         // Supabase 'prices' 테이블에서 종목명에 해당하는 시계열 데이터 쿼리
+        // 컬럼명을 사용자님의 스키마(날짜, 시가, 고가, 저가, 종가)에 맞게 수정했습니다.
         const { data, error } = await supabaseClient
             .from('prices')
-            .select('time, open, high, low, close')
+            .select('날짜, 시가, 고가, 저가, 종가') // 수정된 컬럼명 사용
             .eq('종목명', stockName) // 클릭된 종목명으로 필터링
-            .order('time', { ascending: true }); // 시간순으로 정렬
+            .order('날짜', { ascending: true }); // 날짜순으로 정렬
 
         if (error) {
             chartContainer.innerHTML = `<p class="error text-center py-8">❌ 차트 데이터 로딩 오류: ${error.message}</p>`;
@@ -150,18 +151,18 @@ async function renderChart(stockName) {
         }
 
         if (data.length === 0) {
-            chartContainer.innerHTML = `<p class="p-8 text-center text-yellow-600">⚠️ "${stockName}"에 대한 가격 데이터(prices 테이블)가 없습니다.</p>`;
+            chartContainer.innerHTML = `<p class="p-8 text-center text-yellow-600">⚠️ "${stockName}"에 대한 가격 데이터(prices 테이블)가 없습니다. '종목명' 및 '날짜' 필드가 올바른지 확인하세요.</p>`;
             return;
         }
         
-        // Lightweight Charts는 time 필드를 UNIX timestamp (초)로 기대합니다.
-        // 데이터가 ISO 8601 문자열이라면, Date.parse()를 사용하여 초 단위로 변환합니다.
+        // Lightweight Charts 형식에 맞춰 데이터 매핑 및 시간 변환
         const chartData = data.map(item => ({
-            time: Math.floor(new Date(item.time).getTime() / 1000), // 밀리초를 초로 변환
-            open: item.open,
-            high: item.high,
-            low: item.low,
-            close: item.close
+            // '날짜' 필드를 UNIX timestamp (초)로 변환
+            time: Math.floor(new Date(item['날짜']).getTime() / 1000), 
+            open: item['시가'],
+            high: item['고가'],
+            low: item['저가'],
+            close: item['종가']
         }));
 
         if (chart) {
