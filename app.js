@@ -4,7 +4,8 @@
 // WARNING: 보안상의 이유로 실제 키를 코드에 직접 넣는 것은 권장되지 않습니다. 
 // (Vercel 환경 변수 사용을 권장합니다.) 
 const SUPABASE_URL = 'https://sssmldmhcfuodutvvcqf.supabase.co'; 
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1b2R1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIhFcISe-62kary1WABTrOnYZiIN4'; 
+// ⚠️ 여기에 Supabase 프로젝트의 'Project Settings' -> 'API' 섹션에 있는 실제 Anon Key를 붙여넣으세요.
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1b2R1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4'; // <--- 이 부분을 실제 키로 교체해야 합니다!
 
 // 💡 2. Supabase 클라이언트 초기화
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
