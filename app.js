@@ -1,24 +1,25 @@
 // ===============================
-// 0) Supabase 연결 설정
+// 0) Supabase 연결 설정 (본인 값으로 교체)
 // ===============================
-const SUPABASE_URL = 'https://sssmldmhcfuodutvvcqf.supabase.co'; // <-- 교체
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1b2R1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4'; // <-- 교체
+const SUPABASE_URL = 'https://YOUR-PROJECT.supabase.co'; // <-- 교체
+const SUPABASE_ANON_KEY = 'YOUR-ANON-KEY';               // <-- 교체
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ===============================
 // 1) Lightweight Charts 전역 보증 로더
-//    - 이미 있으면 그대로 사용
-//    - 없으면 CDN 2곳 시도 후, 로컬 파일(선택)까지 폴백
+//    - 페이지에 이미 있으면 사용
+//    - 없으면 CDN(jsDelivr→unpkg) 시도, 필요 시 로컬 폴백
+//    - CORS 이슈 방지: crossOrigin 설정 사용하지 않음
 // ===============================
 async function ensureLWGlobal() {
   if (window.LightweightCharts && typeof window.LightweightCharts.createChart === 'function') {
     return window.LightweightCharts;
   }
   const urls = [
-    'https://unpkg.com/lightweight-charts@4.3.0/dist/lightweight-charts.standalone.production.js',
-    'https://cdn.jsdelivr.net/npm/lightweight-charts@4.3.0/dist/lightweight-charts.standalone.production.js',
-    // 필요 시 프로젝트에 이 파일을 내려받아 두고 사용:
-    // './lightweight-charts.standalone.production.js',
+    'https://cdn.jsdelivr.net/npm/lightweight-charts@5.0.9/dist/lightweight-charts.standalone.production.js',
+    'https://unpkg.com/lightweight-charts@5.0.9/dist/lightweight-charts.standalone.production.js',
+    // 로컬 폴백(원하면 프로젝트에 파일 저장 후 주석 해제)
+    // '/vendor/lightweight-charts.standalone.production.js',
   ];
   for (const url of urls) {
     try {
@@ -35,18 +36,17 @@ async function ensureLWGlobal() {
 
 function loadScriptOnce(src) {
   return new Promise((resolve, reject) => {
-    const found = document.querySelector(`script[src="${src}"]`);
-    if (found) {
-      // 이미 추가됨: 로드 완료 이벤트가 지났다면 즉시, 아니면 이벤트 대기
+    const existing = document.querySelector(`script[src="${src}"]`);
+    if (existing) {
       if (window.LightweightCharts && typeof window.LightweightCharts.createChart === 'function') return resolve();
-      found.addEventListener('load', () => resolve());
-      found.addEventListener('error', () => reject(new Error(`Failed to load ${src}`)));
+      existing.addEventListener('load', () => resolve());
+      existing.addEventListener('error', () => reject(new Error(`Failed to load ${src}`)));
       return;
     }
     const s = document.createElement('script');
     s.src = src;
     s.async = true;
-    s.crossOrigin = 'anonymous';
+    // s.crossOrigin = 'anonymous'; // ❌ CORS 차단 유발 가능성 → 사용하지 않음
     s.onload = () => resolve();
     s.onerror = () => reject(new Error(`Failed to load ${src}`));
     document.head.appendChild(s);
@@ -305,7 +305,7 @@ async function loadTotalReturnData() {
   try {
     const { data, error } = await supabaseClient
       .from('total_return')
-      .select('종목명, 종목코드, 시작가격, 현재가격, 수익률')
+      .select('종목명, 종목코드, 시작가격, 현재가격, 수익률')  // 종목코드 포함 권장
       .order('수익률', { ascending: false });
 
     if (error) {
