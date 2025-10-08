@@ -40,7 +40,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // === Top5 카드 ===
+  // === Top5 카드 ====
   function renderTop5Card(rows) {
     const top5 = rows.slice(0, 5);
     if (!top5Card) return;
