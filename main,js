@@ -1,0 +1,82 @@
+// ============================================
+// 💾 Supabase 연결 설정
+// ============================================
+const SUPABASE_URL = "https://YOUR_PROJECT_ID.supabase.co"; // 👉 여기에 실제 Supabase URL 입력
+const SUPABASE_KEY = "YOUR_ANON_KEY"; // 👉 여기에 실제 anon key 입력
+
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ============================================
+// 📊 전체 수익률 데이터 로드
+// ============================================
+const tbody = document.getElementById('total-table-body');
+const loadMoreBtn = document.getElementById('loadMoreBtn');
+
+let allData = [];
+let showing = 5; // 기본 5개만 보여줌
+
+// --------------------------------------------
+// ✅ 데이터 가져오기
+// --------------------------------------------
+async function loadTotalReturn() {
+  tbody.innerHTML = `<tr><td colspan="4">⏳ 데이터를 불러오는 중...</td></tr>`;
+
+  const { data, error } = await supabase
+    .from('total_return')
+    .select('*')
+    .order('수익률', { ascending: false });
+
+  if (error) {
+    console.error(error);
+    tbody.innerHTML = `<tr><td colspan="4">❌ 데이터 불러오기 실패</td></tr>`;
+    return;
+  }
+
+  allData = data || [];
+  renderTable();
+}
+
+// --------------------------------------------
+// ✅ 테이블 렌더링
+// --------------------------------------------
+function renderTable() {
+  tbody.innerHTML = '';
+
+  if (allData.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4">데이터가 없습니다.</td></tr>`;
+    return;
+  }
+
+  allData.slice(0, showing).forEach(row => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${row.종목명 || '-'}</td>
+      <td>${row.매수가 ? row.매수가.toLocaleString() : '-'}</td>
+      <td>${row.현재가 ? row.현재가.toLocaleString() : '-'}</td>
+      <td style="color:${row.수익률 >= 0 ? '#d32f2f' : '#1976d2'};">
+        ${row.수익률 >= 0 ? '▲' : '▼'}${row.수익률?.toFixed(2)}%
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  if (allData.length <= showing) {
+    loadMoreBtn.style.display = 'none';
+  } else {
+    loadMoreBtn.style.display = 'inline-block';
+  }
+}
+
+// --------------------------------------------
+// ✅ 더보기 버튼
+// --------------------------------------------
+loadMoreBtn.addEventListener('click', () => {
+  showing = showing === 5 ? allData.length : 5;
+  loadMoreBtn.textContent = showing === 5 ? '더보기' : '접기';
+  renderTable();
+});
+
+// --------------------------------------------
+// ✅ 실행
+// --------------------------------------------
+loadTotalReturn();
