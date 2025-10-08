@@ -3,32 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ECONews - 오늘의 시장 요약</title>
-
-  <!-- ✅ 절대경로로 수정 -->
+  <title>ECONews - 수익률 카드</title>
   <link rel="stylesheet" href="/style.css" />
-
-  <!-- ✅ 로드 확인용 표시 (CSS 로드 확인) -->
-  <style>
-    body.loaded-check::before {
-      content: "✅ style.css loaded";
-      position: fixed;
-      top: 5px;
-      right: 10px;
-      font-size: 12px;
-      background: #03c75a;
-      color: #fff;
-      padding: 3px 6px;
-      border-radius: 4px;
-      z-index: 9999;
-      opacity: 0.8;
-    }
-  </style>
 </head>
 
 <body>
   <!-- ===============================
-       🧭 HEADER
+       🧭 HEADER (검색창 제거됨)
   ================================ -->
   <header class="header">
     <div class="container header-inner">
@@ -37,12 +18,8 @@
         <a href="#">경제</a>
         <a href="#">증시</a>
         <a href="#">해외</a>
-        <a href="#">뉴스</a>
         <a href="#">분석</a>
       </nav>
-      <div class="search-box">
-        <input type="text" placeholder="검색어를 입력하세요" />
-      </div>
       <button class="login-btn">로그인</button>
     </div>
   </header>
@@ -61,53 +38,34 @@
   </div>
 
   <!-- ===============================
-       📰 MAIN CONTENT
+       📊 수익률 카드 섹션
   ================================ -->
   <main>
-    <div class="container main-content">
-      <div class="left-column">
-        <section id="headline-news">
-          <h2>📰 주요 뉴스</h2>
-          <div class="news-list">
-            <article class="news-item">
-              <!-- ✅ 절대경로 수정 -->
-              <img src="/news1.jpg" alt="news1" />
-              <div class="news-text">
-                <h3>금리 동결 소식에 코스피 상승 전환</h3>
-                <p>한국은행이 기준금리를 동결하면서 투자심리가 회복되고 있다...</p>
-              </div>
-            </article>
-
-            <article class="news-item">
-              <img src="/news2.jpg" alt="news2" />
-              <div class="news-text">
-                <h3>미국 CPI 발표 앞두고 나스닥 관망세</h3>
-                <p>인플레이션 지표 발표를 앞두고 기술주 중심의 나스닥은 혼조세...</p>
-              </div>
-            </article>
-          </div>
-          <button class="more-btn">더보기</button>
-        </section>
+    <div class="container card-section">
+      <h2>📈 수익률 카드</h2>
+      <div class="card-grid">
+        <div class="card">
+          <h3>수익률 1</h3>
+          <p>+3.25%</p>
+        </div>
+        <div class="card">
+          <h3>수익률 2</h3>
+          <p>+5.12%</p>
+        </div>
+        <div class="card">
+          <h3>수익률 3</h3>
+          <p>-1.84%</p>
+        </div>
+        <div class="card">
+          <h3>수익률 4</h3>
+          <p>+2.47%</p>
+        </div>
       </div>
-
-      <aside class="right-column">
-        <section id="charts">
-          <h2>📊 ETF / 종목 차트</h2>
-          <div class="chart-card">
-            <canvas id="chart1"></canvas>
-            <p>TIGER KOSDAQ150</p>
-          </div>
-          <div class="chart-card">
-            <canvas id="chart2"></canvas>
-            <p>KODEX 인버스2X</p>
-          </div>
-        </section>
-      </aside>
     </div>
   </main>
 
   <!-- ===============================
-       💹 ECONOMIC DATA
+       💹 경제 데이터 섹션
   ================================ -->
   <section class="data-section">
     <div class="container">
@@ -153,17 +111,5 @@
       <p>© 2025 ECONews | 데이터 제공: Supabase | 문의: info@econews.kr</p>
     </div>
   </footer>
-
-  <!-- ✅ 절대경로로 JS 불러오기 -->
-  <script defer src="/main.js"></script>
-  <script defer src="/chart.js"></script>
-
-  <!-- ✅ CSS 로드 후 표시 -->
-  <script>
-    window.addEventListener("load", () => {
-      document.body.classList.add("loaded-check");
-    });
-  </script>
 </body>
 </html>
-
