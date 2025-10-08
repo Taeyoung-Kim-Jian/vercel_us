@@ -72,7 +72,7 @@ function renderSummaryCards(fullData) {
     const bottomFive = fullData.slice(-5).reverse(); // 최저 5개를 오름차순으로 보여주기 위해 reverse
 
     let html = `
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-2 gap-4 sm:gap-6">
             <!-- 최고 수익률 5 -->
             <div class="bg-green-50 p-6 rounded-xl shadow-lg border border-green-200">
                 <h3 class="text-xl font-bold text-green-700 mb-4 flex items-center">
