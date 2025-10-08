@@ -1,284 +1,65 @@
 /* =========================================
-   🌐 기본 설정
+   📑 테이블 섹션
 ========================================= */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  background-color: #fafafa;
-  font-family: "Noto Sans KR", sans-serif;
-  color: #333;
-  line-height: 1.5;
-  overflow-x: hidden;
-}
-
-/* =========================================
-   🧭 컨테이너 & 중앙 정렬
-========================================= */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-  width: 100%;
-}
-
-/* =========================================
-   🧱 Header
-========================================= */
-.header {
-  background: #fff;
-  border-bottom: 1px solid #ddd;
-  position: sticky;
-  top: 0;
-  z-index: 999;
-}
-
-.header-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 20px;
-}
-
-.logo {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: #03c75a;
-}
-
-.nav a {
-  margin: 0 10px;
-  text-decoration: none;
-  color: #333;
-  font-weight: 500;
-  transition: color 0.2s ease;
-}
-
-.nav a:hover {
-  color: #03c75a;
-}
-
-.login-btn {
-  background: #03c75a;
-  color: #fff;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.login-btn:hover {
-  background: #02a84d;
-}
-
-/* =========================================
-   📈 상단 실시간 지수 바
-========================================= */
-.top-bar {
-  background: #f3f3f3;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.top-bar-inner {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-  padding: 10px 20px;
-  font-size: 0.9rem;
-  white-space: nowrap;
-  overflow-x: auto;
-}
-
-.ticker span.up {
-  color: #d32f2f;
-  font-weight: 600;
-}
-
-.ticker span.down {
-  color: #1976d2;
-  font-weight: 600;
-}
-
-/* =========================================
-   📊 수익률 카드 섹션
-========================================= */
-.card-section {
+.table-section {
   margin-top: 50px;
   text-align: center;
 }
 
-.card-section h2 {
-  margin-bottom: 25px;
-  font-size: 1.6rem;
-  color: #222;
-}
-
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 25px;
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 0 10px;
-}
-
-.card {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  padding: 30px 20px;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.12);
-}
-
-.card h3 {
-  font-size: 1.2rem;
-  margin-bottom: 10px;
-  color: #03c75a;
-}
-
-.card p {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #333;
-}
-
-/* =========================================
-   💹 경제 데이터 섹션
-========================================= */
-.data-section {
-  background: #fff;
-  margin-top: 60px;
-  padding: 50px 0;
-  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.data-section h2 {
-  text-align: center;
-  margin-bottom: 20px;
+.table-section h2 {
+  margin-bottom: 15px;
   font-size: 1.4rem;
 }
 
-.tabs {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 25px;
-}
-
-.tab {
-  padding: 8px 16px;
-  border: none;
-  background: #eee;
-  cursor: pointer;
-  border-radius: 6px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.tab:hover {
-  background: #ddd;
-}
-
-.tab.active {
-  background: #03c75a;
-  color: #fff;
-}
-
-.tab-content {
-  display: none;
+.data-table {
+  width: 100%;
   max-width: 800px;
   margin: 0 auto;
-}
-
-.tab-content.active {
-  display: block;
-}
-
-.tab-content table {
-  width: 100%;
   border-collapse: collapse;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-.tab-content th,
-.tab-content td {
+.data-table th {
+  background: #03c75a;
+  color: #fff;
   padding: 12px;
-  border-bottom: 1px solid #eee;
-  text-align: center;
-}
-
-.tab-content th {
-  background: #f9f9f9;
   font-weight: 600;
+  font-size: 0.95rem;
 }
 
-/* =========================================
-   ⚙️ Footer
-========================================= */
-footer {
-  background: #f5f5f5;
-  text-align: center;
-  padding: 25px;
-  margin-top: 40px;
-  font-size: 0.9rem;
-  color: #777;
-  border-top: 1px solid #e0e0e0;
+.data-table td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  font-size: 0.95rem;
 }
 
-/* =========================================
-   📱 반응형 (모바일 대응)
-========================================= */
-@media (max-width: 1024px) {
-  .card-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.data-table tr:nth-child(even) {
+  background: #f9f9f9;
 }
 
-@media (max-width: 768px) {
-  .header-inner {
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-
-  .nav a {
-    font-size: 0.9rem;
-  }
-
-  .top-bar-inner {
-    justify-content: flex-start;
-    font-size: 0.85rem;
-  }
-
-  .card-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .card {
-    padding: 20px 10px;
-  }
-
-  .tab-content table th,
-  .tab-content table td {
-    font-size: 0.85rem;
-    padding: 8px;
-  }
+.hidden {
+  display: none;
 }
 
-@media (max-width: 480px) {
-  .card-grid {
-    grid-template-columns: 1fr;
-  }
+.hidden.show {
+  display: table-row;
+}
+
+/* 더보기 버튼 */
+.more-btn {
+  margin-top: 15px;
+  padding: 8px 16px;
+  border: none;
+  background: #03c75a;
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.more-btn:hover {
+  background: #02a84d;
 }
