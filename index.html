@@ -10,7 +10,9 @@
 </head>
 
 <body>
-  <!-- 🧭 ① 상단 헤더 -->
+  <!-- ===============================
+       🧭 HEADER
+  ================================ -->
   <header class="header">
     <div class="container header-inner">
       <div class="logo">ECONews</div>
@@ -28,67 +30,79 @@
     </div>
   </header>
 
-  <!-- 📈 ② 실시간 요약 바 -->
+  <!-- ===============================
+       📈 TOP BAR (시장 요약)
+  ================================ -->
   <div class="top-bar">
-    <div class="ticker"><span>KOSPI</span> 2,805.42 <span class="up">▲0.45%</span></div>
-    <div class="ticker"><span>KOSDAQ</span> 890.21 <span class="down">▼0.22%</span></div>
-    <div class="ticker"><span>USD/KRW</span> 1,372.4 <span class="down">▼3.1</span></div>
-    <div class="ticker"><span>GOLD</span> 2,315.6 <span class="up">▲0.23%</span></div>
-    <div class="ticker"><span>WTI</span> 77.32 <span class="up">▲0.18%</span></div>
+    <div class="container top-bar-inner">
+      <div class="ticker"><span>KOSPI</span> 2,805.42 <span class="up">▲0.45%</span></div>
+      <div class="ticker"><span>KOSDAQ</span> 890.21 <span class="down">▼0.22%</span></div>
+      <div class="ticker"><span>USD/KRW</span> 1,372.4 <span class="down">▼3.1</span></div>
+      <div class="ticker"><span>GOLD</span> 2,315.6 <span class="up">▲0.23%</span></div>
+      <div class="ticker"><span>WTI</span> 77.32 <span class="up">▲0.18%</span></div>
+    </div>
   </div>
 
-  <!-- 📰 ③ 메인 콘텐츠 -->
-  <main class="container main-content">
-    <div class="left-column">
-      <!-- 뉴스 섹션 -->
-      <section id="headline-news">
-        <h2>📰 주요 뉴스</h2>
-        <div class="news-list">
-          <article class="news-item">
-            <img src="images/news1.jpg" alt="news" />
-            <div class="news-text">
-              <h3>금리 동결 소식에 코스피 상승 전환</h3>
-              <p>한국은행이 기준금리를 동결하면서 투자심리가 회복되고 있다...</p>
-            </div>
-          </article>
-          <article class="news-item">
-            <img src="images/news2.jpg" alt="news" />
-            <div class="news-text">
-              <h3>미국 CPI 발표 앞두고 나스닥 관망세</h3>
-              <p>인플레이션 지표 발표를 앞두고 기술주 중심의 나스닥은 혼조세...</p>
-            </div>
-          </article>
-        </div>
-        <button class="more-btn">더보기</button>
-      </section>
-    </div>
+  <!-- ===============================
+       📰 MAIN CONTENT (뉴스 + 차트)
+  ================================ -->
+  <main>
+    <div class="container main-content">
+      <!-- LEFT: 뉴스 -->
+      <div class="left-column">
+        <section id="headline-news">
+          <h2>📰 주요 뉴스</h2>
+          <div class="news-list">
+            <article class="news-item">
+              <img src="images/news1.jpg" alt="news" />
+              <div class="news-text">
+                <h3>금리 동결 소식에 코스피 상승 전환</h3>
+                <p>한국은행이 기준금리를 동결하면서 투자심리가 회복되고 있다...</p>
+              </div>
+            </article>
+            <article class="news-item">
+              <img src="images/news2.jpg" alt="news" />
+              <div class="news-text">
+                <h3>미국 CPI 발표 앞두고 나스닥 관망세</h3>
+                <p>인플레이션 지표 발표를 앞두고 기술주 중심의 나스닥은 혼조세...</p>
+              </div>
+            </article>
+          </div>
+          <button class="more-btn">더보기</button>
+        </section>
+      </div>
 
-    <aside class="right-column">
-      <!-- 차트 섹션 -->
-      <section id="charts">
-        <h2>📊 ETF / 종목 차트</h2>
-        <div class="chart-card">
-          <canvas id="chart1"></canvas>
-          <p>TIGER KOSDAQ150</p>
-        </div>
-        <div class="chart-card">
-          <canvas id="chart2"></canvas>
-          <p>KODEX 인버스2X</p>
-        </div>
-      </section>
-    </aside>
+      <!-- RIGHT: 차트 -->
+      <aside class="right-column">
+        <section id="charts">
+          <h2>📊 ETF / 종목 차트</h2>
+          <div class="chart-card">
+            <canvas id="chart1"></canvas>
+            <p>TIGER KOSDAQ150</p>
+          </div>
+          <div class="chart-card">
+            <canvas id="chart2"></canvas>
+            <p>KODEX 인버스2X</p>
+          </div>
+        </section>
+      </aside>
+    </div>
   </main>
 
-  <!-- 💹 ④ 경제지표 / 환율 / 원자재 -->
+  <!-- ===============================
+       💹 경제 데이터 섹션
+  ================================ -->
   <section class="data-section">
     <div class="container">
       <h2>💹 경제 데이터</h2>
+
       <div class="tabs">
         <button class="tab active" data-target="economy">경제지표</button>
         <button class="tab" data-target="exchange">환율</button>
         <button class="tab" data-target="commodity">원자재</button>
       </div>
 
+      <!-- 경제지표 -->
       <div class="tab-content active" id="economy">
         <table>
           <tr><th>지표</th><th>현재</th><th>변동</th></tr>
@@ -97,6 +111,7 @@
         </table>
       </div>
 
+      <!-- 환율 -->
       <div class="tab-content" id="exchange">
         <table>
           <tr><th>통화</th><th>환율</th><th>변동</th></tr>
@@ -105,6 +120,7 @@
         </table>
       </div>
 
+      <!-- 원자재 -->
       <div class="tab-content" id="commodity">
         <table>
           <tr><th>원자재</th><th>가격</th><th>변동</th></tr>
@@ -115,7 +131,9 @@
     </div>
   </section>
 
-  <!-- ⚙️ ⑤ Footer -->
+  <!-- ===============================
+       ⚙️ FOOTER
+  ================================ -->
   <footer>
     <div class="container">
       <p>© 2025 ECONews | 데이터 제공: Supabase | 문의: info@econews.kr</p>
