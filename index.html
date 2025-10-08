@@ -1,273 +1,168 @@
-/* =========================================
-   📌 기본 설정
-========================================= */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ECONews - 오늘의 시장 요약</title>
 
-body {
-  font-family: "Noto Sans KR", sans-serif;
-  background-color: #fafafa;
-  color: #333;
-  line-height: 1.5;
-}
+  <!-- ✅ 절대경로로 수정 -->
+  <link rel="stylesheet" href="/style.css" />
 
-/* =========================================
-   🧭 컨테이너 & 공통 정렬
-========================================= */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;          /* 화면 중앙 정렬 */
-  padding: 0 20px;         /* 좌우 여백 */
-  box-sizing: border-box;
-}
+  <!-- ✅ 로드 확인용 표시 (CSS 로드 확인) -->
+  <style>
+    body.loaded-check::before {
+      content: "✅ style.css loaded";
+      position: fixed;
+      top: 5px;
+      right: 10px;
+      font-size: 12px;
+      background: #03c75a;
+      color: #fff;
+      padding: 3px 6px;
+      border-radius: 4px;
+      z-index: 9999;
+      opacity: 0.8;
+    }
+  </style>
+</head>
 
-/* =========================================
-   🧱 Header
-========================================= */
-.header {
-  background: #fff;
-  border-bottom: 1px solid #ddd;
-  position: sticky;
-  top: 0;
-  z-index: 999;
-}
-.header-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 20px;
-}
-.logo {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: #03c75a;
-}
-.nav a {
-  margin: 0 10px;
-  text-decoration: none;
-  color: #333;
-  font-weight: 500;
-}
-.nav a:hover {
-  color: #03c75a;
-}
-.search-box input {
-  padding: 6px 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-}
-.login-btn {
-  background: #03c75a;
-  color: #fff;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.login-btn:hover {
-  background: #02a84d;
-}
+<body>
+  <!-- ===============================
+       🧭 HEADER
+  ================================ -->
+  <header class="header">
+    <div class="container header-inner">
+      <div class="logo">ECONews</div>
+      <nav class="nav">
+        <a href="#">경제</a>
+        <a href="#">증시</a>
+        <a href="#">해외</a>
+        <a href="#">뉴스</a>
+        <a href="#">분석</a>
+      </nav>
+      <div class="search-box">
+        <input type="text" placeholder="검색어를 입력하세요" />
+      </div>
+      <button class="login-btn">로그인</button>
+    </div>
+  </header>
 
-/* =========================================
-   📈 상단 실시간 지수 바
-========================================= */
-.top-bar {
-  background: #f3f3f3;
-  border-bottom: 1px solid #e0e0e0;
-}
-.top-bar-inner {
-  display: flex;
-  gap: 20px;
-  padding: 8px 20px;
-  overflow-x: auto;
-  font-size: 0.9rem;
-  white-space: nowrap;
-  justify-content: center;   /* 가운데 정렬 느낌 강화 */
-}
-.ticker span.up {
-  color: #d32f2f;
-  font-weight: 600;
-}
-.ticker span.down {
-  color: #1976d2;
-  font-weight: 600;
-}
+  <!-- ===============================
+       📈 TOP BAR
+  ================================ -->
+  <div class="top-bar">
+    <div class="container top-bar-inner">
+      <div class="ticker"><span>KOSPI</span> 2,805.42 <span class="up">▲0.45%</span></div>
+      <div class="ticker"><span>KOSDAQ</span> 890.21 <span class="down">▼0.22%</span></div>
+      <div class="ticker"><span>USD/KRW</span> 1,372.4 <span class="down">▼3.1</span></div>
+      <div class="ticker"><span>GOLD</span> 2,315.6 <span class="up">▲0.23%</span></div>
+      <div class="ticker"><span>WTI</span> 77.32 <span class="up">▲0.18%</span></div>
+    </div>
+  </div>
 
-/* =========================================
-   📰 메인 콘텐츠 (뉴스 + 차트)
-========================================= */
-.main-content {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 20px;
-  max-width: 1200px;
-  margin: 0 auto;            /* 중앙 정렬 */
-  padding: 20px;
-}
-.left-column h2,
-.right-column h2 {
-  margin-bottom: 10px;
-}
+  <!-- ===============================
+       📰 MAIN CONTENT
+  ================================ -->
+  <main>
+    <div class="container main-content">
+      <div class="left-column">
+        <section id="headline-news">
+          <h2>📰 주요 뉴스</h2>
+          <div class="news-list">
+            <article class="news-item">
+              <!-- ✅ 절대경로 수정 -->
+              <img src="/news1.jpg" alt="news1" />
+              <div class="news-text">
+                <h3>금리 동결 소식에 코스피 상승 전환</h3>
+                <p>한국은행이 기준금리를 동결하면서 투자심리가 회복되고 있다...</p>
+              </div>
+            </article>
 
-/* 뉴스 섹션 */
-.news-item {
-  display: flex;
-  gap: 12px;
-  background: #fff;
-  border-radius: 8px;
-  padding: 10px;
-  margin-bottom: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  transition: transform 0.2s ease;
-}
-.news-item:hover {
-  transform: scale(1.01);
-}
-.news-item img {
-  width: 100px;
-  height: 70px;
-  object-fit: cover;
-  border-radius: 6px;
-}
-.news-text h3 {
-  font-size: 1rem;
-  margin-bottom: 4px;
-}
-.news-text p {
-  font-size: 0.9rem;
-  color: #666;
-}
-.more-btn {
-  display: block;
-  width: 100%;
-  padding: 10px;
-  background: #03c75a;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-top: 8px;
-}
-.more-btn:hover {
-  background: #02a84d;
-}
+            <article class="news-item">
+              <img src="/news2.jpg" alt="news2" />
+              <div class="news-text">
+                <h3>미국 CPI 발표 앞두고 나스닥 관망세</h3>
+                <p>인플레이션 지표 발표를 앞두고 기술주 중심의 나스닥은 혼조세...</p>
+              </div>
+            </article>
+          </div>
+          <button class="more-btn">더보기</button>
+        </section>
+      </div>
 
-/* 차트 섹션 */
-.chart-card {
-  background: #fff;
-  border-radius: 8px;
-  padding: 10px;
-  margin-bottom: 15px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  text-align: center;
-}
-.chart-card p {
-  margin-top: 8px;
-  font-weight: 500;
-  color: #444;
-}
+      <aside class="right-column">
+        <section id="charts">
+          <h2>📊 ETF / 종목 차트</h2>
+          <div class="chart-card">
+            <canvas id="chart1"></canvas>
+            <p>TIGER KOSDAQ150</p>
+          </div>
+          <div class="chart-card">
+            <canvas id="chart2"></canvas>
+            <p>KODEX 인버스2X</p>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
 
-/* =========================================
-   💹 경제 데이터 섹션
-========================================= */
-.data-section {
-  background: #fff;
-  margin-top: 30px;
-  padding: 30px 0;
-  box-shadow: 0 -1px 3px rgba(0,0,0,0.05);
-}
-.data-section h2 {
-  text-align: center;
-  margin-bottom: 20px;
-}
-.tabs {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-.tab {
-  padding: 8px 16px;
-  border: none;
-  background: #eee;
-  cursor: pointer;
-  border-radius: 6px;
-  font-weight: 500;
-}
-.tab.active {
-  background: #03c75a;
-  color: #fff;
-}
-.tab-content {
-  display: none;
-  max-width: 800px;
-  margin: 0 auto;
-}
-.tab-content.active {
-  display: block;
-}
-.tab-content table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.tab-content th,
-.tab-content td {
-  padding: 10px;
-  border-bottom: 1px solid #eee;
-  text-align: center;
-}
-.tab-content th {
-  background: #f9f9f9;
-  font-weight: 600;
-}
+  <!-- ===============================
+       💹 ECONOMIC DATA
+  ================================ -->
+  <section class="data-section">
+    <div class="container">
+      <h2>💹 경제 데이터</h2>
 
-/* =========================================
-   ⚙️ Footer
-========================================= */
-footer {
-  background: #f5f5f5;
-  text-align: center;
-  padding: 20px;
-  margin-top: 40px;
-  font-size: 0.9rem;
-  color: #777;
-  border-top: 1px solid #e0e0e0;
-}
+      <div class="tabs">
+        <button class="tab active" data-target="economy">경제지표</button>
+        <button class="tab" data-target="exchange">환율</button>
+        <button class="tab" data-target="commodity">원자재</button>
+      </div>
 
-/* =========================================
-   📱 반응형 (모바일 대응)
-========================================= */
-@media (max-width: 768px) {
-  .main-content {
-    grid-template-columns: 1fr;
-    padding: 10px;
-  }
+      <div class="tab-content active" id="economy">
+        <table>
+          <tr><th>지표</th><th>현재</th><th>변동</th></tr>
+          <tr><td>한국 기준금리</td><td>3.50%</td><td>동결</td></tr>
+          <tr><td>미국 CPI</td><td>3.4%</td><td>▲0.2</td></tr>
+        </table>
+      </div>
 
-  .header-inner {
-    flex-wrap: wrap;
-    gap: 10px;
-  }
+      <div class="tab-content" id="exchange">
+        <table>
+          <tr><th>통화</th><th>환율</th><th>변동</th></tr>
+          <tr><td>USD/KRW</td><td>1,372.4</td><td>▼3.1</td></tr>
+          <tr><td>JPY/KRW</td><td>9.34</td><td>▲0.02</td></tr>
+        </table>
+      </div>
 
-  .top-bar-inner {
-    justify-content: flex-start;
-    padding: 8px 10px;
-  }
+      <div class="tab-content" id="commodity">
+        <table>
+          <tr><th>원자재</th><th>가격</th><th>변동</th></tr>
+          <tr><td>WTI</td><td>$77.32</td><td>▲0.18%</td></tr>
+          <tr><td>Gold</td><td>$2,315.6</td><td>▲0.23%</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
 
-  .news-item img {
-    width: 90px;
-    height: 60px;
-  }
+  <!-- ===============================
+       ⚙️ FOOTER
+  ================================ -->
+  <footer>
+    <div class="container">
+      <p>© 2025 ECONews | 데이터 제공: Supabase | 문의: info@econews.kr</p>
+    </div>
+  </footer>
 
-  .chart-card {
-    padding: 8px;
-  }
+  <!-- ✅ 절대경로로 JS 불러오기 -->
+  <script defer src="/main.js"></script>
+  <script defer src="/chart.js"></script>
 
-  .tab-content table th,
-  .tab-content table td {
-    font-size: 0.85rem;
-    padding: 6px;
-  }
-}
+  <!-- ✅ CSS 로드 후 표시 -->
+  <script>
+    window.addEventListener("load", () => {
+      document.body.classList.add("loaded-check");
+    });
+  </script>
+</body>
+</html>
