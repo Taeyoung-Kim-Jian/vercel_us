@@ -1,11 +1,8 @@
-// app.js  (Lightweight Charts ESM import 버전)
-
 // ===============================
 // 0) Supabase 연결 설정
 // ===============================
-const SUPABASE_URL = 'https://sssmldmhcfuodutvvcqf.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1b2R1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4';
-// HTML에 @supabase/supabase-js@2 스크립트가 로드되어 있어야 함
+const SUPABASE_URL = 'https://sssmldmhcfuodutvvcqf.supabase.co'; // <-- 교체
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1b2R1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4'; // <-- 교체
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ===============================
@@ -13,9 +10,17 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ===============================
 async function getLW() {
   if (window.__LW_MODULE__) return window.__LW_MODULE__;
-  const mod = await import('https://unpkg.com/lightweight-charts@4.3.0/dist/lightweight-charts.esm.production.js');
-  window.__LW_MODULE__ = mod;
-  return mod;
+  const unpkg = 'https://unpkg.com/lightweight-charts@4.3.0/dist/lightweight-charts.esm.production.js';
+  const jsdelivr = 'https://cdn.jsdelivr.net/npm/lightweight-charts@4.3.0/dist/lightweight-charts.esm.production.js';
+  try {
+    const mod = await import(unpkg);
+    window.__LW_MODULE__ = mod;
+    return mod;
+  } catch (e1) {
+    const mod = await import(jsdelivr);
+    window.__LW_MODULE__ = mod;
+    return mod;
+  }
 }
 
 // ===============================
@@ -164,12 +169,12 @@ async function renderChartByRows(prices, titleText = '') {
     console.error('Unexpected chart API:', stockChartInstance);
     container.innerHTML = `<p class="error text-center py-8">
       🚨 차트 API 오류: addCandlestickSeries가 없습니다.
-      <br/>HTML에서 lightweight-charts 관련 <code>&lt;script&gt;</code>를 모두 제거했는지 확인하세요.
+      <br/>HTML에 lightweight-charts 관련 &lt;script&gt;가 남아있지 않은지 확인하세요.
     </p>`;
     return;
   }
 
-  // OHLC 여부 판단
+  // OHLC 여부 판단 → 시리즈 생성
   const hasOHLC = ['open', 'high', 'low', 'close'].every(k => k in prices[0]);
   stockChartSeries = hasOHLC
     ? stockChartInstance.addCandlestickSeries({
@@ -190,7 +195,7 @@ async function renderChartByRows(prices, titleText = '') {
 }
 
 // ===============================
-// 7) 종목 클릭 → 가격 로딩 → 차트 호출
+// 7) 종목 클릭 → 가격 로딩 → 차트
 // ===============================
 async function onPickStock(row) {
   const name = row['종목명'] || '';
@@ -251,7 +256,7 @@ async function onPickStock(row) {
 }
 
 // ===============================
-// 8) 데이터 로드 & 테이블 렌더
+// 8) total_return 로드 & 표 렌더
 // ===============================
 async function loadTotalReturnData() {
   const dataContainer = document.getElementById('data-container');
