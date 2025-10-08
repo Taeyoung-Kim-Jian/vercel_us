@@ -1,70 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ECONews - 오늘의 시장 요약</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script defer src="js/main.js"></script>
+  <script defer src="js/chart.js"></script>
+</head>
+
 <body>
-  <!-- ① Header -->
-  <header>
-    <div class="logo">ECONews</div>
-    <nav>
-      <a href="#">경제</a>
-      <a href="#">증시</a>
-      <a href="#">해외</a>
-      <a href="#">뉴스</a>
-    </nav>
-    <div class="search-box">
-      <input type="text" placeholder="검색어를 입력하세요" />
+  <!-- 🧭 ① 상단 헤더 -->
+  <header class="header">
+    <div class="container header-inner">
+      <div class="logo">ECONews</div>
+      <nav class="nav">
+        <a href="#">경제</a>
+        <a href="#">증시</a>
+        <a href="#">해외</a>
+        <a href="#">뉴스</a>
+        <a href="#">분석</a>
+      </nav>
+      <div class="search-box">
+        <input type="text" placeholder="검색어를 입력하세요" />
+      </div>
+      <button class="login-btn">로그인</button>
     </div>
-    <button class="login-btn">로그인</button>
   </header>
 
-  <!-- ② Market Overview -->
-  <section id="market-overview">
-    <h2>📊 오늘의 시장</h2>
-    <div class="market-cards">
-      <!-- 각 카드 -->
-      <div class="market-card">
-        <h3>KOSPI</h3>
-        <p>2,800.45 <span class="up">+0.35%</span></p>
-      </div>
-      <div class="market-card">
-        <h3>NASDAQ</h3>
-        <p>13,100.22 <span class="down">-0.12%</span></p>
-      </div>
-      <!-- 나머지 지수들 -->
-    </div>
-  </section>
+  <!-- 📈 ② 실시간 요약 바 -->
+  <div class="top-bar">
+    <div class="ticker"><span>KOSPI</span> 2,805.42 <span class="up">▲0.45%</span></div>
+    <div class="ticker"><span>KOSDAQ</span> 890.21 <span class="down">▼0.22%</span></div>
+    <div class="ticker"><span>USD/KRW</span> 1,372.4 <span class="down">▼3.1</span></div>
+    <div class="ticker"><span>GOLD</span> 2,315.6 <span class="up">▲0.23%</span></div>
+    <div class="ticker"><span>WTI</span> 77.32 <span class="up">▲0.18%</span></div>
+  </div>
 
-  <!-- ③ Headline News -->
-  <section id="headline-news">
-    <h2>📰 주요 뉴스</h2>
-    <div class="news-list">
-      <article class="news-item">
-        <img src="/images/news1.jpg" alt="news">
-        <div class="news-content">
-          <h3>금리 동결 소식에 코스피 상승 전환</h3>
-          <p>한국은행이 기준금리를 동결하면서 투자심리가 회복되고 있다...</p>
+  <!-- 📰 ③ 메인 콘텐츠 -->
+  <main class="container main-content">
+    <div class="left-column">
+      <!-- 뉴스 섹션 -->
+      <section id="headline-news">
+        <h2>📰 주요 뉴스</h2>
+        <div class="news-list">
+          <article class="news-item">
+            <img src="images/news1.jpg" alt="news" />
+            <div class="news-text">
+              <h3>금리 동결 소식에 코스피 상승 전환</h3>
+              <p>한국은행이 기준금리를 동결하면서 투자심리가 회복되고 있다...</p>
+            </div>
+          </article>
+          <article class="news-item">
+            <img src="images/news2.jpg" alt="news" />
+            <div class="news-text">
+              <h3>미국 CPI 발표 앞두고 나스닥 관망세</h3>
+              <p>인플레이션 지표 발표를 앞두고 기술주 중심의 나스닥은 혼조세...</p>
+            </div>
+          </article>
         </div>
-      </article>
-      <!-- 반복 -->
+        <button class="more-btn">더보기</button>
+      </section>
     </div>
-    <button class="more-btn">더보기</button>
+
+    <aside class="right-column">
+      <!-- 차트 섹션 -->
+      <section id="charts">
+        <h2>📊 ETF / 종목 차트</h2>
+        <div class="chart-card">
+          <canvas id="chart1"></canvas>
+          <p>TIGER KOSDAQ150</p>
+        </div>
+        <div class="chart-card">
+          <canvas id="chart2"></canvas>
+          <p>KODEX 인버스2X</p>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <!-- 💹 ④ 경제지표 / 환율 / 원자재 -->
+  <section class="data-section">
+    <div class="container">
+      <h2>💹 경제 데이터</h2>
+      <div class="tabs">
+        <button class="tab active" data-target="economy">경제지표</button>
+        <button class="tab" data-target="exchange">환율</button>
+        <button class="tab" data-target="commodity">원자재</button>
+      </div>
+
+      <div class="tab-content active" id="economy">
+        <table>
+          <tr><th>지표</th><th>현재</th><th>변동</th></tr>
+          <tr><td>한국 기준금리</td><td>3.50%</td><td>동결</td></tr>
+          <tr><td>미국 CPI</td><td>3.4%</td><td>▲0.2</td></tr>
+        </table>
+      </div>
+
+      <div class="tab-content" id="exchange">
+        <table>
+          <tr><th>통화</th><th>환율</th><th>변동</th></tr>
+          <tr><td>USD/KRW</td><td>1,372.4</td><td>▼3.1</td></tr>
+          <tr><td>JPY/KRW</td><td>9.34</td><td>▲0.02</td></tr>
+        </table>
+      </div>
+
+      <div class="tab-content" id="commodity">
+        <table>
+          <tr><th>원자재</th><th>가격</th><th>변동</th></tr>
+          <tr><td>WTI</td><td>$77.32</td><td>▲0.18%</td></tr>
+          <tr><td>Gold</td><td>$2,315.6</td><td>▲0.23%</td></tr>
+        </table>
+      </div>
+    </div>
   </section>
 
-  <!-- ④ Charts & Stocks -->
-  <section id="charts">
-    <h2>📈 ETF / 종목 차트</h2>
-    <div class="chart-grid">
-      <div class="chart-card">
-        <canvas id="chart1"></canvas>
-        <p>TIGER KOSDAQ150</p>
-      </div>
-      <div class="chart-card">
-        <canvas id="chart2"></canvas>
-        <p>KODEX 2X 인버스</p>
-      </div>
-      <!-- 더 많은 종목 -->
-    </div>
-  </section>
-
-  <!-- ⑤ Footer -->
+  <!-- ⚙️ ⑤ Footer -->
   <footer>
-    <p>© 2025 ECONews | 개인정보처리방침 | 문의: info@econews.kr</p>
+    <div class="container">
+      <p>© 2025 ECONews | 데이터 제공: Supabase | 문의: info@econews.kr</p>
+    </div>
   </footer>
 </body>
+</html>
