@@ -3,14 +3,72 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ECONews - 수익률 & Supabase 연동</title>
+  <title>ECONews - 전체 수익률</title>
   <link rel="stylesheet" href="/style.css" />
+  <!-- ✅ Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
-  <!-- (이전 header / card / swing table 부분 동일) -->
-  <!-- 💹 전체 수익률 테이블 -->
+  <!-- ===============================
+       🧭 HEADER
+  ================================ -->
+  <header class="header">
+    <div class="container header-inner">
+      <div class="logo">ECONews</div>
+      <nav class="nav">
+        <a href="#">경제</a>
+        <a href="#">증시</a>
+        <a href="#">해외</a>
+        <a href="#">분석</a>
+      </nav>
+      <button class="login-btn">로그인</button>
+    </div>
+  </header>
+
+  <!-- ===============================
+       📈 상단 지수 바
+  ================================ -->
+  <div class="top-bar">
+    <div class="container top-bar-inner">
+      <div class="ticker"><span>KOSPI</span> 2,805.42 <span class="up">▲0.45%</span></div>
+      <div class="ticker"><span>KOSDAQ</span> 890.21 <span class="down">▼0.22%</span></div>
+      <div class="ticker"><span>USD/KRW</span> 1,372.4 <span class="down">▼3.1</span></div>
+      <div class="ticker"><span>GOLD</span> 2,315.6 <span class="up">▲0.23%</span></div>
+      <div class="ticker"><span>WTI</span> 77.32 <span class="up">▲0.18%</span></div>
+    </div>
+  </div>
+
+  <!-- ===============================
+       📊 수익률 카드 (예시)
+  ================================ -->
+  <main>
+    <div class="container card-section">
+      <h2>📈 수익률 카드</h2>
+      <div class="card-grid">
+        <div class="card">
+          <h3>수익률 1</h3>
+          <p>+3.25%</p>
+        </div>
+        <div class="card">
+          <h3>수익률 2</h3>
+          <p>+5.12%</p>
+        </div>
+        <div class="card">
+          <h3>수익률 3</h3>
+          <p>-1.84%</p>
+        </div>
+        <div class="card">
+          <h3>수익률 4</h3>
+          <p>+2.47%</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ===============================
+       💰 전체 수익률 (Supabase 연동)
+  ================================ -->
   <section class="table-section">
     <div class="container">
       <h2>💰 전체 수익률</h2>
@@ -31,71 +89,16 @@
     </div>
   </section>
 
+  <!-- ===============================
+       ⚙️ FOOTER
+  ================================ -->
   <footer>
     <div class="container">
       <p>© 2025 ECONews | 데이터 제공: Supabase | 문의: info@econews.kr</p>
     </div>
   </footer>
 
-  <script>
-    // ✅ Supabase 초기화
-    const SUPABASE_URL = window.SUPABASE_URL || "{{ SUPABASE_URL }}";
-    const SUPABASE_KEY = window.SUPABASE_KEY || "{{ SUPABASE_KEY }}";
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // ✅ 테이블 요소
-    const tbody = document.getElementById('total-table-body');
-    const loadMoreBtn = document.getElementById('loadMoreBtn');
-
-    let allData = [];
-    let showing = 5; // 기본 5개만
-
-    // ✅ 데이터 가져오기
-    async function loadTotalReturn() {
-      const { data, error } = await supabase
-        .from('total_return')
-        .select('*')
-        .order('수익률', { ascending: false });
-
-      if (error) {
-        console.error(error);
-        tbody.innerHTML = `<tr><td colspan="4">❌ 데이터 불러오기 실패</td></tr>`;
-        return;
-      }
-
-      allData = data;
-      renderTable();
-    }
-
-    // ✅ 테이블 렌더링
-    function renderTable() {
-      tbody.innerHTML = '';
-      allData.slice(0, showing).forEach(row => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${row.종목명 || '-'}</td>
-          <td>${row.매수가?.toLocaleString() || '-'}</td>
-          <td>${row.현재가?.toLocaleString() || '-'}</td>
-          <td>${row.수익률 ? (row.수익률 > 0 ? '▲' : '▼') + row.수익률.toFixed(2) + '%' : '-'}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-      if (allData.length <= showing) {
-        loadMoreBtn.style.display = 'none';
-      } else {
-        loadMoreBtn.style.display = 'inline-block';
-      }
-    }
-
-    // ✅ 더보기 버튼
-    loadMoreBtn.addEventListener('click', () => {
-      showing = showing === 5 ? allData.length : 5;
-      loadMoreBtn.textContent = showing === 5 ? '더보기' : '접기';
-      renderTable();
-    });
-
-    // ✅ 실행
-    loadTotalReturn();
-  </script>
+  <!-- ✅ Supabase 연동 스크립트 -->
+  <script src="/main.js"></script>
 </body>
 </html>
