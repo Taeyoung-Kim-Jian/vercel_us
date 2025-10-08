@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ECONews - 전체 수익률</title>
-  <link rel="stylesheet" href="/style.css" />
-  <!-- ✅ Supabase JS SDK -->
+  <title>ECONews - 수익률 대시보드</title>
+  <link rel="stylesheet" href="./style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
@@ -22,57 +21,31 @@
         <a href="#">해외</a>
         <a href="#">분석</a>
       </nav>
-      <button class="login-btn">로그인</button>
     </div>
   </header>
 
   <!-- ===============================
-       📈 상단 지수 바
-  ================================ -->
-  <div class="top-bar">
-    <div class="container top-bar-inner">
-      <div class="ticker"><span>KOSPI</span> 2,805.42 <span class="up">▲0.45%</span></div>
-      <div class="ticker"><span>KOSDAQ</span> 890.21 <span class="down">▼0.22%</span></div>
-      <div class="ticker"><span>USD/KRW</span> 1,372.4 <span class="down">▼3.1</span></div>
-      <div class="ticker"><span>GOLD</span> 2,315.6 <span class="up">▲0.23%</span></div>
-      <div class="ticker"><span>WTI</span> 77.32 <span class="up">▲0.18%</span></div>
-    </div>
-  </div>
-
-  <!-- ===============================
-       📊 수익률 카드 (예시)
+       📈 수익률 카드
   ================================ -->
   <main>
     <div class="container card-section">
       <h2>📈 수익률 카드</h2>
       <div class="card-grid">
-        <div class="card">
-          <h3>수익률 1</h3>
-          <p>+3.25%</p>
-        </div>
-        <div class="card">
-          <h3>수익률 2</h3>
-          <p>+5.12%</p>
-        </div>
-        <div class="card">
-          <h3>수익률 3</h3>
-          <p>-1.84%</p>
-        </div>
-        <div class="card">
-          <h3>수익률 4</h3>
-          <p>+2.47%</p>
-        </div>
+        <div class="card"><h3>수익률 1</h3><p>+3.25%</p></div>
+        <div class="card"><h3>수익률 2</h3><p>+5.12%</p></div>
+        <div class="card"><h3>수익률 3</h3><p>-1.84%</p></div>
+        <div class="card"><h3>수익률 4</h3><p>+2.47%</p></div>
       </div>
     </div>
   </main>
 
   <!-- ===============================
-       💰 전체 수익률 (Supabase 연동)
+       💰 전체 수익률 테이블
   ================================ -->
   <section class="table-section">
     <div class="container">
       <h2>💰 전체 수익률</h2>
-      <table class="data-table" id="total-table">
+      <table class="data-table">
         <thead>
           <tr>
             <th>종목명</th>
@@ -85,7 +58,30 @@
           <tr><td colspan="4">⏳ 데이터를 불러오는 중...</td></tr>
         </tbody>
       </table>
-      <button class="more-btn" id="loadMoreBtn">더보기</button>
+      <button class="more-btn" id="loadMoreTotalBtn">더보기</button>
+    </div>
+  </section>
+
+  <!-- ===============================
+       🧭 스윙 적정가격 테이블
+  ================================ -->
+  <section class="table-section">
+    <div class="container">
+      <h2>📊 스윙 적정가격</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>종목명</th>
+            <th>적정매수가</th>
+            <th>현재가</th>
+            <th>괴리율</th>
+          </tr>
+        </thead>
+        <tbody id="swing-table-body">
+          <tr><td colspan="4">⏳ 데이터를 불러오는 중...</td></tr>
+        </tbody>
+      </table>
+      <button class="more-btn" id="loadMoreSwingBtn">더보기</button>
     </div>
   </section>
 
@@ -94,11 +90,11 @@
   ================================ -->
   <footer>
     <div class="container">
-      <p>© 2025 ECONews | 데이터 제공: Supabase | 문의: info@econews.kr</p>
+      <p>© 2025 ECONews | 데이터 제공: Supabase</p>
     </div>
   </footer>
 
-  <!-- ✅ Supabase 연동 스크립트 -->
-  <script src="/main.js"></script>
+  <!-- ✅ JS 연결 -->
+  <script src="./main.js"></script>
 </body>
 </html>
