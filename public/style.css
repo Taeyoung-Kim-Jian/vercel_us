@@ -13,6 +13,7 @@ html, body {
   color: #222;
   line-height: 1.4;
   -webkit-font-smoothing: antialiased;
+  font-size: 14px; /* 기본 폰트 작게 */
 }
 
 a {
@@ -30,9 +31,9 @@ ul, ol {
 header {
   background-color: #ffffff;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  padding: 12px 0;
+  padding: 10px 0;
   text-align: center;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #111;
 }
@@ -40,7 +41,7 @@ header {
 main {
   max-width: 1000px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 12px;
 }
 
 /* -----------------------------
@@ -48,27 +49,27 @@ main {
 ----------------------------- */
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 12px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
 .card {
   background: #ffffff;
-  border-radius: 12px;
-  padding: 16px 18px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  border-radius: 10px;
+  padding: 12px 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
 }
 
 .card h3 {
-  font-size: 1rem;
-  margin-bottom: 10px;
+  font-size: 0.95rem;
+  margin-bottom: 6px;
   font-weight: 600;
   color: #111;
 }
@@ -86,9 +87,9 @@ main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 0;
+  padding: 4px 0;
   border-bottom: 1px solid #eee;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .top5-item:last-child {
@@ -98,21 +99,26 @@ main {
 .rank {
   font-weight: 700;
   color: #888;
-  width: 24px;
+  width: 20px;
   text-align: center;
+  font-size: 0.8rem;
 }
 
 .name {
   flex: 1;
-  padding-left: 8px;
+  padding-left: 6px;
   color: #333;
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .rate {
   font-weight: 600;
-  min-width: 70px;
+  min-width: 50px;
   text-align: right;
+  font-size: 0.8rem;
 }
 
 /* -----------------------------
@@ -120,28 +126,28 @@ main {
 ----------------------------- */
 .table-wrap {
   background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  padding: 16px;
-  margin-bottom: 24px;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  padding: 12px;
+  margin-bottom: 18px;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 thead th {
   text-align: left;
   background-color: #f1f3f5;
-  padding: 8px 10px;
+  padding: 6px 8px;
   font-weight: 600;
   border-bottom: 1px solid #ddd;
 }
 
 tbody td {
-  padding: 8px 10px;
+  padding: 6px 8px;
   border-bottom: 1px solid #eee;
   color: #333;
 }
@@ -155,15 +161,15 @@ tbody tr:hover {
 ----------------------------- */
 button {
   display: inline-block;
-  padding: 8px 14px;
+  padding: 6px 10px;
   background: #0d6efd;
   color: #fff;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 500;
   border: none;
-  border-radius: 6px;
+  border-radius: 5px;
   cursor: pointer;
-  margin-top: 10px;
+  margin-top: 8px;
   transition: background 0.2s;
 }
 
@@ -177,39 +183,64 @@ button:hover {
 footer {
   background-color: #fff;
   border-top: 1px solid #e5e7eb;
-  padding: 14px;
+  padding: 10px;
   text-align: center;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: #777;
-  margin-top: 32px;
+  margin-top: 24px;
 }
 
 /* -----------------------------
-   반응형 스타일 (모바일 대응)
+   반응형 스타일 (모바일)
 ----------------------------- */
 @media (max-width: 768px) {
+  html, body {
+    font-size: 13px; /* 전체 글자 더 작게 */
+  }
+
   header {
-    font-size: 1rem;
-    padding: 10px 0;
-  }
-
-  .card h3 {
     font-size: 0.95rem;
-  }
-
-  .top5-item {
-    font-size: 0.85rem;
-  }
-
-  table {
-    font-size: 0.85rem;
+    padding: 8px 0;
   }
 
   main {
-    padding: 12px;
+    padding: 10px;
+  }
+
+  .cards {
+    grid-template-columns: repeat(2, 1fr); /* ✅ 모바일에서 2단 카드 */
+    gap: 8px;
+  }
+
+  .card h3 {
+    font-size: 0.9rem;
+  }
+
+  .top5-item {
+    font-size: 0.8rem;
+  }
+
+  table {
+    font-size: 0.8rem;
   }
 
   button {
     width: 100%;
+  }
+}
+
+/* 초소형 (아이폰 SE 등) */
+@media (max-width: 480px) {
+  html, body {
+    font-size: 12px;
+  }
+
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  .card {
+    padding: 10px;
   }
 }
