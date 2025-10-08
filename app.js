@@ -6,8 +6,8 @@ const SUPABASE_URL = 'https://sssmldmhcfuodutvvcqf.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1b2R1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4'; 
 
 // 💡 2. Supabase 클라이언트 초기화
-// index.html에서 로드한 Supabase SDK를 통해 전역 'supabase' 객체에 접근합니다.
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// 전역 'supabase' 객체와 이름 충돌을 피하기 위해 'supabaseClient'로 이름을 변경했습니다.
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /**
  * 데이터를 받아 HTML 테이블 문자열을 반환하는 함수
@@ -52,14 +52,13 @@ async function loadTotalReturnData() {
     dataContainer.innerHTML = '데이터를 불러오는 중...'; // 로딩 상태 표시
 
     try {
-        // total_return 테이블에서 데이터 요청
-        // 컬럼 이름 불일치로 인한 오류를 피하기 위해, 정렬 조건을 잠시 제거하고 전체 데이터를 가져와 봅니다.
-        const { data, error } = await supabase
+        // 'supabaseClient'를 사용하여 데이터 요청을 보냅니다.
+        const { data, error } = await supabaseClient
             .from('total_return')
             .select('*'); 
 
         if (error) {
-            // 에러 발생 시: RLS가 비활성화되었다면, 이 에러는 테이블 이름 오류 또는 스키마 오류일 수 있습니다.
+            // 에러 발생 시: 테이블 이름이나 스키마 오류일 수 있습니다.
             dataContainer.innerHTML = `<p class="error">❌ 데이터 로딩 오류: ${error.message} (테이블 이름 및 스키마 확인 필요)</p>`;
             console.error("Supabase API Error:", error);
             return;
