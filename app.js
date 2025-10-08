@@ -135,6 +135,16 @@ async function renderChart(stockName) {
     const chartContainer = document.getElementById('chart-container');
     chartContainer.innerHTML = `<p class="text-gray-500 text-center py-8">"${stockName}"의 시계열 데이터를 로드하는 중...</p>`;
     
+    // 🚨 Lightweight Charts 라이브러리가 로드되었는지 확인하는 필수 로직
+    if (typeof LightweightCharts === 'undefined' || !LightweightCharts.createChart) {
+        chartContainer.innerHTML = `<p class="error text-center py-8">
+            🚨 차트 라이브러리 오류: "LightweightCharts" 객체를 찾을 수 없습니다.<br>
+            index.html에 필수 스크립트 태그가 누락되었을 수 있습니다.
+        </p>`;
+        console.error("Lightweight Charts Error: The library is not defined. Ensure you have added the script tag to index.html.");
+        return;
+    }
+    
     try {
         // Supabase 'prices' 테이블에서 종목명에 해당하는 시계열 데이터 쿼리
         // 컬럼명을 사용자님의 스키마(날짜, 시가, 고가, 저가, 종가)에 맞게 수정했습니다.
@@ -181,6 +191,13 @@ async function renderChart(stockName) {
             timeScale: { borderColor: '#e5e7eb', timeVisible: true, secondsVisible: false },
             localization: { locale: 'ko-KR' }
         });
+        
+        // 이 시점에서 chart 객체가 유효한지 다시 한번 확인합니다.
+        if (!chart || typeof chart.addCandlestickSeries !== 'function') {
+             chartContainer.innerHTML = `<p class="error text-center py-8">🚨 차트 초기화 실패: 내부 오류. index.html을 확인하세요.</p>`;
+             console.error("Chart initialization failed. 'chart.addCandlestickSeries' is still not a function.");
+             return;
+        }
 
         currentSeries = chart.addCandlestickSeries({
             upColor: '#22c55e', 
@@ -203,34 +220,6 @@ async function renderChart(stockName) {
         console.error("Chart Rendering Error:", e);
     }
 }
-
-/**
- * 테스트를 위한 더미 시계열 데이터 생성 함수 (이제 사용하지 않음)
- */
-// function generateDummyChartData() {
-//     let data = [];
-//     let basePrice = 50;
-//     let time = 1640995200; // 2022-01-01 시작 (Unix Timestamp)
-
-//     for (let i = 0; i < 50; i++) {
-//         const open = basePrice + Math.random() * 2 - 1;
-//         const close = open + (Math.random() * 2 - 1) * 2;
-//         const high = Math.max(open, close) + Math.random() * 1;
-//         const low = Math.min(open, close) - Math.random() * 1;
-
-//         data.push({
-//             time: time,
-//             open: open,
-//             high: high,
-//             low: low,
-//             close: close
-//         });
-
-//         time += 86400; // 하루 증가
-//         basePrice += (close - open) * 0.5 + (Math.random() * 0.5 - 0.25);
-//     }
-//     return data;
-// }
 
 
 /**
