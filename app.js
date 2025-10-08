@@ -11,8 +11,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // 차트 객체를 전역적으로 저장하여 중복 생성을 막고 업데이트하기 쉽게 합니다.
-let chart = null;
-let currentSeries = null;
+let stockChartInstance = null; // 변수명 변경
+let stockChartSeries = null; // 변수명 변경
 
 /**
  * 데이터를 받아 HTML 테이블 문자열을 반환하는 함수
@@ -175,11 +175,11 @@ async function renderChart(stockName) {
             close: item['종가']
         }));
 
-        if (chart) {
-            chart.remove(); 
+        if (stockChartInstance) { // 변수명 변경
+            stockChartInstance.remove(); // 변수명 변경
         }
         
-        chart = LightweightCharts.createChart(chartContainer, {
+        stockChartInstance = LightweightCharts.createChart(chartContainer, { // 변수명 변경
             width: chartContainer.clientWidth,
             height: 400,
             layout: {
@@ -192,14 +192,13 @@ async function renderChart(stockName) {
             localization: { locale: 'ko-KR' }
         });
         
-        // 이 시점에서 chart 객체가 유효한지 다시 한번 확인합니다.
-        if (!chart || typeof chart.addCandlestickSeries !== 'function') {
-             chartContainer.innerHTML = `<p class="error text-center py-8">🚨 차트 초기화 실패: 내부 오류. index.html을 확인하세요.</p>`;
-             console.error("Chart initialization failed. 'chart.addCandlestickSeries' is still not a function.");
+        if (!stockChartInstance) {
+             chartContainer.innerHTML = `<p class="error text-center py-8">🚨 차트 초기화 실패: 내부 오류가 발생했습니다.</p>`;
+             console.error("Chart initialization failed.");
              return;
         }
 
-        currentSeries = chart.addCandlestickSeries({
+        stockChartSeries = stockChartInstance.addCandlestickSeries({ // 변수명 변경
             upColor: '#22c55e', 
             downColor: '#ef4444', 
             borderVisible: false,
@@ -207,11 +206,11 @@ async function renderChart(stockName) {
             wickDownColor: '#ef4444',
         });
 
-        currentSeries.setData(chartData);
+        stockChartSeries.setData(chartData); // 변수명 변경
 
         new ResizeObserver(entries => {
             entries.forEach(entry => {
-                chart.applyOptions({ width: entry.contentRect.width });
+                stockChartInstance.applyOptions({ width: entry.contentRect.width }); // 변수명 변경
             });
         }).observe(chartContainer);
 
