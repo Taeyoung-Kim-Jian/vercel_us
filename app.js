@@ -6,13 +6,61 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ===============================
-// 1) 전역 상태 (차트 핸들)
+// 1) Lightweight Charts 전역 보증 로더
+//    - 이미 있으면 그대로 사용
+//    - 없으면 CDN 2곳 시도 후, 로컬 파일(선택)까지 폴백
+// ===============================
+async function ensureLWGlobal() {
+  if (window.LightweightCharts && typeof window.LightweightCharts.createChart === 'function') {
+    return window.LightweightCharts;
+  }
+  const urls = [
+    'https://unpkg.com/lightweight-charts@4.3.0/dist/lightweight-charts.standalone.production.js',
+    'https://cdn.jsdelivr.net/npm/lightweight-charts@4.3.0/dist/lightweight-charts.standalone.production.js',
+    // 필요 시 프로젝트에 이 파일을 내려받아 두고 사용:
+    // './lightweight-charts.standalone.production.js',
+  ];
+  for (const url of urls) {
+    try {
+      await loadScriptOnce(url);
+      if (window.LightweightCharts && typeof window.LightweightCharts.createChart === 'function') {
+        return window.LightweightCharts;
+      }
+    } catch (e) {
+      // 다음 후보로 폴백
+    }
+  }
+  throw new Error('LightweightCharts global failed to load from all sources');
+}
+
+function loadScriptOnce(src) {
+  return new Promise((resolve, reject) => {
+    const found = document.querySelector(`script[src="${src}"]`);
+    if (found) {
+      // 이미 추가됨: 로드 완료 이벤트가 지났다면 즉시, 아니면 이벤트 대기
+      if (window.LightweightCharts && typeof window.LightweightCharts.createChart === 'function') return resolve();
+      found.addEventListener('load', () => resolve());
+      found.addEventListener('error', () => reject(new Error(`Failed to load ${src}`)));
+      return;
+    }
+    const s = document.createElement('script');
+    s.src = src;
+    s.async = true;
+    s.crossOrigin = 'anonymous';
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error(`Failed to load ${src}`));
+    document.head.appendChild(s);
+  });
+}
+
+// ===============================
+// 2) 전역 상태 (차트 핸들)
 // ===============================
 let stockChartInstance = null;
 let stockChartSeries = null;
 
 // ===============================
-// 2) 유틸
+// 3) 유틸
 // ===============================
 const nf = new Intl.NumberFormat('ko-KR');
 const fmtPct = (v) => {
@@ -28,7 +76,7 @@ function el(tag, className = '', html = '') {
 }
 
 // ===============================
-// 3) 요약 카드
+// 4) 요약 카드
 // ===============================
 function renderSummaryCards(rows) {
   const cont = document.getElementById('summary-cards-container');
@@ -65,7 +113,7 @@ function renderSummaryCards(rows) {
 }
 
 // ===============================
-// 4) 표 생성 + 클릭 핸들러
+// 5) 표 생성 + 클릭 핸들러
 // ===============================
 function createDataTable(data) {
   if (!data || data.length === 0) return '';
@@ -111,17 +159,19 @@ function setupClickHandlers() {
 }
 
 // ===============================
-// 5) 차트 렌더링 (전역 LightweightCharts 사용)
+// 6) 차트 렌더링 (전역 LightweightCharts 보증 후 사용)
 // ===============================
 async function renderChartByRows(prices, titleText = '') {
   const container = document.getElementById('chart-container');
 
-  // ✅ 전역 존재 확인
-  const LW = window.LightweightCharts;
-  if (!LW || typeof LW.createChart !== 'function') {
+  let LW;
+  try {
+    LW = await ensureLWGlobal();
+  } catch (e) {
     container.innerHTML = `<p class="error text-center py-8">
-      🚨 LightweightCharts 전역이 없습니다. HTML에 <code>...standalone.production.js</code>가 딱 1개 포함되어야 합니다.
+      🚨 LightweightCharts를 가져오지 못했습니다. 네트워크/CSP 정책 확인 또는 로컬 파일을 사용하세요.
     </p>`;
+    console.error(e);
     return;
   }
 
@@ -157,7 +207,7 @@ async function renderChartByRows(prices, titleText = '') {
     console.error('Unexpected chart API:', stockChartInstance);
     container.innerHTML = `<p class="error text-center py-8">
       🚨 차트 API 오류: addCandlestickSeries가 없습니다.
-      <br/>lightweight-charts 스크립트 중복/다른 빌드를 모두 제거했는지 확인하세요.
+      <br/>lightweight-charts 스크립트 중복/차단 여부를 확인하세요.
     </p>`;
     return;
   }
@@ -183,7 +233,7 @@ async function renderChartByRows(prices, titleText = '') {
 }
 
 // ===============================
-// 6) 종목 클릭 → 가격 로딩 → 차트
+// 7) 종목 클릭 → 가격 로딩 → 차트
 // ===============================
 async function onPickStock(row) {
   const name = row['종목명'] || '';
@@ -244,7 +294,7 @@ async function onPickStock(row) {
 }
 
 // ===============================
-// 7) total_return 로드 & 표 렌더
+// 8) total_return 로드 & 표 렌더
 // ===============================
 async function loadTotalReturnData() {
   const dataContainer = document.getElementById('data-container');
@@ -255,7 +305,7 @@ async function loadTotalReturnData() {
   try {
     const { data, error } = await supabaseClient
       .from('total_return')
-      .select('종목명, 종목코드, 시작가격, 현재가격, 수익률')  // 종목코드 포함 권장
+      .select('종목명, 종목코드, 시작가격, 현재가격, 수익률')
       .order('수익률', { ascending: false });
 
     if (error) {
@@ -280,6 +330,6 @@ async function loadTotalReturnData() {
 }
 
 // ===============================
-// 8) 시작
+// 9) 시작
 // ===============================
 window.addEventListener('DOMContentLoaded', loadTotalReturnData);
