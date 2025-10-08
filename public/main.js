@@ -47,14 +47,21 @@ window.addEventListener('DOMContentLoaded', async () => {
     top5Card.innerHTML = `
       <h3>🏆 전체 수익률 Top 5</h3>
       <ul class="top5-list">
-        ${top5.map((r, i) => `
+        ${top5
+          .map(
+            (r, i) => `
           <li class="top5-item">
-            <span class="rank">${i + 1}</span>
-            <span class="name">${r.종목명}</span>
-            <span class="rate" style="color:${r.수익률 >= 0 ? '#d32f2f' : '#1976d2'};">
+            <span class="name">
+              ${i + 1}. ${r.종목명 || '-'}
+            </span>
+            <span class="rate" style="color:${
+              r.수익률 >= 0 ? '#d32f2f' : '#1976d2'
+            };">
               ${r.수익률 >= 0 ? '▲' : '▼'}${parseFloat(r.수익률).toFixed(2)}%
             </span>
-          </li>`).join('')}
+          </li>`
+          )
+          .join('')}
       </ul>
     `;
   }
@@ -62,7 +69,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   // === 전체 수익률 테이블 ===
   function renderTotal() {
     totalTbody.innerHTML = '';
-    totalData.slice(0, showTotal).forEach(row => {
+    totalData.slice(0, showTotal).forEach((row) => {
       const rate = parseFloat(row.수익률 ?? 0);
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -78,27 +85,64 @@ window.addEventListener('DOMContentLoaded', async () => {
     btnTotal.textContent = showTotal === 5 ? '더보기' : '접기';
   }
 
-  // === 스윙 적정가격 ===
-  async function loadSwing() {
-    swingTbody.innerHTML = `<tr><td colspan="4">⏳ 데이터를 불러오는 중...</td></tr>`;
-    try {
-      const { data, error } = await db
-        .from('swing_price')
-        .select('*')
-        .order('괴리율', { ascending: true });
+  // === 스윙 적정가격 (자동 계산 후 로드)
+  async function updateSwingPriceTable() {
+    console.log("⏳ 스윙 적정가격 자동 계산 중...");
+    swingTbody.innerHTML = `<tr><td colspan="4">🧮 스윙 적정가격 계산 중...</td></tr>`;
 
-      if (error) throw error;
-      swingData = data || [];
+    try {
+      // 1️⃣ bt_points 테이블에서 b가격들 가져오기
+      const { data: bData, error: e1 } = await db
+        .from('bt_points')
+        .select('종목명, 종목코드, b가격');
+      if (e1) throw e1;
+
+      // 2️⃣ prices 테이블에서 최신 종가 가져오기
+      const { data: pData, error: e2 } = await db
+        .from('prices')
+        .select('종목명, 종목코드, 종가, 날짜')
+        .order('날짜', { ascending: false });
+      if (e2) throw e2;
+
+      const results = [];
+
+      // 3️⃣ 두 데이터 비교 (±5% 이내)
+      for (const b of bData) {
+        const price = pData.find((p) => p.종목코드 === b.종목코드);
+        if (!price) continue;
+
+        const diffRate = ((price.종가 - b.b가격) / b.b가격) * 100;
+        if (Math.abs(diffRate) <= 5) {
+          results.push({
+            종목명: b.종목명,
+            종목코드: b.종목코드,
+            적정매수가: b.b가격,
+            현재가: price.종가,
+            괴리율: diffRate.toFixed(2),
+          });
+        }
+      }
+
+      // 4️⃣ 기존 swing_price 테이블 초기화 후 삽입
+      await db.from('swing_price').delete().neq('종목코드', '');
+      if (results.length > 0) {
+        await db.from('swing_price').insert(results);
+      }
+
+      console.log(`✅ ${results.length}개 종목이 swing_price에 업데이트됨`);
+      swingData = results;
       renderSwing();
-    } catch (err) {
-      console.error('❌ swing_price:', err);
-      swingTbody.innerHTML = `<tr><td colspan="4">❌ 불러오기 실패</td></tr>`;
+
+    } catch (error) {
+      console.error("❌ 스윙 계산 오류:", error);
+      swingTbody.innerHTML = `<tr><td colspan="4">❌ 스윙 계산 중 오류 발생</td></tr>`;
     }
   }
 
+  // === 스윙 테이블 렌더링 ===
   function renderSwing() {
     swingTbody.innerHTML = '';
-    swingData.slice(0, showSwing).forEach(row => {
+    swingData.slice(0, showSwing).forEach((row) => {
       const diff = parseFloat(row.괴리율 ?? 0);
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -110,6 +154,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         </td>`;
       swingTbody.appendChild(tr);
     });
+
     btnSwing.style.display = swingData.length > 5 ? 'inline-block' : 'none';
     btnSwing.textContent = showSwing === 5 ? '더보기' : '접기';
   }
@@ -124,7 +169,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     renderSwing();
   });
 
-  // === 실행 ===
-  loadTotalReturn();
-  loadSwing();
+  // === 페이지 로드 시 자동 실행 ===
+  await loadTotalReturn();
+  await updateSwingPriceTable();
 });
