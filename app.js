@@ -4,7 +4,7 @@
 // WARNING: 보안상의 이유로 실제 키를 코드에 직접 넣는 것은 권장되지 않습니다. 
 // (Vercel 환경 변수 사용을 권장합니다.) 
 const SUPABASE_URL = 'https://sssmldmhcfuodutvvcqf.supabase.co'; 
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1b2R1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4'; 
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1b2R1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIhFcISe-62kary1WABTrOnYZiIN4'; 
 
 // 💡 2. Supabase 클라이언트 초기화
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -75,7 +75,7 @@ function renderSummaryCards(fullData) {
         <div class="grid grid-cols-2 gap-4 sm:gap-6">
             <!-- 최고 수익률 5 -->
             <div class="bg-green-50 p-6 rounded-xl shadow-lg border border-green-200">
-                <h3 class="text-xl font-bold text-green-700 mb-4 flex items-center">
+                <h3 class="text-lg sm:text-xl font-bold text-green-700 mb-4 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
@@ -83,15 +83,15 @@ function renderSummaryCards(fullData) {
                 </h3>
                 ${topFive.map((item, index) => `
                     <div class="flex justify-between items-center py-2 border-b last:border-b-0">
-                        <span class="text-gray-600 font-medium">${index + 1}. ${item['종목명']}</span>
-                        <span class="font-bold text-green-600">${item['수익률']}</span>
+                        <span class="text-sm text-gray-600 font-medium">${index + 1}. ${item['종목명']}</span>
+                        <span class="text-sm font-bold text-green-600">${item['수익률']}</span>
                     </div>
                 `).join('')}
             </div>
 
             <!-- 최저 수익률 5 -->
             <div class="bg-red-50 p-6 rounded-xl shadow-lg border border-red-200">
-                <h3 class="text-xl font-bold text-red-700 mb-4 flex items-center">
+                <h3 class="text-lg sm:text-xl font-bold text-red-700 mb-4 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
                     </svg>
@@ -99,8 +99,8 @@ function renderSummaryCards(fullData) {
                 </h3>
                 ${bottomFive.map((item, index) => `
                     <div class="flex justify-between items-center py-2 border-b last:border-b-0">
-                        <span class="text-gray-600 font-medium">${index + 1}. ${item['종목명']}</span>
-                        <span class="font-bold text-red-600">${item['수익률']}</span>
+                        <span class="text-sm text-gray-600 font-medium">${index + 1}. ${item['종목명']}</span>
+                        <span class="text-sm font-bold text-red-600">${item['수익률']}</span>
                     </div>
                 `).join('')}
             </div>
