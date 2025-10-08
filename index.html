@@ -1,12 +1,67 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>나의 첫 웹페이지</title>
-</head>
-<body>
-    <h1>안녕하세요, 세상! (Hello World)</h1>
-    <p>이것은 Vercel이나 어떤 정적 호스팅 서비스에도 배포할 수 있는 가장 기본적인 HTML 파일입니다.</p>
-</body>
-</html>
+// app.js
+
+// 💡 1. Supabase 환경 변수 설정
+// 이 키는 공개 키(Anon Key)이므로 클라이언트 코드에 포함해도 안전합니다.
+const SUPABASE_URL = 'https://sssmldmhcfuodutvvcqf.supabase.co'; 
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1b2R1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4';
+
+// 💡 2. Supabase 클라이언트 초기화
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/**
+ * 3. Supabase에서 데이터 로드 및 HTML 테이블 생성
+ */
+async function loadTotalReturnData() {
+    const dataContainer = document.getElementById('data-container');
+    
+    // 3.1. total_return 테이블에서 데이터 요청 (수익률 내림차순 정렬 예시)
+    const { data, error } = await supabase
+        .from('total_return')
+        .select('*') // 모든 컬럼을 선택합니다.
+        .order('수익률', { ascending: false }); // '수익률' 컬럼이 있다고 가정
+
+    if (error) {
+        dataContainer.innerHTML = `<p style="color:red;">❌ 데이터 로딩 오류: ${error.message}</p>`;
+        console.error("Supabase Error:", error);
+        return;
+    }
+
+    if (data.length === 0) {
+        dataContainer.innerHTML = '<p>⚠️ 테이블에 데이터가 없습니다.</p>';
+        return;
+    }
+    
+    // 3.2. 데이터를 HTML 테이블로 변환
+    dataContainer.innerHTML = createDataTable(data);
+}
+
+/**
+ * 데이터를 받아 HTML 테이블 문자열을 반환하는 함수
+ * @param {Array<Object>} data - Supabase에서 받은 데이터 배열
+ */
+function createDataTable(data) {
+    if (data.length === 0) return '';
+
+    // 테이블 헤더 (첫 번째 객체의 키를 사용)
+    const headers = Object.keys(data[0]);
+    let html = '<table><thead><tr>';
+    headers.forEach(h => {
+        html += `<th>${h}</th>`;
+    });
+    html += '</tr></thead><tbody>';
+
+    // 테이블 본문 (데이터 행)
+    data.forEach(row => {
+        html += '<tr>';
+        headers.forEach(h => {
+            html += `<td>${row[h]}</td>`;
+        });
+        html += '</tr>';
+    });
+
+    html += '</tbody></table>';
+    return html;
+}
+
+// 4. 페이지 로드 시 데이터 로딩 함수 실행
+loadTotalReturnData();
