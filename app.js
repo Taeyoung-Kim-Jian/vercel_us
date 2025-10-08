@@ -71,8 +71,8 @@ function renderSummaryCards(rows) {
   `;
   wrap.innerHTML = `
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      ${card('📈 상승 Top 5', top5, 'bg-green-30/20 border-green-200')}
-      ${card('📉 하락 Bottom 5', bottom5, 'bg-red-30/20 border-red-200')}
+      ${card('📈 상승 Top 5', top5, 'bg-green-50/40 border-green-200')}
+      ${card('📉 하락 Bottom 5', bottom5, 'bg-red-50/40 border-red-200')}
     </div>
   `;
 
