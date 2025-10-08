@@ -1,29 +1,38 @@
-// app.js
+// app.js  (Lightweight Charts ESM import 버전)
 
 // ===============================
 // 0) Supabase 연결 설정
 // ===============================
-const SUPABASE_URL = 'https://sssmldmhcfuodutvvcqf.supabase.co'; 
+const SUPABASE_URL = 'https://sssmldmhcfuodutvvcqf.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1b2R1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4';
+// HTML에 @supabase/supabase-js@2 스크립트가 로드되어 있어야 함
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ===============================
-// 1) 전역 상태 (차트 핸들)
+// 1) Lightweight Charts ESM 로더 (버전 고정 + 전역 오염 없음)
+// ===============================
+async function getLW() {
+  if (window.__LW_MODULE__) return window.__LW_MODULE__;
+  const mod = await import('https://unpkg.com/lightweight-charts@4.3.0/dist/lightweight-charts.esm.production.js');
+  window.__LW_MODULE__ = mod;
+  return mod;
+}
+
+// ===============================
+// 2) 전역 상태 (차트 핸들)
 // ===============================
 let stockChartInstance = null;
 let stockChartSeries = null;
 
 // ===============================
-// 2) 유틸
+// 3) 유틸
 // ===============================
 const nf = new Intl.NumberFormat('ko-KR');
 const fmtPct = (v) => {
   if (v === null || v === undefined || v === '') return '';
-  const num = typeof v === 'string' ? Number(v) : v;
-  if (Number.isNaN(num)) return v;
-  return `${num.toFixed(2)}%`;
+  const num = Number(v);
+  return Number.isFinite(num) ? `${num.toFixed(2)}%` : v;
 };
-
 function el(tag, className = '', html = '') {
   const $ = document.createElement(tag);
   if (className) $.className = className;
@@ -32,7 +41,7 @@ function el(tag, className = '', html = '') {
 }
 
 // ===============================
-// 3) 요약 카드
+// 4) 요약 카드
 // ===============================
 function renderSummaryCards(rows) {
   const cont = document.getElementById('summary-cards-container');
@@ -69,18 +78,14 @@ function renderSummaryCards(rows) {
 }
 
 // ===============================
-// 4) 표 생성
+// 5) 표 생성 + 클릭 핸들러
 // ===============================
 function createDataTable(data) {
   if (!data || data.length === 0) return '';
-
-  // 테이블에 종목코드를 함께 가져왔는지 여부 (없어도 동작)
   const headers = Object.keys(data[0]);
 
   let html = '<table><thead><tr>';
-  headers.forEach(h => {
-    html += `<th class="whitespace-nowrap">${h}</th>`;
-  });
+  headers.forEach(h => { html += `<th class="whitespace-nowrap">${h}</th>`; });
   html += '</tr></thead><tbody>';
 
   data.forEach(row => {
@@ -93,16 +98,13 @@ function createDataTable(data) {
         const name = (cell ?? '').toString();
         attrs = `class="clickable-stock whitespace-nowrap" data-stock-name="${name}" data-stock-code="${code}"`;
       }
-      const isNumLike = typeof cell === 'number' || h.includes('수익률');
-      const style = isNumLike ? 'style="text-align:right;"' : '';
+      const right = (typeof cell === 'number' || h.includes('수익률')) ? 'style="text-align:right;"' : '';
       if (h === '현재가격' || h === '시작가격') {
-        const num = typeof cell === 'number' ? cell : Number(cell);
+        const num = Number(cell);
         cell = Number.isFinite(num) ? nf.format(num) : (cell ?? '');
       }
-      if (h === '수익률') {
-        cell = fmtPct(cell);
-      }
-      html += `<td ${style} ${attrs}>${cell ?? ''}</td>`;
+      if (h === '수익률') cell = fmtPct(cell);
+      html += `<td ${right} ${attrs}>${cell ?? ''}</td>`;
     });
     html += '</tr>';
   });
@@ -122,19 +124,13 @@ function setupClickHandlers() {
 }
 
 // ===============================
-// 5) 차트 렌더링
+// 6) 차트 렌더링 (ESM 사용)
 // ===============================
 async function renderChartByRows(prices, titleText = '') {
   const container = document.getElementById('chart-container');
 
-  // 라이브러리 확인
-  if (typeof LightweightCharts === 'undefined' || typeof LightweightCharts.createChart !== 'function') {
-    container.innerHTML = `<p class="error text-center py-8">
-      🚨 LightweightCharts 스크립트가 로드되지 않았습니다. 
-      <br/>HTML에 <code>lightweight-charts.standalone.production.js</code>가 정확히 1개만 포함되어야 합니다.
-    </p>`;
-    return;
-  }
+  // ESM 모듈 확보 (전역 충돌 방지)
+  const { createChart } = await getLW();
 
   // 이전 차트 제거 → 깨끗한 루트 생성
   if (stockChartInstance && typeof stockChartInstance.remove === 'function') {
@@ -147,14 +143,13 @@ async function renderChartByRows(prices, titleText = '') {
   root.style.height = '400px';
   container.appendChild(root);
 
-  // 제목
   if (titleText) {
     const title = el('div', 'text-sm text-gray-500 mb-2', `📈 <b>${titleText}</b>`);
     container.prepend(title);
   }
 
   // 차트 생성
-  stockChartInstance = LightweightCharts.createChart(root, {
+  stockChartInstance = createChart(root, {
     width: root.clientWidth,
     height: 400,
     layout: { background: { type: 'solid', color: '#ffffff' }, textColor: '#111827' },
@@ -164,27 +159,25 @@ async function renderChartByRows(prices, titleText = '') {
     localization: { locale: 'ko-KR' }
   });
 
+  // 정상 API 검증
   if (!stockChartInstance || typeof stockChartInstance.addCandlestickSeries !== 'function') {
     console.error('Unexpected chart API:', stockChartInstance);
     container.innerHTML = `<p class="error text-center py-8">
-      🚨 차트 API 오류: <code>addCandlestickSeries</code>가 없습니다.
-      <br/>라이브러리 버전/중복 로드를 확인하세요.
+      🚨 차트 API 오류: addCandlestickSeries가 없습니다.
+      <br/>HTML에서 lightweight-charts 관련 <code>&lt;script&gt;</code>를 모두 제거했는지 확인하세요.
     </p>`;
     return;
   }
 
   // OHLC 여부 판단
   const hasOHLC = ['open', 'high', 'low', 'close'].every(k => k in prices[0]);
-
-  if (hasOHLC) {
-    stockChartSeries = stockChartInstance.addCandlestickSeries({
-      upColor: '#22c55e', downColor: '#ef4444',
-      wickUpColor: '#22c55e', wickDownColor: '#ef4444',
-      borderVisible: false
-    });
-  } else {
-    stockChartSeries = stockChartInstance.addLineSeries({ lineWidth: 2 });
-  }
+  stockChartSeries = hasOHLC
+    ? stockChartInstance.addCandlestickSeries({
+        upColor: '#22c55e', downColor: '#ef4444',
+        wickUpColor: '#22c55e', wickDownColor: '#ef4444',
+        borderVisible: false
+      })
+    : stockChartInstance.addLineSeries({ lineWidth: 2 });
 
   stockChartSeries.setData(prices);
   stockChartInstance.timeScale().fitContent();
@@ -196,6 +189,9 @@ async function renderChartByRows(prices, titleText = '') {
   }).observe(container);
 }
 
+// ===============================
+// 7) 종목 클릭 → 가격 로딩 → 차트 호출
+// ===============================
 async function onPickStock(row) {
   const name = row['종목명'] || '';
   const code = row['종목코드'] || '';
@@ -204,16 +200,14 @@ async function onPickStock(row) {
 
   try {
     // 1차: 한국어 컬럼 + 코드 우선, 코드 없으면 종목명
-    let query = supabaseClient.from('prices').select('날짜, 시가, 고가, 저가, 종가');
-    if (code) query = query.eq('종목코드', code);
-    else query = query.eq('종목명', name);
-    let { data, error } = await query.order('날짜', { ascending: true }).limit(5000);
+    let q1 = supabaseClient.from('prices').select('날짜, 시가, 고가, 저가, 종가');
+    q1 = code ? q1.eq('종목코드', code) : q1.eq('종목명', name);
+    let { data, error } = await q1.order('날짜', { ascending: true }).limit(5000);
 
-    // 비어있으면 영어 컬럼 fallback
+    // 2차: 영어 컬럼 fallback
     if (error || !data || data.length === 0) {
       let q2 = supabaseClient.from('prices').select('date, open, high, low, close');
-      if (code) q2 = q2.eq('code', code);
-      else q2 = q2.eq('name', name);
+      q2 = code ? q2.eq('code', code) : q2.eq('name', name);
       const alt = await q2.order('date', { ascending: true }).limit(5000);
       data = alt.data || [];
     }
@@ -225,7 +219,7 @@ async function onPickStock(row) {
       return;
     }
 
-    // 정규화: time은 초 단위 epoch
+    // 정규화 (초 단위 epoch)
     let prices;
     if ('시가' in data[0] && '고가' in data[0] && '저가' in data[0] && '종가' in data[0]) {
       prices = data.map(d => ({
@@ -257,7 +251,7 @@ async function onPickStock(row) {
 }
 
 // ===============================
-// 6) 데이터 로드 & 테이블 렌더
+// 8) 데이터 로드 & 테이블 렌더
 // ===============================
 async function loadTotalReturnData() {
   const dataContainer = document.getElementById('data-container');
@@ -282,7 +276,6 @@ async function loadTotalReturnData() {
       return;
     }
 
-    // 요약 카드 + 표
     renderSummaryCards(data);
     dataContainer.innerHTML = createDataTable(data);
     setupClickHandlers();
@@ -294,6 +287,6 @@ async function loadTotalReturnData() {
 }
 
 // ===============================
-// 7) 시작
+// 9) 시작
 // ===============================
 window.addEventListener('DOMContentLoaded', loadTotalReturnData);
