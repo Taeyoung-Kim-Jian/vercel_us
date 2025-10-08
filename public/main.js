@@ -1,7 +1,7 @@
 window.addEventListener('DOMContentLoaded', async () => {
   const SUPABASE_URL = 'https://sssmldmhcfuodutvvcqf.supabase.co';
   const SUPABASE_ANON_KEY =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1b2R1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4';
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4';
   const { createClient } = window.supabase;
   const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -85,30 +85,38 @@ window.addEventListener('DOMContentLoaded', async () => {
     btnTotal.textContent = showTotal === 5 ? '더보기' : '접기';
   }
 
-  // === 스윙 적정가격 (자동 계산 후 로드)
+  // === 스윙 적정가격 (bt_points vs prices) ===
   async function updateSwingPriceTable() {
     console.log("⏳ 스윙 적정가격 자동 계산 중...");
     swingTbody.innerHTML = `<tr><td colspan="4">🧮 스윙 적정가격 계산 중...</td></tr>`;
 
     try {
-      // 1️⃣ bt_points 테이블에서 b가격들 가져오기
+      // 1️⃣ bt_points 테이블 (b가격)
       const { data: bData, error: e1 } = await db
         .from('bt_points')
         .select('종목명, 종목코드, b가격');
       if (e1) throw e1;
 
-      // 2️⃣ prices 테이블에서 최신 종가 가져오기
-      const { data: pData, error: e2 } = await db
+      // 2️⃣ prices 테이블 — 각 종목의 최신 종가만 추출
+      const { data: latestPrices, error: e2 } = await db
         .from('prices')
         .select('종목명, 종목코드, 종가, 날짜')
         .order('날짜', { ascending: false });
       if (e2) throw e2;
 
+      const seen = new Set();
+      const priceMap = [];
+      for (const p of latestPrices) {
+        if (seen.has(p.종목코드)) continue;
+        seen.add(p.종목코드);
+        priceMap.push(p);
+      }
+
       const results = [];
 
-      // 3️⃣ 두 데이터 비교 (±5% 이내)
+      // 3️⃣ 비교: ±5% 이내 종목만 선별
       for (const b of bData) {
-        const price = pData.find((p) => p.종목코드 === b.종목코드);
+        const price = priceMap.find((p) => p.종목코드 === b.종목코드);
         if (!price) continue;
 
         const diffRate = ((price.종가 - b.b가격) / b.b가격) * 100;
@@ -123,14 +131,14 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
       }
 
-      // 4️⃣ 기존 swing_price 테이블 초기화 후 삽입
+      // 4️⃣ 기존 swing_price 비우고 삽입
       await db.from('swing_price').delete().neq('종목코드', '');
       if (results.length > 0) {
         await db.from('swing_price').insert(results);
       }
 
-      console.log(`✅ ${results.length}개 종목이 swing_price에 업데이트됨`);
       swingData = results;
+      console.log(`✅ ${results.length}개 종목이 swing_price로 업데이트됨`);
       renderSwing();
 
     } catch (error) {
@@ -169,7 +177,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     renderSwing();
   });
 
-  // === 페이지 로드 시 자동 실행 ===
+  // === 실행 (페이지 로드 시 자동 업데이트)
   await loadTotalReturn();
   await updateSwingPriceTable();
 });
