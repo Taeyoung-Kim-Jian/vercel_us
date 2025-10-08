@@ -1,0 +1,70 @@
+<body>
+  <!-- ① Header -->
+  <header>
+    <div class="logo">ECONews</div>
+    <nav>
+      <a href="#">경제</a>
+      <a href="#">증시</a>
+      <a href="#">해외</a>
+      <a href="#">뉴스</a>
+    </nav>
+    <div class="search-box">
+      <input type="text" placeholder="검색어를 입력하세요" />
+    </div>
+    <button class="login-btn">로그인</button>
+  </header>
+
+  <!-- ② Market Overview -->
+  <section id="market-overview">
+    <h2>📊 오늘의 시장</h2>
+    <div class="market-cards">
+      <!-- 각 카드 -->
+      <div class="market-card">
+        <h3>KOSPI</h3>
+        <p>2,800.45 <span class="up">+0.35%</span></p>
+      </div>
+      <div class="market-card">
+        <h3>NASDAQ</h3>
+        <p>13,100.22 <span class="down">-0.12%</span></p>
+      </div>
+      <!-- 나머지 지수들 -->
+    </div>
+  </section>
+
+  <!-- ③ Headline News -->
+  <section id="headline-news">
+    <h2>📰 주요 뉴스</h2>
+    <div class="news-list">
+      <article class="news-item">
+        <img src="/images/news1.jpg" alt="news">
+        <div class="news-content">
+          <h3>금리 동결 소식에 코스피 상승 전환</h3>
+          <p>한국은행이 기준금리를 동결하면서 투자심리가 회복되고 있다...</p>
+        </div>
+      </article>
+      <!-- 반복 -->
+    </div>
+    <button class="more-btn">더보기</button>
+  </section>
+
+  <!-- ④ Charts & Stocks -->
+  <section id="charts">
+    <h2>📈 ETF / 종목 차트</h2>
+    <div class="chart-grid">
+      <div class="chart-card">
+        <canvas id="chart1"></canvas>
+        <p>TIGER KOSDAQ150</p>
+      </div>
+      <div class="chart-card">
+        <canvas id="chart2"></canvas>
+        <p>KODEX 2X 인버스</p>
+      </div>
+      <!-- 더 많은 종목 -->
+    </div>
+  </section>
+
+  <!-- ⑤ Footer -->
+  <footer>
+    <p>© 2025 ECONews | 개인정보처리방침 | 문의: info@econews.kr</p>
+  </footer>
+</body>
