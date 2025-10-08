@@ -133,82 +133,103 @@ function setupClickHandlers() {
  */
 async function renderChart(stockName) {
     const chartContainer = document.getElementById('chart-container');
-    chartContainer.innerHTML = `<p class="text-gray-500 text-center py-8">"${stockName}"의 차트 데이터를 로드하는 중...</p>`;
+    chartContainer.innerHTML = `<p class="text-gray-500 text-center py-8">"${stockName}"의 시계열 데이터를 로드하는 중...</p>`;
     
-    // ----------------------------------------------------
-    // TODO: 실제 데이터 로딩 로직 (시계열 데이터) - 현재는 더미 데이터 사용
-    // ----------------------------------------------------
-    const dummyData = generateDummyChartData();
-    
-    if (dummyData.length === 0) {
-        chartContainer.innerHTML = `<p class="error text-center py-8">"${stockName}"에 대한 차트 데이터가 없습니다.</p>`;
-        return;
-    }
-    
-    if (chart) {
-        chart.remove(); 
-    }
-    
-    chart = LightweightCharts.createChart(chartContainer, {
-        width: chartContainer.clientWidth,
-        height: 400,
-        layout: {
-            backgroundColor: '#ffffff',
-            textColor: '#333333',
-        },
-        grid: { vertLines: { color: '#e5e7eb' }, horzLines: { color: '#e5e7eb' } },
-        rightPriceScale: { borderColor: '#e5e7eb' },
-        timeScale: { borderColor: '#e5e7eb', timeVisible: true, secondsVisible: false },
-        localization: { locale: 'ko-KR' }
-    });
+    try {
+        // Supabase 'prices' 테이블에서 종목명에 해당하는 시계열 데이터 쿼리
+        const { data, error } = await supabaseClient
+            .from('prices')
+            .select('time, open, high, low, close')
+            .eq('종목명', stockName) // 클릭된 종목명으로 필터링
+            .order('time', { ascending: true }); // 시간순으로 정렬
 
-    currentSeries = chart.addCandlestickSeries({
-        upColor: '#22c55e', 
-        downColor: '#ef4444', 
-        borderVisible: false,
-        wickUpColor: '#22c55e',
-        wickDownColor: '#ef4444',
-    });
+        if (error) {
+            chartContainer.innerHTML = `<p class="error text-center py-8">❌ 차트 데이터 로딩 오류: ${error.message}</p>`;
+            console.error("Supabase Chart API Error:", error);
+            return;
+        }
 
-    currentSeries.setData(dummyData);
+        if (data.length === 0) {
+            chartContainer.innerHTML = `<p class="p-8 text-center text-yellow-600">⚠️ "${stockName}"에 대한 가격 데이터(prices 테이블)가 없습니다.</p>`;
+            return;
+        }
+        
+        // Lightweight Charts는 time 필드를 UNIX timestamp (초)로 기대합니다.
+        // 데이터가 ISO 8601 문자열이라면, Date.parse()를 사용하여 초 단위로 변환합니다.
+        const chartData = data.map(item => ({
+            time: Math.floor(new Date(item.time).getTime() / 1000), // 밀리초를 초로 변환
+            open: item.open,
+            high: item.high,
+            low: item.low,
+            close: item.close
+        }));
 
-    new ResizeObserver(entries => {
-        entries.forEach(entry => {
-            chart.applyOptions({ width: entry.contentRect.width });
+        if (chart) {
+            chart.remove(); 
+        }
+        
+        chart = LightweightCharts.createChart(chartContainer, {
+            width: chartContainer.clientWidth,
+            height: 400,
+            layout: {
+                backgroundColor: '#ffffff',
+                textColor: '#333333',
+            },
+            grid: { vertLines: { color: '#e5e7eb' }, horzLines: { color: '#e5e7eb' } },
+            rightPriceScale: { borderColor: '#e5e7eb' },
+            timeScale: { borderColor: '#e5e7eb', timeVisible: true, secondsVisible: false },
+            localization: { locale: 'ko-KR' }
         });
-    }).observe(chartContainer);
 
-    const loadingMessage = chartContainer.querySelector('p');
-    if (loadingMessage) loadingMessage.remove(); 
+        currentSeries = chart.addCandlestickSeries({
+            upColor: '#22c55e', 
+            downColor: '#ef4444', 
+            borderVisible: false,
+            wickUpColor: '#22c55e',
+            wickDownColor: '#ef4444',
+        });
+
+        currentSeries.setData(chartData);
+
+        new ResizeObserver(entries => {
+            entries.forEach(entry => {
+                chart.applyOptions({ width: entry.contentRect.width });
+            });
+        }).observe(chartContainer);
+
+    } catch (e) {
+        chartContainer.innerHTML = `<p class="error text-center py-8">🚨 데이터 처리 중 오류 발생: ${e.message}</p>`;
+        console.error("Chart Rendering Error:", e);
+    }
 }
 
 /**
- * 테스트를 위한 더미 시계열 데이터 생성 함수
+ * 테스트를 위한 더미 시계열 데이터 생성 함수 (이제 사용하지 않음)
  */
-function generateDummyChartData() {
-    let data = [];
-    let basePrice = 50;
-    let time = 1640995200; // 2022-01-01 시작 (Unix Timestamp)
+// function generateDummyChartData() {
+//     let data = [];
+//     let basePrice = 50;
+//     let time = 1640995200; // 2022-01-01 시작 (Unix Timestamp)
 
-    for (let i = 0; i < 50; i++) {
-        const open = basePrice + Math.random() * 2 - 1;
-        const close = open + (Math.random() * 2 - 1) * 2;
-        const high = Math.max(open, close) + Math.random() * 1;
-        const low = Math.min(open, close) - Math.random() * 1;
+//     for (let i = 0; i < 50; i++) {
+//         const open = basePrice + Math.random() * 2 - 1;
+//         const close = open + (Math.random() * 2 - 1) * 2;
+//         const high = Math.max(open, close) + Math.random() * 1;
+//         const low = Math.min(open, close) - Math.random() * 1;
 
-        data.push({
-            time: time,
-            open: open,
-            high: high,
-            low: low,
-            close: close
-        });
+//         data.push({
+//             time: time,
+//             open: open,
+//             high: high,
+//             low: low,
+//             close: close
+//         });
 
-        time += 86400; // 하루 증가
-        basePrice += (close - open) * 0.5 + (Math.random() * 0.5 - 0.25);
-    }
-    return data;
-}
+//         time += 86400; // 하루 증가
+//         basePrice += (close - open) * 0.5 + (Math.random() * 0.5 - 0.25);
+//     }
+//     return data;
+// }
 
 
 /**
