@@ -1,14 +1,173 @@
 /* =========================================
+   🌐 기본 설정
+========================================= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  background-color: #fafafa;
+  font-family: "Noto Sans KR", sans-serif;
+  color: #333;
+  line-height: 1.5;
+  font-size: 14px; /* 전체 글자 기본 크기 축소 */
+  overflow-x: hidden;
+}
+
+/* =========================================
+   🧭 컨테이너 & 중앙 정렬
+========================================= */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+  width: 100%;
+}
+
+/* =========================================
+   🧱 Header
+========================================= */
+.header {
+  background: #fff;
+  border-bottom: 1px solid #ddd;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+}
+
+.logo {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #03c75a;
+}
+
+.nav a {
+  margin: 0 8px;
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.nav a:hover {
+  color: #03c75a;
+}
+
+.login-btn {
+  background: #03c75a;
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.login-btn:hover {
+  background: #02a84d;
+}
+
+/* =========================================
+   📈 상단 실시간 지수 바
+========================================= */
+.top-bar {
+  background: #f3f3f3;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.top-bar-inner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  padding: 6px 16px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow-x: auto;
+}
+
+.ticker span.up {
+  color: #d32f2f;
+  font-weight: 600;
+}
+.ticker span.down {
+  color: #1976d2;
+  font-weight: 600;
+}
+
+/* =========================================
+   📊 수익률 카드 섹션
+========================================= */
+.card-section {
+  margin-top: 40px;
+  text-align: center;
+}
+
+.card-section h2 {
+  margin-bottom: 16px;
+  font-size: 1.2rem;
+  color: #222;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 10px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  padding: 20px 15px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card h3 {
+  font-size: 1rem;
+  margin-bottom: 6px;
+  color: #03c75a;
+}
+
+.card p {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #333;
+}
+
+/* =========================================
    📑 테이블 섹션
 ========================================= */
 .table-section {
-  margin-top: 50px;
+  margin-top: 40px;
   text-align: center;
 }
 
 .table-section h2 {
-  margin-bottom: 15px;
-  font-size: 1.4rem;
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+  color: #222;
 }
 
 .data-table {
@@ -18,22 +177,21 @@
   border-collapse: collapse;
   background: #fff;
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-  border-radius: 8px;
+  border-radius: 6px;
   overflow: hidden;
+  font-size: 0.85rem;
 }
 
 .data-table th {
   background: #03c75a;
   color: #fff;
-  padding: 12px;
+  padding: 10px;
   font-weight: 600;
-  font-size: 0.95rem;
 }
 
 .data-table td {
-  padding: 10px;
+  padding: 8px;
   border-bottom: 1px solid #eee;
-  font-size: 0.95rem;
 }
 
 .data-table tr:nth-child(even) {
@@ -43,23 +201,153 @@
 .hidden {
   display: none;
 }
-
 .hidden.show {
   display: table-row;
 }
 
 /* 더보기 버튼 */
 .more-btn {
-  margin-top: 15px;
-  padding: 8px 16px;
+  margin-top: 12px;
+  padding: 6px 14px;
   border: none;
   background: #03c75a;
   color: #fff;
   border-radius: 6px;
   cursor: pointer;
-  transition: background 0.3s ease;
+  font-size: 0.85rem;
 }
-
 .more-btn:hover {
   background: #02a84d;
+}
+
+/* =========================================
+   💹 경제 데이터 섹션
+========================================= */
+.data-section {
+  background: #fff;
+  margin-top: 50px;
+  padding: 40px 0;
+  box-shadow: 0 -1px 3px rgba(0,0,0,0.05);
+  font-size: 0.9rem;
+}
+
+.data-section h2 {
+  text-align: center;
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+}
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.tab {
+  padding: 6px 12px;
+  border: none;
+  background: #eee;
+  cursor: pointer;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+.tab.active {
+  background: #03c75a;
+  color: #fff;
+}
+
+.tab-content {
+  display: none;
+  max-width: 800px;
+  margin: 0 auto;
+}
+.tab-content.active {
+  display: block;
+}
+
+.tab-content table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.tab-content th,
+.tab-content td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+  text-align: center;
+}
+.tab-content th {
+  background: #f9f9f9;
+  font-weight: 600;
+}
+
+/* =========================================
+   ⚙️ Footer
+========================================= */
+footer {
+  background: #f5f5f5;
+  text-align: center;
+  padding: 20px;
+  margin-top: 30px;
+  font-size: 0.8rem;
+  color: #777;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* =========================================
+   📱 반응형 (모바일 대응)
+========================================= */
+@media (max-width: 768px) {
+  body {
+    font-size: 13px; /* 모바일 글자 더 작게 */
+  }
+
+  .logo {
+    font-size: 1.1rem;
+  }
+
+  .nav a {
+    font-size: 0.8rem;
+  }
+
+  .top-bar-inner {
+    font-size: 0.75rem;
+    gap: 10px;
+  }
+
+  .card-section h2 {
+    font-size: 1rem;
+  }
+
+  .card h3 {
+    font-size: 0.9rem;
+  }
+
+  .card p {
+    font-size: 1.1rem;
+  }
+
+  .data-table {
+    font-size: 0.8rem;
+  }
+
+  .tab {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+  }
+
+  footer {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    padding: 16px 10px;
+  }
 }
