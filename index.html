@@ -4,9 +4,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ECONews - 오늘의 시장 요약</title>
-  <link rel="stylesheet" href="css/style.css" />
-  <script defer src="js/main.js"></script>
-  <script defer src="js/chart.js"></script>
+
+  <!-- ✅ 절대경로로 수정 -->
+  <link rel="stylesheet" href="/style.css" />
+
+  <!-- ✅ 로드 확인용 표시 (CSS 로드 확인) -->
+  <style>
+    body.loaded-check::before {
+      content: "✅ style.css loaded";
+      position: fixed;
+      top: 5px;
+      right: 10px;
+      font-size: 12px;
+      background: #03c75a;
+      color: #fff;
+      padding: 3px 6px;
+      border-radius: 4px;
+      z-index: 9999;
+      opacity: 0.8;
+    }
+  </style>
 </head>
 
 <body>
@@ -31,7 +48,7 @@
   </header>
 
   <!-- ===============================
-       📈 TOP BAR (시장 요약)
+       📈 TOP BAR
   ================================ -->
   <div class="top-bar">
     <div class="container top-bar-inner">
@@ -44,24 +61,25 @@
   </div>
 
   <!-- ===============================
-       📰 MAIN CONTENT (뉴스 + 차트)
+       📰 MAIN CONTENT
   ================================ -->
   <main>
     <div class="container main-content">
-      <!-- LEFT: 뉴스 -->
       <div class="left-column">
         <section id="headline-news">
           <h2>📰 주요 뉴스</h2>
           <div class="news-list">
             <article class="news-item">
-              <img src="images/news1.jpg" alt="news" />
+              <!-- ✅ 절대경로 수정 -->
+              <img src="/news1.jpg" alt="news1" />
               <div class="news-text">
                 <h3>금리 동결 소식에 코스피 상승 전환</h3>
                 <p>한국은행이 기준금리를 동결하면서 투자심리가 회복되고 있다...</p>
               </div>
             </article>
+
             <article class="news-item">
-              <img src="images/news2.jpg" alt="news" />
+              <img src="/news2.jpg" alt="news2" />
               <div class="news-text">
                 <h3>미국 CPI 발표 앞두고 나스닥 관망세</h3>
                 <p>인플레이션 지표 발표를 앞두고 기술주 중심의 나스닥은 혼조세...</p>
@@ -72,7 +90,6 @@
         </section>
       </div>
 
-      <!-- RIGHT: 차트 -->
       <aside class="right-column">
         <section id="charts">
           <h2>📊 ETF / 종목 차트</h2>
@@ -90,7 +107,7 @@
   </main>
 
   <!-- ===============================
-       💹 경제 데이터 섹션
+       💹 ECONOMIC DATA
   ================================ -->
   <section class="data-section">
     <div class="container">
@@ -102,7 +119,6 @@
         <button class="tab" data-target="commodity">원자재</button>
       </div>
 
-      <!-- 경제지표 -->
       <div class="tab-content active" id="economy">
         <table>
           <tr><th>지표</th><th>현재</th><th>변동</th></tr>
@@ -111,7 +127,6 @@
         </table>
       </div>
 
-      <!-- 환율 -->
       <div class="tab-content" id="exchange">
         <table>
           <tr><th>통화</th><th>환율</th><th>변동</th></tr>
@@ -120,7 +135,6 @@
         </table>
       </div>
 
-      <!-- 원자재 -->
       <div class="tab-content" id="commodity">
         <table>
           <tr><th>원자재</th><th>가격</th><th>변동</th></tr>
@@ -139,5 +153,16 @@
       <p>© 2025 ECONews | 데이터 제공: Supabase | 문의: info@econews.kr</p>
     </div>
   </footer>
+
+  <!-- ✅ 절대경로로 JS 불러오기 -->
+  <script defer src="/main.js"></script>
+  <script defer src="/chart.js"></script>
+
+  <!-- ✅ CSS 로드 후 표시 -->
+  <script>
+    window.addEventListener("load", () => {
+      document.body.classList.add("loaded-check");
+    });
+  </script>
 </body>
 </html>
