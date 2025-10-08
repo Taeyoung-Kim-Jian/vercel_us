@@ -3,11 +3,40 @@ const SUPABASE_URL = 'https://sssmldmhcfuodutvvcqf.supabase.co'; // <-- 교체
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1b2R1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4';               // <-- 교체
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// === 1) 전역 상태 ===
+// === 공통: 페이지네이션 유틸 ===
+// builderFactory: () => PostgrestFilterBuilder (select/order/eq 등 이미 적용된 상태)
+// range는 내부에서 from~to(포함)로 잘라서 여러 번 호출
+const PAGE_SIZE = 1000;
+async function fetchAllRows(builderFactory, pageSize = PAGE_SIZE) {
+  const out = [];
+  let from = 0;
+  while (true) {
+    const to = from + pageSize - 1;
+    const { data, error } = await builderFactory().range(from, to);
+    if (error) throw error;
+    out.push(...(data ?? []));
+    if (!data || data.length < pageSize) break; // 마지막 페이지
+    from += pageSize;
+  }
+  return out;
+}
+
+// (선택) 날짜 중복 제거 유틸
+function dedupeByKey(rows, key) {
+  const seen = new Set();
+  const out = [];
+  for (const r of rows) {
+    const k = r[key];
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(r);
+  }
+  return out;
+}
+
+// === 1) 전역 상태/ECharts 핸들 ===
 let chart; // ECharts 인스턴스
 const chartEl = document.getElementById('chart');
-
-// 한 번만 만들고 계속 재사용 (중요: dispose 남발 X)
 function getChart() {
   if (!chart) {
     chart = echarts.init(chartEl);
@@ -57,56 +86,60 @@ function renderSummaryCards(rows) {
   });
 }
 
-// === 4) 리스트 로드 ===
+// === 4) 리스트(전체 종목) - 페이지네이션 적용 ===
 async function loadList() {
   const el = document.getElementById('list');
   el.innerHTML = '불러오는 중...';
 
-  const { data, error } = await supabaseClient
-    .from('total_return')
-    .select('종목명, 종목코드, 시작가격, 현재가격, 수익률')
-    .order('수익률', { ascending: false });
+  try {
+    // 👉 total_return 전체를 페이지네이션으로 수집
+    const data = await fetchAllRows(() =>
+      supabaseClient
+        .from('total_return')
+        .select('종목명, 종목코드, 시작가격, 현재가격, 수익률')
+        .order('수익률', { ascending: false })
+    );
 
-  if (error) {
-    el.innerHTML = `<p class="text-red-600">에러: ${error.message}</p>`;
-    return;
-  }
-  if (!data || data.length === 0) {
-    el.innerHTML = '<p class="text-gray-500">데이터가 없습니다.</p>';
-    return;
-  }
+    if (!data || data.length === 0) {
+      el.innerHTML = '<p class="text-gray-500">데이터가 없습니다.</p>';
+      return;
+    }
 
-  renderSummaryCards(data);
+    renderSummaryCards(data);
 
-  // 간단 테이블 렌더
-  const headers = ['종목명', '종목코드', '시작가격', '현재가격', '수익률'];
-  let html = '<table><thead><tr>';
-  headers.forEach(h => html += `<th>${h}</th>`);
-  html += '</tr></thead><tbody>';
+    // 테이블 렌더
+    const headers = ['종목명', '종목코드', '시작가격', '현재가격', '수익률'];
+    let html = '<table><thead><tr>';
+    headers.forEach(h => html += `<th>${h}</th>`);
+    html += '</tr></thead><tbody>';
 
-  data.forEach(r => {
-    html += `
-      <tr>
-        <td class="clickable" data-name="${r['종목명']}" data-code="${r['종목코드'] ?? ''}">${r['종목명']}</td>
-        <td>${r['종목코드'] ?? ''}</td>
-        <td style="text-align:right">${nf.format(+r['시작가격'] || 0)}</td>
-        <td style="text-align:right">${nf.format(+r['현재가격'] || 0)}</td>
-        <td style="text-align:right">${fmtPct(r['수익률'])}</td>
-      </tr>
-    `;
-  });
-
-  html += '</tbody></table>';
-  el.innerHTML = html;
-
-  // 리스트 클릭 → 차트 로드
-  el.querySelectorAll('.clickable').forEach(td => {
-    td.addEventListener('click', async () => {
-      const name = td.getAttribute('data-name') || '';
-      const code = td.getAttribute('data-code') || '';
-      await showChart(name, code);
+    data.forEach(r => {
+      html += `
+        <tr>
+          <td class="clickable" data-name="${r['종목명']}" data-code="${r['종목코드'] ?? ''}">${r['종목명']}</td>
+          <td>${r['종목코드'] ?? ''}</td>
+          <td style="text-align:right">${nf.format(+r['시작가격'] || 0)}</td>
+          <td style="text-align:right">${nf.format(+r['현재가격'] || 0)}</td>
+          <td style="text-align:right">${fmtPct(r['수익률'])}</td>
+        </tr>
+      `;
     });
-  });
+
+    html += '</tbody></table>';
+    el.innerHTML = html;
+
+    // 리스트 클릭 → 차트
+    el.querySelectorAll('.clickable').forEach(td => {
+      td.addEventListener('click', async () => {
+        const name = td.getAttribute('data-name') || '';
+        const code = td.getAttribute('data-code') || '';
+        await showChart(name, code);
+      });
+    });
+  } catch (error) {
+    el.innerHTML = `<p class="text-red-600">에러: ${error.message}</p>`;
+    console.error(error);
+  }
 }
 
 // === 5) 차트 옵션 ===
@@ -133,7 +166,6 @@ function buildCandleOption(dates, ohlc, title='') {
     ]
   };
 }
-
 function buildLineOption(dates, closes, title='') {
   return {
     title: { text: title, left: 'center', textStyle: { fontSize: 14, fontWeight: 600 } },
@@ -170,44 +202,48 @@ function normalizeToECharts(data) {
   return { type: 'empty' };
 }
 
-// === 7) 종목 선택 → 차트 표시 (로딩 처리 fix 포함) ===
+// === 7) 종목 선택 → 차트 표시 (페이지네이션 적용 + 로딩 처리) ===
 async function showChart(name, code) {
   const c = getChart();
-
-  // ✅ 로딩 오버레이 (DOM을 갈아엎지 않음)
   c.showLoading('default', { text: '데이터 로딩 중...' });
 
   try {
-    // 1차: 한국어 컬럼
-    let q = supabaseClient.from('prices').select('날짜, 시가, 고가, 저가, 종가');
-    q = code ? q.eq('종목코드', code) : q.eq('종목명', name);
-    let { data, error } = await q.order('날짜', { ascending: true }).limit(5000);
+    // 1) 한국어 컬럼으로 전체 페이지네이션 조회
+    let data = await fetchAllRows(() => {
+      let base = supabaseClient
+        .from('prices')
+        .select('날짜, 시가, 고가, 저가, 종가')
+        .order('날짜', { ascending: true });
+      return code ? base.eq('종목코드', code) : base.eq('종목명', name);
+    });
 
-    // 2차: 영어 컬럼 fallback
-    if (error || !data || data.length === 0) {
-      let q2 = supabaseClient.from('prices').select('date, open, high, low, close');
-      q2 = code ? q2.eq('code', code) : q2.eq('name', name);
-      const alt = await q2.order('date', { ascending: true }).limit(5000);
-      data = alt.data || [];
+    // 2) 없으면 영어 컬럼으로 전체 페이지네이션 조회
+    if (!data || data.length === 0) {
+      data = await fetchAllRows(() => {
+        let base = supabaseClient
+          .from('prices')
+          .select('date, open, high, low, close')
+          .order('date', { ascending: true });
+        return code ? base.eq('code', code) : base.eq('name', name);
+      });
     }
 
-    // 데이터 없음 처리
+    // 3) 데이터 없음 처리
     if (!data || data.length === 0) {
       c.clear();
       c.setOption({
         title: { text: `⚠️ "${name || code}" 데이터가 없습니다.`, left: 'center' },
-        graphic: {
-          type: 'text', left: 'center', top: 'middle',
-          style: { text: '데이터 없음', fill: '#666', fontSize: 14 }
-        }
+        graphic: { type: 'text', left: 'center', top: 'middle', style: { text: '데이터 없음', fill: '#666', fontSize: 14 } }
       }, true);
       return;
     }
 
-    // 정규화
-    const norm = normalizeToECharts(data);
+    // (선택) 날짜 중복 제거
+    if ('날짜' in data[0]) data = dedupeByKey(data, '날짜');
+    if ('date' in data[0]) data = dedupeByKey(data, 'date');
 
-    // ✅ 이전 시리즈/옵션 비우고 새로 설정 (dispose 불필요)
+    // 4) 정규화 → 옵션 반영
+    const norm = normalizeToECharts(data);
     c.clear();
 
     if (norm.type === 'candlestick') {
@@ -223,19 +259,13 @@ async function showChart(name, code) {
         `${name}${code ? ' (' + code + ')' : ''}`
       ), true);
     } else {
-      c.setOption({
-        title: { text: '지원하지 않는 데이터 형식', left: 'center' }
-      }, true);
+      c.setOption({ title: { text: '지원하지 않는 데이터 형식', left: 'center' } }, true);
     }
   } catch (e) {
-    // 에러 표시
     c.clear();
-    c.setOption({
-      title: { text: `에러: ${e.message}`, left: 'center', textStyle: { color: '#dc2626' } }
-    }, true);
+    c.setOption({ title: { text: `에러: ${e.message}`, left: 'center', textStyle: { color: '#dc2626' } } }, true);
     console.error(e);
   } finally {
-    // ✅ 로딩 종료 (성공/실패 모두)
     c.hideLoading();
   }
 }
