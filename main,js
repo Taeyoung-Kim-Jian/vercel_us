@@ -1,78 +1,96 @@
 window.addEventListener('DOMContentLoaded', async () => {
-  // === 0) Supabase 연결 ===
+  // === Supabase 연결 ===
   const SUPABASE_URL = 'https://sssmldmhcfuodutvvcqf.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1b2R1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4';
-
-  // ✅ Supabase SDK에서 createClient 함수 가져오기
   const { createClient } = window.supabase;
   const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // === 1) DOM 요소 ===
-  const tbody = document.getElementById('total-table-body');
-  const loadMoreBtn = document.getElementById('loadMoreBtn');
+  // === 전역 변수 ===
+  let totalData = [], swingData = [];
+  let showTotal = 5, showSwing = 5;
 
-  // === 2) 전역 상태 ===
-  let allData = [];
-  let showing = 5; // 기본 5개만 표시
+  // === DOM 참조 ===
+  const totalTbody = document.getElementById('total-table-body');
+  const swingTbody = document.getElementById('swing-table-body');
+  const btnTotal = document.getElementById('loadMoreTotalBtn');
+  const btnSwing = document.getElementById('loadMoreSwingBtn');
 
-  // === 3) 데이터 불러오기 ===
+  // === 전체 수익률 불러오기 ===
   async function loadTotalReturn() {
-    tbody.innerHTML = `<tr><td colspan="4">⏳ 데이터를 불러오는 중...</td></tr>`;
-
+    totalTbody.innerHTML = `<tr><td colspan="4">⏳ 데이터를 불러오는 중...</td></tr>`;
     try {
-      // Supabase에서 total_return 테이블 읽기
-      const { data, error } = await db
-        .from('total_return')
-        .select('*')
-        .order('수익률', { ascending: false });
-
+      const { data, error } = await db.from('total_return').select('*').order('수익률', { ascending: false });
       if (error) throw error;
-      if (!data || data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4">데이터가 없습니다.</td></tr>`;
-        return;
-      }
-
-      allData = data;
-      renderTable();
+      totalData = data || [];
+      renderTotal();
     } catch (err) {
-      console.error('❌ Supabase Error:', err);
-      tbody.innerHTML = `<tr><td colspan="4">❌ 데이터 불러오기 실패 (${err.message})</td></tr>`;
+      totalTbody.innerHTML = `<tr><td colspan="4">❌ 데이터 불러오기 실패</td></tr>`;
+      console.error(err);
     }
   }
 
-  // === 4) 테이블 렌더링 ===
-  function renderTable() {
-    tbody.innerHTML = '';
+  // === 스윙 적정가격 불러오기 ===
+  async function loadSwing() {
+    swingTbody.innerHTML = `<tr><td colspan="4">⏳ 데이터를 불러오는 중...</td></tr>`;
+    try {
+      const { data, error } = await db.from('swing_price').select('*').order('괴리율', { ascending: true });
+      if (error) throw error;
+      swingData = data || [];
+      renderSwing();
+    } catch (err) {
+      swingTbody.innerHTML = `<tr><td colspan="4">❌ 데이터 불러오기 실패</td></tr>`;
+      console.error(err);
+    }
+  }
 
-    allData.slice(0, showing).forEach(row => {
+  // === 렌더링 함수들 ===
+  function renderTotal() {
+    totalTbody.innerHTML = '';
+    totalData.slice(0, showTotal).forEach(r => {
       const tr = document.createElement('tr');
-      const rate = parseFloat(row.수익률 ?? 0);
+      const rate = parseFloat(r.수익률 ?? 0);
       tr.innerHTML = `
-        <td>${row.종목명 || '-'}</td>
-        <td>${row.매수가?.toLocaleString() || '-'}</td>
-        <td>${row.현재가?.toLocaleString() || '-'}</td>
+        <td>${r.종목명 || '-'}</td>
+        <td>${r.매수가?.toLocaleString() || '-'}</td>
+        <td>${r.현재가?.toLocaleString() || '-'}</td>
         <td style="color:${rate >= 0 ? '#d32f2f' : '#1976d2'};">
           ${rate >= 0 ? '▲' : '▼'}${rate.toFixed(2)}%
-        </td>
-      `;
-      tbody.appendChild(tr);
+        </td>`;
+      totalTbody.appendChild(tr);
     });
-
-    // 더보기 버튼 표시
-    if (allData.length > 5) {
-      loadMoreBtn.style.display = 'inline-block';
-      loadMoreBtn.textContent = showing > 5 ? '접기' : '더보기';
-    } else {
-      loadMoreBtn.style.display = 'none';
-    }
+    btnTotal.style.display = totalData.length > 5 ? 'inline-block' : 'none';
   }
 
-  // === 5) 더보기 버튼 ===
-  loadMoreBtn.addEventListener('click', () => {
-    showing = showing === 5 ? allData.length : 5;
-    renderTable();
+  function renderSwing() {
+    swingTbody.innerHTML = '';
+    swingData.slice(0, showSwing).forEach(r => {
+      const tr = document.createElement('tr');
+      const diff = parseFloat(r.괴리율 ?? 0);
+      tr.innerHTML = `
+        <td>${r.종목명 || '-'}</td>
+        <td>${r.적정매수가?.toLocaleString() || '-'}</td>
+        <td>${r.현재가?.toLocaleString() || '-'}</td>
+        <td style="color:${diff >= 0 ? '#d32f2f' : '#1976d2'};">
+          ${diff >= 0 ? '▲' : '▼'}${diff.toFixed(2)}%
+        </td>`;
+      swingTbody.appendChild(tr);
+    });
+    btnSwing.style.display = swingData.length > 5 ? 'inline-block' : 'none';
+  }
+
+  // === 더보기 버튼 ===
+  btnTotal.addEventListener('click', () => {
+    showTotal = showTotal === 5 ? totalData.length : 5;
+    renderTotal();
+    btnTotal.textContent = showTotal === 5 ? '더보기' : '접기';
+  });
+  btnSwing.addEventListener('click', () => {
+    showSwing = showSwing === 5 ? swingData.length : 5;
+    renderSwing();
+    btnSwing.textContent = showSwing === 5 ? '더보기' : '접기';
   });
 
-  // === 6) 실행 ===
+  // === 실행 ===
   loadTotalReturn();
+  loadSwing();
 });
