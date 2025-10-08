@@ -1,5 +1,5 @@
 /* =========================================
-   📌 기본 설정
+   🌐 기본 설정
 ========================================= */
 * {
   box-sizing: border-box;
@@ -7,21 +7,25 @@
   padding: 0;
 }
 
-body {
-  font-family: "Noto Sans KR", sans-serif;
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
   background-color: #fafafa;
+  font-family: "Noto Sans KR", sans-serif;
   color: #333;
   line-height: 1.5;
+  overflow-x: hidden;
 }
 
 /* =========================================
-   🧭 컨테이너 & 공통 정렬
+   🧭 컨테이너 & 중앙 정렬
 ========================================= */
 .container {
   max-width: 1200px;
-  margin: 0 auto;          /* 화면 중앙 정렬 */
-  padding: 0 20px;         /* 좌우 여백 */
-  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 0 20px;
+  width: 100%;
 }
 
 /* =========================================
@@ -34,31 +38,32 @@ body {
   top: 0;
   z-index: 999;
 }
+
 .header-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 20px;
 }
+
 .logo {
   font-size: 1.6rem;
   font-weight: 700;
   color: #03c75a;
 }
+
 .nav a {
   margin: 0 10px;
   text-decoration: none;
   color: #333;
   font-weight: 500;
+  transition: color 0.2s ease;
 }
+
 .nav a:hover {
   color: #03c75a;
 }
-.search-box input {
-  padding: 6px 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-}
+
 .login-btn {
   background: #03c75a;
   color: #fff;
@@ -66,7 +71,9 @@ body {
   padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
+
 .login-btn:hover {
   background: #02a84d;
 }
@@ -78,96 +85,75 @@ body {
   background: #f3f3f3;
   border-bottom: 1px solid #e0e0e0;
 }
+
 .top-bar-inner {
   display: flex;
+  justify-content: center;
+  align-items: center;
   gap: 20px;
-  padding: 8px 20px;
-  overflow-x: auto;
+  padding: 10px 20px;
   font-size: 0.9rem;
   white-space: nowrap;
-  justify-content: center;   /* 가운데 정렬 느낌 강화 */
+  overflow-x: auto;
 }
+
 .ticker span.up {
   color: #d32f2f;
   font-weight: 600;
 }
+
 .ticker span.down {
   color: #1976d2;
   font-weight: 600;
 }
 
 /* =========================================
-   📰 메인 콘텐츠 (뉴스 + 차트)
+   📊 수익률 카드 섹션
 ========================================= */
-.main-content {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 20px;
-  max-width: 1200px;
-  margin: 0 auto;            /* 중앙 정렬 */
-  padding: 20px;
-}
-.left-column h2,
-.right-column h2 {
-  margin-bottom: 10px;
-}
-
-/* 뉴스 섹션 */
-.news-item {
-  display: flex;
-  gap: 12px;
-  background: #fff;
-  border-radius: 8px;
-  padding: 10px;
-  margin-bottom: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  transition: transform 0.2s ease;
-}
-.news-item:hover {
-  transform: scale(1.01);
-}
-.news-item img {
-  width: 100px;
-  height: 70px;
-  object-fit: cover;
-  border-radius: 6px;
-}
-.news-text h3 {
-  font-size: 1rem;
-  margin-bottom: 4px;
-}
-.news-text p {
-  font-size: 0.9rem;
-  color: #666;
-}
-.more-btn {
-  display: block;
-  width: 100%;
-  padding: 10px;
-  background: #03c75a;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-top: 8px;
-}
-.more-btn:hover {
-  background: #02a84d;
-}
-
-/* 차트 섹션 */
-.chart-card {
-  background: #fff;
-  border-radius: 8px;
-  padding: 10px;
-  margin-bottom: 15px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+.card-section {
+  margin-top: 50px;
   text-align: center;
 }
-.chart-card p {
-  margin-top: 8px;
-  font-weight: 500;
-  color: #444;
+
+.card-section h2 {
+  margin-bottom: 25px;
+  font-size: 1.6rem;
+  color: #222;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 10px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  padding: 30px 20px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.12);
+}
+
+.card h3 {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  color: #03c75a;
+}
+
+.card p {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #333;
 }
 
 /* =========================================
@@ -175,20 +161,24 @@ body {
 ========================================= */
 .data-section {
   background: #fff;
-  margin-top: 30px;
-  padding: 30px 0;
-  box-shadow: 0 -1px 3px rgba(0,0,0,0.05);
+  margin-top: 60px;
+  padding: 50px 0;
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
 }
+
 .data-section h2 {
   text-align: center;
   margin-bottom: 20px;
+  font-size: 1.4rem;
 }
+
 .tabs {
   display: flex;
   justify-content: center;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
+
 .tab {
   padding: 8px 16px;
   border: none;
@@ -196,29 +186,40 @@ body {
   cursor: pointer;
   border-radius: 6px;
   font-weight: 500;
+  transition: all 0.2s ease;
 }
+
+.tab:hover {
+  background: #ddd;
+}
+
 .tab.active {
   background: #03c75a;
   color: #fff;
 }
+
 .tab-content {
   display: none;
   max-width: 800px;
   margin: 0 auto;
 }
+
 .tab-content.active {
   display: block;
 }
+
 .tab-content table {
   width: 100%;
   border-collapse: collapse;
 }
+
 .tab-content th,
 .tab-content td {
-  padding: 10px;
+  padding: 12px;
   border-bottom: 1px solid #eee;
   text-align: center;
 }
+
 .tab-content th {
   background: #f9f9f9;
   font-weight: 600;
@@ -230,7 +231,7 @@ body {
 footer {
   background: #f5f5f5;
   text-align: center;
-  padding: 20px;
+  padding: 25px;
   margin-top: 40px;
   font-size: 0.9rem;
   color: #777;
@@ -240,34 +241,44 @@ footer {
 /* =========================================
    📱 반응형 (모바일 대응)
 ========================================= */
-@media (max-width: 768px) {
-  .main-content {
-    grid-template-columns: 1fr;
-    padding: 10px;
+@media (max-width: 1024px) {
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
+}
 
+@media (max-width: 768px) {
   .header-inner {
     flex-wrap: wrap;
     gap: 10px;
   }
 
+  .nav a {
+    font-size: 0.9rem;
+  }
+
   .top-bar-inner {
     justify-content: flex-start;
-    padding: 8px 10px;
+    font-size: 0.85rem;
   }
 
-  .news-item img {
-    width: 90px;
-    height: 60px;
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 
-  .chart-card {
-    padding: 8px;
+  .card {
+    padding: 20px 10px;
   }
 
   .tab-content table th,
   .tab-content table td {
     font-size: 0.85rem;
-    padding: 6px;
+    padding: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-grid {
+    grid-template-columns: 1fr;
   }
 }
