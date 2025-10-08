@@ -1,70 +1,49 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ECONews - 수익률 대시보드</title>
-  <link rel="stylesheet" href="./style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ECONews Dashboard</title>
+  <link rel="stylesheet" href="./style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-
 <body>
-  <!-- ===============================
-       🧭 HEADER
-  ================================ -->
-  <header class="header">
-    <div class="container header-inner">
-      <div class="logo">ECONews</div>
-      <nav class="nav">
-        <a href="#">경제</a>
-        <a href="#">증시</a>
-        <a href="#">해외</a>
-        <a href="#">분석</a>
-      </nav>
-    </div>
+  <header>
+    📊 ECONews 대시보드
   </header>
 
-  <!-- ===============================
-       📈 수익률 카드
-  ================================ -->
-  <section class="cards">
-    <div id="top5-card" class="card">데이터 불러오는 중...</div>
-    <div class="card">수익률 2</div>
-    <div class="card">수익률 3</div>
-    <div class="card">수익률 4</div>
-  </section>
+  <main>
+    <!-- 📈 카드 요약 섹션 -->
+    <section class="cards">
+      <div id="top5-card" class="card">데이터 불러오는 중...</div>
+      <div class="card">수익률 2</div>
+      <div class="card">수익률 3</div>
+      <div class="card">수익률 4</div>
+    </section>
 
-
-  <!-- ===============================
-       💰 전체 수익률 테이블
-  ================================ -->
-  <section class="table-section">
-    <div class="container">
-      <h2>💰 전체 수익률</h2>
-      <table class="data-table">
+    <!-- 🧾 전체 수익률 -->
+    <div class="table-wrap">
+      <h3>📈 전체 수익률</h3>
+      <table>
         <thead>
           <tr>
             <th>종목명</th>
-            <th>매수가</th>
-            <th>현재가</th>
+            <th>시작가격</th>
+            <th>현재가격</th>
             <th>수익률</th>
           </tr>
         </thead>
         <tbody id="total-table-body">
-          <tr><td colspan="4">⏳ 데이터를 불러오는 중...</td></tr>
+          <tr><td colspan="4">데이터를 불러오는 중...</td></tr>
         </tbody>
       </table>
-      <button class="more-btn" id="loadMoreTotalBtn">더보기</button>
+      <button id="loadMoreTotalBtn">더보기</button>
     </div>
-  </section>
 
-  <!-- ===============================
-       🧭 스윙 적정가격 테이블
-  ================================ -->
-  <section class="table-section">
-    <div class="container">
-      <h2>📊 스윙 적정가격</h2>
-      <table class="data-table">
+    <!-- 💰 스윙 적정가격 -->
+    <div class="table-wrap">
+      <h3>💰 스윙 적정가격</h3>
+      <table>
         <thead>
           <tr>
             <th>종목명</th>
@@ -74,23 +53,17 @@
           </tr>
         </thead>
         <tbody id="swing-table-body">
-          <tr><td colspan="4">⏳ 데이터를 불러오는 중...</td></tr>
+          <tr><td colspan="4">데이터를 불러오는 중...</td></tr>
         </tbody>
       </table>
-      <button class="more-btn" id="loadMoreSwingBtn">더보기</button>
+      <button id="loadMoreSwingBtn">더보기</button>
     </div>
-  </section>
+  </main>
 
-  <!-- ===============================
-       ⚙️ FOOTER
-  ================================ -->
   <footer>
-    <div class="container">
-      <p>© 2025 ECONews | 데이터 제공: Supabase</p>
-    </div>
+    © 2025 ECONews | 데이터 제공: Supabase
   </footer>
 
-  <!-- ✅ JS 연결 -->
   <script src="./main.js"></script>
 </body>
 </html>
