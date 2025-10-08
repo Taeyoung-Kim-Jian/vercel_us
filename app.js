@@ -25,6 +25,7 @@ function createDataTable(data) {
     // 헤더 행 생성 (<th> 태그)
     headers.forEach(h => {
         html += `<th>${h}</th>`;
+        
     });
     html += '</tr></thead><tbody>';
 
@@ -55,7 +56,9 @@ async function loadTotalReturnData() {
         // 'supabaseClient'를 사용하여 데이터 요청을 보냅니다.
         const { data, error } = await supabaseClient
             .from('total_return')
-            .select('*'); 
+            // *** 수정된 부분: 종목명, 시작가격, 현재가격, 수익률 4개 컬럼만 선택합니다. ***
+            .select('종목명, 시작가격, 현재가격, 수익률')
+            .order('수익률', { ascending: false }); // 수익률 기준 내림차순 정렬은 유지합니다.
 
         if (error) {
             // 에러 발생 시: 테이블 이름이나 스키마 오류일 수 있습니다.
