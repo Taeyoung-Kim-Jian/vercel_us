@@ -1,5 +1,5 @@
 /* ==========================================================
-   🌐 SWING INVESTOR common.js (닉네임 포함 통합버전)
+   🌐 SWING INVESTOR common.js (닉네임 중복검사 포함)
    ========================================================== */
 
 console.log("🌐 SWING INVESTOR common.js loaded");
@@ -9,13 +9,13 @@ console.log("🌐 SWING INVESTOR common.js loaded");
 // ------------------------------------------
 const SUPABASE_URL = "https://sssmldmhcfuodutvvcqf.supabase.co";
 const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1b2R1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4";
 
 const { createClient } = window.supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ------------------------------------------
-// 🧩 기본 유틸
+// 🧩 유틸 함수
 // ------------------------------------------
 function nf(num) {
   if (num == null || num === "") return "-";
@@ -51,7 +51,7 @@ function showError(t, m = "데이터 로딩 실패") {
 }
 
 // ------------------------------------------
-// 🔐 로그인 세션 관리 + 닉네임 확인
+// 🔐 로그인 세션 + 닉네임 확인
 // ------------------------------------------
 (async () => {
   try {
@@ -65,10 +65,9 @@ function showError(t, m = "데이터 로딩 실패") {
       SWINGINV_updateHeaderAuthUI();
     });
 
-    // 최초 세션 체크
     await SWINGINV_checkProfile();
 
-    // 보호 페이지 접근 제한
+    // 보호 페이지
     const protectedPages = ["watch.html", "board.html"];
     const current = location.pathname.split("/").pop();
     if (protectedPages.includes(current) && !SWINGINV.user) {
@@ -81,7 +80,7 @@ function showError(t, m = "데이터 로딩 실패") {
 })();
 
 // ------------------------------------------
-// 👤 프로필 닉네임 확인 / 생성 / 요청
+// 👤 닉네임 확인 + 중복 검사 + 저장
 // ------------------------------------------
 async function SWINGINV_checkProfile() {
   if (!SWINGINV.user) return;
@@ -98,20 +97,47 @@ async function SWINGINV_checkProfile() {
   }
 
   if (!data || !data.nickname) {
-    // 닉네임 입력 요청
     let nickname = "";
-    while (!nickname || nickname.length < 2) {
-      nickname = prompt("닉네임을 설정해주세요 (2자 이상):");
-      if (nickname === null) return; // 취소 시 무시
+    while (true) {
+      nickname = prompt("닉네임을 설정해주세요 (2~12자, 중복 불가):");
+      if (nickname === null) return; // 취소 시 종료
+      nickname = nickname.trim();
+
+      if (nickname.length < 2 || nickname.length > 12) {
+        alert("⚠️ 닉네임은 2~12자 사이여야 합니다.");
+        continue;
+      }
+
+      // ✅ 중복 닉네임 검사
+      const { data: dup, error: dupErr } = await db
+        .from("profiles")
+        .select("nickname")
+        .eq("nickname", nickname);
+
+      if (dupErr) {
+        alert("닉네임 확인 실패: " + dupErr.message);
+        continue;
+      }
+      if (dup && dup.length > 0) {
+        alert("🚫 이미 사용 중인 닉네임입니다. 다른 닉네임을 입력해주세요.");
+        continue;
+      }
+
+      // ✅ 저장
+      const { error: upErr } = await db.from("profiles").upsert({
+        id: SWINGINV.user.id,
+        nickname,
+      });
+
+      if (upErr) {
+        alert("닉네임 저장 실패: " + upErr.message);
+        continue;
+      }
+
+      SWINGINV.user.nickname = nickname;
+      alert(`✅ 닉네임이 '${nickname}'(으)로 설정되었습니다.`);
+      break;
     }
-
-    const { error: upErr } = await db.from("profiles").upsert({
-      id: SWINGINV.user.id,
-      nickname,
-    });
-
-    if (upErr) alert("닉네임 저장 실패: " + upErr.message);
-    else SWINGINV.user.nickname = nickname;
   } else {
     SWINGINV.user.nickname = data.nickname;
   }
@@ -152,7 +178,7 @@ function SWINGINV_updateHeaderAuthUI() {
 }
 
 // ------------------------------------------
-// 📋 네비게이션 메뉴 강조
+// 📋 메뉴 강조
 // ------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
   const current = location.pathname.split("/").pop();
