@@ -45,4 +45,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     tbody.innerHTML = `<tr><td colspan="7">❌ 불러오기 실패: ${err.message}</td></tr>`;
   }
 });
+// ===============================
+  // 차트 실행
+  // ===============================
+const tdName = document.createElement("td");
+tdName.textContent = r.종목명 || "-";
+tdName.classList.add("clickable-name");
+tdName.addEventListener("click", () => {
+  // 종목 코드 또는 이름이 없으면 이동 금지
+  if (!r.종목코드 || !r.종목명) return;
 
+  // URL 파라미터로 전달
+  location.href = `detail.html?code=${encodeURIComponent(r.종목코드)}&name=${encodeURIComponent(r.종목명)}`;
