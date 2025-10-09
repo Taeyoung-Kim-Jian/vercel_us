@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const headerHTML = `
     <header class="header">
       <div class="header-inner">
-        <div class="logo" onclick="location.href='index.html'">📊 ECONews 대시보드</div>
+        <div class="logo" onclick="location.href='index.html'">📊 swing Investor</div>
         <div class="login-btn"><button>로그인</button></div>
       </div>
     </header>
