@@ -5,7 +5,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const tbody = document.getElementById("swing-table-body");
   const loadMoreBtn = document.getElementById("loadMoreSwingBtn");
-  ECONews.showLoading(tbody);
+  SWINGINV.showLoading(tbody);
 
   const PAGE_SIZE = 10;
   let currentPage = 0;
@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   try {
     // ✅ Supabase View에서 데이터 로드
-    const { data, error } = await ECONews.db
+    const { data, error } = await SWINGINV.db
       .from("swing_proper_view")
       .select("*")
       .order("괴리율", { ascending: true });
@@ -32,11 +32,11 @@ document.addEventListener("DOMContentLoaded", async () => {
           (r) => `
             <tr>
               <td class="clickable-name" data-code="${r.종목코드}" data-name="${r.종목명}">
-                ${ECONews.esc(r.종목명)}
+                ${SWINGINV.esc(r.종목명)}
               </td>
-              <td style="text-align:right">${ECONews.nf(r.적정매수가)}</td>
-              <td style="text-align:right">${ECONews.nf(r.현재가)}</td>
-              <td style="text-align:right">${ECONews.fmtPct(r.괴리율)}</td>
+              <td style="text-align:right">${SWINGINV.nf(r.적정매수가)}</td>
+              <td style="text-align:right">${SWINGINV.nf(r.현재가)}</td>
+              <td style="text-align:right">${SWINGINV.fmtPct(r.괴리율)}</td>
             </tr>
           `
         )
@@ -53,6 +53,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     loadMoreBtn.addEventListener("click", renderPage);
   } catch (err) {
     console.error("❌ 데이터 로드 오류:", err);
-    ECONews.showError(tbody, "데이터 로딩 실패");
+    SWINGINV.showError(tbody, "데이터 로딩 실패");
   }
 });
