@@ -101,97 +101,47 @@
       margin-left: 5px;
       cursor: pointer;
     }
-
-    /* ✅ Header 스타일 */
-    #site-header {
-      border-bottom: 1px solid #e5e7eb;
-      margin-bottom: 20px;
-      background: #fff;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .header-inner {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 20px;
-    }
-    .logo {
-      font-weight: 700;
-      color: #111827;
-      cursor: pointer;
-    }
-    .auth-area {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .auth-area button {
-      background: #2563eb;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 5px 10px;
-      cursor: pointer;
-    }
-    .scroll-menu {
-      overflow-x: auto;
-      white-space: nowrap;
-      border-top: 1px solid #e5e7eb;
-      background: #f9fafb;
-    }
-    .scroll-menu button {
-      display: inline-block;
-      background: none;
-      border: none;
-      padding: 10px 14px;
-      cursor: pointer;
-      font-size: 15px;
-    }
-    .scroll-menu button:hover {
-      background: #e5e7eb;
-    }
   </style>
 </head>
 
 <body>
-  <!-- ✅ 상단 헤더 -->
-  <header id="site-header">
-    <div class="header-inner">
-      <h2 class="logo" onclick="location.href='index.html'">SWING INVESTOR</h2>
-      <div class="auth-area">
-        <span id="user-email">로그인 확인 중...</span>
-        <button id="loginBtn">🔑 로그인</button>
-        <button id="logoutBtn" style="display:none;">🚪 로그아웃</button>
-      </div>
+  <!-- ✅ 공통 헤더 자동 로드 -->
+  <div id="header-container"></div>
+  <script>
+    fetch("./header.html")
+      .then((r) => r.text())
+      .then((html) => {
+        document.getElementById("header-container").innerHTML = html;
+        if (typeof SWINGINV_updateHeaderAuthUI === "function") {
+          SWINGINV_updateHeaderAuthUI();
+        }
+      });
+  </script>
+
+  <main>
+    <h1>💬 SWING INVESTOR 게시판</h1>
+
+    <!-- 게시판 탭 -->
+    <div class="tab-bar">
+      <button class="tab active" data-type="notice">📢 공지사항</button>
+      <button class="tab" data-type="free">💬 자유게시판</button>
+      <button class="tab" data-type="idea">💡 아이디어</button>
     </div>
-    <nav class="scroll-menu">
-      <button onclick="location.href='index.html'">🏠 홈</button>
-      <button onclick="location.href='board.html'">💬 게시판</button>
-      <button onclick="location.href='watch.html'">⭐ 관심종목</button>
-      <button onclick="location.href='month.html'">📅 월별성과</button>
-    </nav>
-  </header>
 
-  <h1>💬 SWING INVESTOR 게시판</h1>
+    <!-- 게시글 작성 -->
+    <form id="postForm">
+      <input type="text" id="title" placeholder="제목을 입력하세요" required />
+      <textarea id="content" placeholder="내용을 입력하세요" required></textarea>
+      <button type="submit">등록</button>
+    </form>
 
-  <!-- 게시판 탭 -->
-  <div class="tab-bar">
-    <button class="tab active" data-type="notice">📢 공지사항</button>
-    <button class="tab" data-type="free">💬 자유게시판</button>
-    <button class="tab" data-type="idea">💡 아이디어</button>
-  </div>
+    <!-- 게시글 목록 -->
+    <div id="posts"></div>
+  </main>
 
-  <!-- 게시글 작성 -->
-  <form id="postForm">
-    <input type="text" id="title" placeholder="제목을 입력하세요" required />
-    <textarea id="content" placeholder="내용을 입력하세요" required></textarea>
-    <button type="submit">등록</button>
-  </form>
-
-  <!-- 게시글 목록 -->
-  <div id="posts"></div>
+  <footer style="text-align:center; color:#555; margin-top:40px;">
+    © 2025 SWING INVESTOR | 데이터 제공: Supabase
+  </footer>
 
   <script>
     const supabase = SWINGINV.db;
@@ -202,7 +152,9 @@
       const postsEl = document.getElementById("posts");
 
       // 초기 로그인 상태 반영
-      SWINGINV_updateHeaderAuthUI();
+      if (typeof SWINGINV_updateHeaderAuthUI === "function") {
+        SWINGINV_updateHeaderAuthUI();
+      }
 
       // 탭 전환
       document.querySelectorAll(".tab").forEach((btn) => {
@@ -299,7 +251,9 @@
       // 로그인 상태 감시
       supabase.auth.onAuthStateChange((_event, session) => {
         SWINGINV.user = session?.user || null;
-        SWINGINV_updateHeaderAuthUI();
+        if (typeof SWINGINV_updateHeaderAuthUI === "function") {
+          SWINGINV_updateHeaderAuthUI();
+        }
         loadPosts();
       });
 
