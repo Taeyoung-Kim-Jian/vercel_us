@@ -1,1 +1,62 @@
 
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>💰 스윙 적정가격 | ECONews</title>
+  <link rel="stylesheet" href="./style.css" />
+
+  <!-- ✅ Supabase & Common -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./common.js"></script>
+</head>
+
+<body>
+  <!-- ✅ 상단 고정 헤더 -->
+  <header class="top-header">
+    <div class="header-left">💰 스윙 적정가격</div>
+    <div class="header-right">
+      <a href="index.html" class="nav-link">🏠 메인</a>
+      <a href="total.html" class="nav-link">📊 전체 수익률</a>
+      <a href="month.html" class="nav-link">📅 월별 성과</a>
+      <a href="proper.html" class="nav-link active">💰 적정가격</a>
+    </div>
+  </header>
+
+  <!-- ✅ 스크롤 메뉴바 -->
+  <nav class="scroll-menu">
+    <button onclick="location.href='index.html'">메인</button>
+    <button onclick="location.href='total.html'">전체수익률</button>
+    <button onclick="location.href='month.html'">월별성과</button>
+    <button onclick="location.href='proper.html'">스윙적정가격</button>
+    <button onclick="location.href='detail.html'">차트</button>
+  </nav>
+
+  <!-- ✅ 본문 -->
+  <main class="content">
+    <div class="table-wrap">
+      <h3>💰 스윙 적정가격</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>종목명</th>
+            <th>적정매수가</th>
+            <th>현재가</th>
+            <th>괴리율</th>
+          </tr>
+        </thead>
+        <tbody id="swing-table-body">
+          <tr><td colspan="4">데이터를 불러오는 중...</td></tr>
+        </tbody>
+      </table>
+      <button id="loadMoreSwingBtn">더보기</button>
+    </div>
+  </main>
+
+  <footer>© 2025 ECONews | 데이터 제공: Supabase</footer>
+
+  <!-- ✅ 페이지 전용 스크립트 -->
+  <script src="./proper.js"></script>
+</body>
+</html>
