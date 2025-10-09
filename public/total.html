@@ -1,30 +1,25 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>전체 종목 목록 | ECONews</title>
-  <link rel="stylesheet" href="./style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>전체 종목 | ECONews</title>
+  <link rel="stylesheet" href="./style.css" />
+
+  <!-- ✅ Supabase & 공통 스크립트 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./common.js"></script>
+  <script src="./nav.js" defer></script>
 </head>
 <body>
+  <!-- ✅ 헤더와 스크롤 메뉴(nav.js에서 자동 삽입) -->
 
-  <!-- ✅ 헤더 & 메뉴 자동 생성 -->
-  <script src="./nav.js"></script>
-
-  <!-- ===============================
-        MAIN CONTENT
-  ================================ -->
   <main class="content">
-    <section class="page-header">
-      <h2>📋 전체 종목 목록</h2>
-    </section>
-
-    <div class="table-wrap">
+    <section class="table-wrap">
+      <h2>📊 전체 종목 목록</h2>
       <table>
         <thead>
           <tr>
-            <th>순위</th>
             <th>종목명</th>
             <th>종목코드</th>
             <th>시작가격</th>
@@ -33,18 +28,101 @@
             <th>기간(일)</th>
           </tr>
         </thead>
-        <tbody id="total-list-body">
-          <tr><td colspan="7">⏳ 데이터를 불러오는 중...</td></tr>
+        <tbody id="total-table-body">
+          <tr><td colspan="6">데이터 불러오는 중...</td></tr>
         </tbody>
       </table>
-    </div>
+      <button id="loadMoreBtn">더보기</button>
+    </section>
   </main>
 
   <footer>
     © 2025 ECONews | 데이터 제공: Supabase
   </footer>
 
-  <!-- JS -->
-  <script src="./total.js"></script>
+  <script>
+    /* =========================================================
+       📊 전체 종목 total.html 로직
+       - common.js의 ECONews.db 사용
+       - Supabase 페이징 유틸(fetchAllRows)
+       ========================================================= */
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const tableBody = document.getElementById("total-table-body");
+      const loadMoreBtn = document.getElementById("loadMoreBtn");
+
+      ECONews.showLoading(tableBody);
+
+      // ✅ Supabase 페이징 유틸 (1000개씩 전부 가져오기)
+      async function fetchAllRows(builderFactory, pageSize = 1000) {
+        const all = [];
+        let from = 0;
+        while (true) {
+          const to = from + pageSize - 1;
+          const { data, error } = await builderFactory().range(from, to);
+          if (error) throw error;
+          if (!data || data.length === 0) break;
+          all.push(...data);
+          if (data.length < pageSize) break;
+          from += pageSize;
+        }
+        return all;
+      }
+
+      try {
+        console.log("⏳ 전체 종목 데이터 불러오는 중...");
+
+        const allData = await fetchAllRows(() =>
+          ECONews.db
+            .from("total_return")
+            .select("종목명, 종목코드, 시작가격, 현재가격, 수익률, 기간")
+            .order("수익률", { ascending: false })
+        );
+
+        if (!allData || allData.length === 0) {
+          ECONews.showError(tableBody, "데이터가 없습니다.");
+          return;
+        }
+
+        // ✅ 처음에는 20개만 표시
+        let visibleCount = 20;
+
+        function renderTable() {
+          const slice = allData.slice(0, visibleCount);
+          tableBody.innerHTML = slice
+            .map(
+              (r) => `
+              <tr>
+                <td class="clickable-name" data-code="${r.종목코드}" data-name="${r.종목명}">
+                  ${ECONews.esc(r.종목명)}
+                </td>
+                <td>${ECONews.esc(r.종목코드)}</td>
+                <td style="text-align:right">${ECONews.nf(r.시작가격)}</td>
+                <td style="text-align:right">${ECONews.nf(r.현재가격)}</td>
+                <td style="text-align:right">${ECONews.fmtPct(r.수익률)}</td>
+                <td style="text-align:right">${r.기간 ?? "-"}</td>
+              </tr>
+            `
+            )
+            .join("");
+
+          if (visibleCount >= allData.length) {
+            loadMoreBtn.style.display = "none";
+          }
+        }
+
+        // ✅ 더보기 버튼
+        loadMoreBtn.addEventListener("click", () => {
+          visibleCount += 20;
+          renderTable();
+        });
+
+        renderTable();
+      } catch (e) {
+        console.error("❌ 전체 종목 로딩 실패:", e);
+        ECONews.showError(tableBody, e.message || "데이터 로딩 실패");
+      }
+    });
+  </script>
 </body>
 </html>
