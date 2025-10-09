@@ -6,89 +6,185 @@
   <title>로그인 | SWING INVESTOR</title>
   <link rel="stylesheet" href="./style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/auth-ui@1.4.1"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/auth-ui-shared@1.4.1"></script>
+  <script src="./common.js"></script>
 
   <style>
+    /* ==============================
+       🌐 SWING INVESTOR 로그인 페이지
+    ============================== */
     body {
       font-family: "Noto Sans KR", "Segoe UI", sans-serif;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
+      justify-content: center;
       height: 100vh;
-      margin: 0;
       background: #f9fafb;
+      margin: 0;
     }
 
-    #auth-box {
-      background: #fff;
-      padding: 30px 25px;
-      border-radius: 10px;
-      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+    .login-container {
       width: 360px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+      padding: 30px 25px 40px;
       text-align: center;
     }
 
-    .logo {
+    .login-container h2 {
+      font-size: 1.3rem;
       font-weight: 700;
-      font-size: 1.2rem;
-      color: #2563eb;
       margin-bottom: 20px;
-      letter-spacing: -0.4px;
+      color: #111827;
     }
 
-    .auth-footer {
+    input[type="email"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #2563eb;
+      color: white;
+      font-size: 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 10px;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #1e3a8a;
+    }
+
+    .divider {
+      position: relative;
+      margin: 20px 0;
+      text-align: center;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 40%;
+      height: 1px;
+      background: #e5e7eb;
+    }
+
+    .divider::before {
+      left: 0;
+    }
+
+    .divider::after {
+      right: 0;
+    }
+
+    .divider span {
+      background: #fff;
+      padding: 0 8px;
+      color: #6b7280;
+      font-size: 12px;
+    }
+
+    .google-btn {
+      background: #fff;
+      color: #374151;
+      border: 1px solid #d1d5db;
+    }
+
+    .google-btn:hover {
+      background: #f3f4f6;
+    }
+
+    .info {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 10px;
+    }
+
+    .back-btn {
+      display: inline-block;
       margin-top: 20px;
       font-size: 13px;
-      color: #6b7280;
-    }
-
-    .auth-footer a {
       color: #2563eb;
+      cursor: pointer;
       text-decoration: none;
-      font-weight: 500;
     }
 
-    .auth-footer a:hover {
+    .back-btn:hover {
       text-decoration: underline;
     }
   </style>
 </head>
 
 <body>
-  <div id="auth-box">
-    <div class="logo">SWING INVESTOR</div>
-    <div id="auth-container"></div>
-    <div class="auth-footer">
-      <a href="index.html">← 메인으로 돌아가기</a>
-    </div>
+  <div class="login-container">
+    <h2>SWING INVESTOR 로그인</h2>
+
+    <input type="email" id="emailInput" placeholder="이메일 주소 입력" required />
+    <button id="emailLoginBtn">📩 이메일 로그인 링크 받기</button>
+
+    <div class="divider"><span>또는</span></div>
+
+    <button id="googleLoginBtn" class="google-btn">🔑 Google 계정으로 로그인</button>
+
+    <p class="info">로그인 후 닉네임을 설정하면 자동으로 돌아갑니다.</p>
+
+    <a href="index.html" class="back-btn">← 메인으로 돌아가기</a>
   </div>
 
   <script>
-    const SUPABASE_URL = "https://sssmldmhcfuodutvvcqf.supabase.co";
-    const SUPABASE_ANON_KEY =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1b2R1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4";
+    const params = new URLSearchParams(window.location.search);
+    const redirect = params.get("redirect") || "index.html";
 
-    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const { Auth } = supabaseAuthUi;
+    document.addEventListener("DOMContentLoaded", async () => {
+      const emailInput = document.getElementById("emailInput");
+      const emailLoginBtn = document.getElementById("emailLoginBtn");
+      const googleLoginBtn = document.getElementById("googleLoginBtn");
 
-    // ✅ Supabase Auth UI 실행
-    Auth.mount("#auth-container", {
-      supabaseClient: db,
-      theme: "light",
-      providers: ["google"], // ✅ Google 로그인 활성화
-      redirectTo: window.location.origin + "/index.html",
-      appearance: {
-        theme: "default",
-        variables: {
-          default: {
-            colors: {
-              brand: "#2563eb",
-              brandAccent: "#1e40af",
-            },
-          },
-        },
-      },
+      // ✅ 로그인 세션이 이미 있으면 즉시 redirect
+      const { data: { session } } = await SWINGINV.db.auth.getSession();
+      if (session) {
+        location.href = redirect;
+        return;
+      }
+
+      // ✅ 이메일 로그인 (OTP Magic Link)
+      emailLoginBtn.addEventListener("click", async () => {
+        const email = emailInput.value.trim();
+        if (!email) return alert("이메일을 입력해주세요.");
+
+        const { error } = await SWINGINV.db.auth.signInWithOtp({ email });
+        if (error) alert("❌ 로그인 실패: " + error.message);
+        else alert("📩 이메일로 로그인 링크를 보냈습니다.\n메일함을 확인해주세요.");
+      });
+
+      // ✅ Google 로그인
+      googleLoginBtn.addEventListener("click", async () => {
+        const { data, error } = await SWINGINV.db.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo: `${window.location.origin}/${redirect}` },
+        });
+        if (error) alert("Google 로그인 실패: " + error.message);
+      });
+
+      // ✅ 로그인 상태 변화 감지 후 redirect
+      SWINGINV.db.auth.onAuthStateChange((_event, session) => {
+        if (session) {
+          alert("✅ 로그인 성공! 페이지로 이동합니다.");
+          location.href = redirect;
+        }
+      });
     });
   </script>
 </body>
