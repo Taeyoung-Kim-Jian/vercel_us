@@ -1,5 +1,5 @@
 /* =========================================================
-   📈 ECONews detail.js (페이징 + 전체 데이터 로드)
+   📈 SWINGINV detail.js (페이징 + 전체 데이터 로드)
    ========================================================= */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // ✅ 전체 price 데이터 불러오기 (한국 컬럼명 기준)
     const allData = await fetchAllRows(() =>
-      ECONews.db
+      SWINGINV.db
         .from("prices")
         .select("날짜, 시가, 고가, 저가, 종가")
         .eq("종목코드", code)
