@@ -208,3 +208,46 @@ footer {
     padding: 5px 8px;
   }
 }
+/* ===============================
+   TOTAL PAGE STYLES
+================================ */
+.page-header {
+  max-width: 1100px;
+  margin: 20px auto;
+  padding: 0 16px;
+}
+
+.page-header h2 {
+  margin-bottom: 6px;
+  font-size: 1.2rem;
+  color: #1e3a8a;
+}
+
+.page-header p {
+  color: #666;
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+}
+
+.back-btn {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.back-btn:hover {
+  background: #4b5563;
+}
+
+#total-list-body tr:hover {
+  background: #f3f4f6;
+}
+
+#total-list-body td {
+  font-size: 0.85rem;
+}
+
