@@ -1,127 +1,175 @@
 <!-- ✅ SWING INVESTOR 공통 헤더 -->
 <header id="site-header">
-  <div class="header-inner">
-    <!-- 🏠 로고 -->
-    <h2 class="logo" onclick="location.href='index.html'">SWING INVESTOR</h2>
+  <div class="header-top">
+    <h1 class="logo" onclick="location.href='index.html'">
+      <span class="logo-text">SWING INVESTOR</span>
+    </h1>
 
-    <!-- 🔐 로그인 상태 영역 -->
     <div class="auth-area">
       <span id="user-email">로그인 확인 중...</span>
-      <button id="loginBtn">🔑 로그인</button>
-      <button id="logoutBtn" style="display:none;">🚪 로그아웃</button>
+      <button id="loginBtn" class="btn-login">로그인</button>
+      <button id="logoutBtn" class="btn-logout" style="display:none;">로그아웃</button>
     </div>
   </div>
 
-  <!-- 📋 네비게이션 메뉴 -->
-  <nav class="scroll-menu">
-    <button onclick="location.href='index.html'">🏠 홈</button>
-    <button onclick="location.href='proper.html'">💬 스윙 적정 종목</button>
-    <button onclick="location.href='total.html'">⭐ 전체 종목</button>
-    <button onclick="location.href='month.html'">📅 월별 성과</button>
-    <button onclick="location.href='watch.html'">📅 관심종목</button>
-     <button onclick="location.href='board.html'">📅 게시판</button>
+  <nav class="gnb">
+    <button onclick="location.href='index.html'">홈</button>
+    <button onclick="location.href='proper.html'">스윙 적정 종목</button>
+    <button onclick="location.href='total.html'">전체 종목</button>
+    <button onclick="location.href='month.html'">월별 성과</button>
+    <button onclick="location.href='watch.html'">관심종목</button>
+    <button onclick="location.href='board.html'">게시판</button>
   </nav>
 </header>
 
 <!-- ✅ 스타일 -->
 <style>
-  /* ===== 헤더 기본 ===== */
+  /* =============================
+     🌐 전체 헤더 레이아웃
+  ============================= */
   #site-header {
-    border-bottom: 1px solid #e5e7eb;
-    margin-bottom: 15px;
     background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     position: sticky;
     top: 0;
     z-index: 100;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   }
 
-  /* ===== 헤더 내부 영역 ===== */
-  .header-inner {
+  /* =============================
+     🧭 상단 로고 + 로그인영역
+  ============================= */
+  .header-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 20px;
+    height: 56px;
+    padding: 0 20px;
+    max-width: 1200px;
+    margin: 0 auto;
   }
 
   .logo {
+    font-size: 1.5rem;
     font-weight: 800;
-    color: #111827;
-    font-size: 1.3rem;
+    color: #1f2937;
     cursor: pointer;
-    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
   }
 
-  /* ===== 로그인 영역 ===== */
+  .logo-text {
+    letter-spacing: -0.5px;
+  }
+
+  /* =============================
+     🔐 로그인 영역
+  ============================= */
   .auth-area {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     font-size: 0.9rem;
     color: #374151;
   }
 
   .auth-area button {
-    background: #2563eb;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 5px 10px;
+    padding: 6px 12px;
+    border-radius: 5px;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+    font-size: 0.85rem;
     cursor: pointer;
-    font-size: 0.9rem;
-    transition: background 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
   }
 
   .auth-area button:hover {
-    background: #1e40af;
+    background: #f3f4f6;
   }
 
-  /* ===== 스크롤 메뉴 ===== */
-  .scroll-menu {
+  .btn-login {
+    color: #2563eb;
+    border-color: #2563eb;
+    background: #f8fafc;
+  }
+  .btn-login:hover {
+    background: #eff6ff;
+  }
+
+  .btn-logout {
+    color: #6b7280;
+  }
+
+  /* =============================
+     📋 GNB 메뉴 (네이버식 가로 스크롤)
+  ============================= */
+  .gnb {
+    display: flex;
+    justify-content: center;
+    border-top: 1px solid #f3f4f6;
+    background: #fafafa;
     overflow-x: auto;
     white-space: nowrap;
-    border-top: 1px solid #e5e7eb;
-    background: #f9fafb;
-    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
 
-  .scroll-menu button {
-    display: inline-block;
-    background: none;
+  .gnb::-webkit-scrollbar {
+    display: none;
+  }
+
+  .gnb button {
+    flex-shrink: 0;
+    padding: 12px 18px;
     border: none;
-    padding: 10px 16px;
+    background: none;
+    color: #374151;
+    font-size: 0.95rem;
     cursor: pointer;
-    font-size: 15px;
-    color: #111827;
-    transition: background 0.2s;
+    transition: all 0.2s ease-in-out;
   }
 
-  .scroll-menu button:hover {
-    background: #e5e7eb;
+  .gnb button:hover {
+    color: #2563eb;
+    background: #eef2ff;
   }
 
-  /* ===== 반응형 ===== */
-  @media (max-width: 600px) {
-    .header-inner {
+  .gnb button.active {
+    color: #1d4ed8;
+    font-weight: 600;
+    border-bottom: 2px solid #1d4ed8;
+  }
+
+  /* =============================
+     📱 반응형 스타일
+  ============================= */
+  @media (max-width: 768px) {
+    .header-top {
       flex-direction: column;
       align-items: flex-start;
+      padding: 10px 16px;
+      height: auto;
       gap: 6px;
     }
 
     .auth-area {
       align-self: flex-end;
-      margin-right: 5px;
+      gap: 6px;
+      font-size: 0.85rem;
     }
 
     .logo {
-      font-size: 1.1rem;
+      font-size: 1.2rem;
+    }
+
+    .gnb button {
+      padding: 10px 14px;
+      font-size: 0.9rem;
     }
   }
 </style>
 
-<!-- ✅ 로그인 상태 갱신 스크립트 -->
+<!-- ✅ 로그인 상태 갱신 -->
 <script>
-  // 헤더는 fetch로 로드되므로 DOM 로드 후 로그인 상태 반영
   document.addEventListener("DOMContentLoaded", () => {
     if (typeof SWINGINV_updateHeaderAuthUI === "function") {
       SWINGINV_updateHeaderAuthUI();
