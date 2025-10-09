@@ -14,7 +14,7 @@
 
   <nav class="gnb">
     <button onclick="location.href='index.html'">홈</button>
-    <button onclick="location.href='proper.html'">스윙 적정 종목</button>
+    <button onclick="location.href='proper.html'">스윙 종목</button>
     <button onclick="location.href='total.html'">전체 종목</button>
     <button onclick="location.href='month.html'">월별 성과</button>
     <button onclick="location.href='watch.html'">관심종목</button>
@@ -25,7 +25,7 @@
 <!-- ✅ 스타일 -->
 <style>
   /* =============================
-     🌐 전체 헤더 레이아웃
+     🌐 헤더 기본 구조
   ============================= */
   #site-header {
     background: #fff;
@@ -34,32 +34,28 @@
     position: sticky;
     top: 0;
     z-index: 100;
+    font-family: "Noto Sans KR", "Segoe UI", Arial, sans-serif;
   }
 
   /* =============================
-     🧭 상단 로고 + 로그인영역
+     🧭 상단 (로고 + 로그인)
   ============================= */
   .header-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 56px;
-    padding: 0 20px;
+    height: 44px;
+    padding: 0 16px;
     max-width: 1200px;
     margin: 0 auto;
   }
 
   .logo {
-    font-size: 1.5rem;
-    font-weight: 800;
+    font-size: 1rem;
+    font-weight: 700;
     color: #1f2937;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-  }
-
-  .logo-text {
-    letter-spacing: -0.5px;
+    letter-spacing: -0.3px;
   }
 
   /* =============================
@@ -68,19 +64,20 @@
   .auth-area {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 0.9rem;
-    color: #374151;
+    gap: 6px;
+    font-size: 12px;
+    color: #4b5563;
   }
 
   .auth-area button {
-    padding: 6px 12px;
-    border-radius: 5px;
+    padding: 3px 8px;
+    border-radius: 4px;
     border: 1px solid #d1d5db;
     background: #f9fafb;
-    font-size: 0.85rem;
+    font-size: 12px;
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
+    transition: background 0.2s;
+    line-height: 1.4;
   }
 
   .auth-area button:hover {
@@ -101,7 +98,7 @@
   }
 
   /* =============================
-     📋 GNB 메뉴 (네이버식 가로 스크롤)
+     📋 메뉴 영역 (네이버 스타일)
   ============================= */
   .gnb {
     display: flex;
@@ -119,18 +116,18 @@
 
   .gnb button {
     flex-shrink: 0;
-    padding: 12px 18px;
+    padding: 10px 12px;
     border: none;
     background: none;
     color: #374151;
-    font-size: 0.95rem;
+    font-size: 13px;
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
+    transition: all 0.15s ease-in-out;
   }
 
   .gnb button:hover {
     color: #2563eb;
-    background: #eef2ff;
+    background: #f1f5ff;
   }
 
   .gnb button.active {
@@ -140,30 +137,29 @@
   }
 
   /* =============================
-     📱 반응형 스타일
+     📱 반응형
   ============================= */
   @media (max-width: 768px) {
     .header-top {
       flex-direction: column;
       align-items: flex-start;
-      padding: 10px 16px;
       height: auto;
-      gap: 6px;
+      gap: 4px;
+      padding: 8px 12px;
     }
 
     .auth-area {
       align-self: flex-end;
-      gap: 6px;
-      font-size: 0.85rem;
+      font-size: 11px;
     }
 
     .logo {
-      font-size: 1.2rem;
+      font-size: 0.95rem;
     }
 
     .gnb button {
-      padding: 10px 14px;
-      font-size: 0.9rem;
+      font-size: 12px;
+      padding: 8px 10px;
     }
   }
 </style>
