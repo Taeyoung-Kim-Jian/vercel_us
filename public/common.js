@@ -17,7 +17,7 @@ const SUPABASE_ANON_KEY =
 const { createClient } = window.supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// =========================================================
+// ==========================================================
 // 🧩 공통 유틸 함수
 // =========================================================
 
