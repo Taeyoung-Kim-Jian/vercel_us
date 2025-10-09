@@ -10,20 +10,34 @@ body {
 }
 
 /* ===============================
-   HEADER
+   HEADER (상단 고정)
 ================================ */
-header {
-  background: #1e3a8a;
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #1e3a8a; /* 네이버 경제처럼 파란 헤더 */
   color: white;
-  padding: 12px 20px;
-  font-size: 1.1rem;
-  font-weight: bold;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.8rem 1rem;
 }
 
-header .login-btn button {
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* ✅ 왼쪽 로고, 오른쪽 로그인 버튼 */
+}
+
+.logo {
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+}
+
+.login-btn button {
   background: white;
   color: #1e3a8a;
   border: none;
@@ -31,9 +45,10 @@ header .login-btn button {
   padding: 6px 12px;
   font-size: 0.9rem;
   cursor: pointer;
+  font-weight: 500;
 }
 
-header .login-btn button:hover {
+.login-btn button:hover {
   background: #e2e8f0;
 }
 
@@ -175,6 +190,7 @@ footer {
   background: #f1f5f9;
   border-top: 1px solid #e5e7eb;
 }
+
 /* ===============================
    DETAIL PAGE
 ================================ */
@@ -221,3 +237,28 @@ footer {
   font-size: 0.9rem;
 }
 
+/* ===============================
+   RESPONSIVE (모바일)
+================================ */
+@media (max-width: 768px) {
+  .header-inner {
+    padding: 0 8px;
+  }
+
+  .logo {
+    font-size: 0.95rem;
+  }
+
+  .login-btn button {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+  }
+
+  table {
+    font-size: 0.8rem;
+  }
+
+  .cards {
+    grid-template-columns: repeat(2, 1fr); /* ✅ 모바일에서 카드 2열 */
+  }
+}
