@@ -8,10 +8,35 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <header>
-    📊 ECONews 대시보드
+
+  <!-- ===============================
+        HEADER (상단 고정)
+  ================================ -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">📊 ECONews 대시보드</div>
+      <div class="login-btn">
+        <button>로그인</button>
+      </div>
+    </div>
   </header>
 
+  <!-- ===============================
+        MENU BAR (카드 위 탭 메뉴)
+  ================================ -->
+  <nav class="sub-menu">
+    <ul>
+      <li class="active">전체</li>
+      <li>국내주식</li>
+      <li>해외주식</li>
+      <li>ETF</li>
+      <li>스윙전략</li>
+    </ul>
+  </nav>
+
+  <!-- ===============================
+        MAIN CONTENT
+  ================================ -->
   <main>
     <!-- 📈 카드 요약 섹션 -->
     <section class="cards">
@@ -64,6 +89,9 @@
     © 2025 ECONews | 데이터 제공: Supabase
   </footer>
 
+  <!-- ===============================
+        JS 연결
+  ================================ -->
   <script src="./main.js"></script>
 </body>
 </html>
