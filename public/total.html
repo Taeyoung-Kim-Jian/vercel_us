@@ -9,20 +9,11 @@
 </head>
 <body>
 
-  <!-- ===============================
-        HEADER (재사용)
-  ================================ -->
-  <header class="header">
-    <div class="header-inner">
-      <div class="logo" onclick="location.href='index.html'">📊 ECONews 대시보드</div>
-      <div class="login-btn">
-        <button>로그인</button>
-      </div>
-    </div>
-  </header>
+  <!-- ✅ 헤더 & 메뉴 자동 생성 -->
+  <script src="./nav.js"></script>
 
   <!-- ===============================
-        PAGE TITLE
+        MAIN CONTENT
   ================================ -->
   <main class="content">
     <section class="page-header">
@@ -31,9 +22,6 @@
       <button class="back-btn" onclick="location.href='index.html'">← 메인으로 돌아가기</button>
     </section>
 
-    <!-- ===============================
-          TABLE SECTION
-    ================================ -->
     <div class="table-wrap">
       <table>
         <thead>
@@ -58,7 +46,7 @@
     © 2025 ECONews | 데이터 제공: Supabase
   </footer>
 
+  <!-- JS -->
   <script src="./total.js"></script>
 </body>
 </html>
-
