@@ -1,79 +1,69 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ECONews - 경제 포털</title>
-  <link rel="stylesheet" href="./style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ECONews Dashboard</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-
-  <!-- ===============================
-        HEADER (네이버 경제 스타일)
-  ================================ -->
-  <header class="header">
-    <div class="header-inner">
-      <!-- 로고 -->
-      <div class="logo">ECONews</div>
-
-      <!-- 탭 메뉴 -->
-      <nav class="nav-menu">
-        <ul>
-          <li class="active">전체</li>
-          <li>국내주식</li>
-          <li>해외주식</li>
-          <li>ETF</li>
-          <li>스윙전략</li>
-        </ul>
-      </nav>
-
-      <!-- 로그인 -->
-      <div class="login-btn">
-        <button>로그인</button>
-      </div>
-    </div>
+  <header>
+    📊 ECONews 대시보드
   </header>
 
-  <!-- ===============================
-        MAIN CONTENT 예시
-  ================================ -->
-  <main class="content">
-    <section style="padding: 40px 20px;">
-      <h2>전체 뉴스</h2>
-      <p>이곳에 전체 뉴스 내용이 들어갑니다...</p>
+  <main>
+    <!-- 📈 카드 요약 섹션 -->
+    <section class="cards">
+      <div id="top5-card" class="card">데이터 불러오는 중...</div>
+      <div class="card">수익률 2</div>
+      <div class="card">수익률 3</div>
+      <div class="card">수익률 4</div>
     </section>
 
-    <section style="padding: 40px 20px;">
-      <h2>국내주식</h2>
-      <p>이곳에 국내 주식 데이터가 들어갑니다...</p>
-    </section>
+    <!-- 🧾 전체 수익률 -->
+    <div class="table-wrap">
+      <h3>📈 전체 수익률</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>종목명</th>
+            <th>시작가격</th>
+            <th>현재가격</th>
+            <th>수익률</th>
+          </tr>
+        </thead>
+        <tbody id="total-table-body">
+          <tr><td colspan="4">데이터를 불러오는 중...</td></tr>
+        </tbody>
+      </table>
+      <button id="loadMoreTotalBtn">더보기</button>
+    </div>
 
-    <section style="padding: 40px 20px;">
-      <h2>해외주식</h2>
-      <p>이곳에 해외 주식 데이터가 들어갑니다...</p>
-    </section>
-
-    <section style="padding: 40px 20px;">
-      <h2>ETF</h2>
-      <p>이곳에 ETF 데이터가 들어갑니다...</p>
-    </section>
-
-    <section style="padding: 40px 20px;">
-      <h2>스윙전략</h2>
-      <p>이곳에 스윙 전략 관련 데이터가 들어갑니다...</p>
-    </section>
+    <!-- 💰 스윙 적정가격 -->
+    <div class="table-wrap">
+      <h3>💰 스윙 적정가격</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>종목명</th>
+            <th>적정매수가</th>
+            <th>현재가</th>
+            <th>괴리율</th>
+          </tr>
+        </thead>
+        <tbody id="swing-table-body">
+          <tr><td colspan="4">데이터를 불러오는 중...</td></tr>
+        </tbody>
+      </table>
+      <button id="loadMoreSwingBtn">더보기</button>
+    </div>
   </main>
 
-  <!-- ===============================
-        FOOTER
-  ================================ -->
   <footer>
-    <div class="container">
-      <p>© 2025 ECONews | 데이터 제공: Supabase</p>
-    </div>
+    © 2025 ECONews | 데이터 제공: Supabase
   </footer>
 
-  <!-- JS 연결 -->
   <script src="./main.js"></script>
 </body>
 </html>
