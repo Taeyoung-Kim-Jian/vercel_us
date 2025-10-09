@@ -1,15 +1,16 @@
 /* ==========================================================
    🌐 SWING INVESTOR common.js
+   ----------------------------------------------------------
    모든 페이지에서 공통으로 사용하는 전역 유틸리티
-   ---------------------------------------------------------
+   ----------------------------------------------------------
    포함 기능:
-   - Supabase 연결 및 로그인 세션 유지
+   - Supabase 연결 및 세션 유지
    - 숫자/퍼센트/날짜 포맷팅
    - 공통 클릭 이벤트 (종목 상세 이동)
    - 로딩/에러 표시
-   - 로그인/로그아웃 버튼 자동 제어
-   - 네비게이션(메뉴) 활성화
-   ========================================================= */
+   - 로그인/로그아웃 관리
+   - 헤더/메뉴 활성화
+   ========================================================== */
 
 console.log("🌐 SWING INVESTOR common.js loaded");
 
@@ -24,7 +25,7 @@ const { createClient } = window.supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // =========================================================
-// 🧩 포맷팅 유틸
+// 🔢 포맷팅 유틸
 // =========================================================
 function nf(num) {
   if (num === null || num === undefined || num === "") return "-";
@@ -58,7 +59,7 @@ function esc(str) {
 }
 
 // =========================================================
-// ⚙️ 공통 클릭 이벤트 (종목 상세 페이지 이동)
+// 🖱️ 종목 클릭 → 상세 페이지 이동
 // =========================================================
 document.addEventListener("click", (e) => {
   const target = e.target.closest(".clickable-name");
@@ -72,7 +73,7 @@ document.addEventListener("click", (e) => {
 });
 
 // =========================================================
-// 🌀 로딩 및 에러 표시
+// ⏳ 로딩 및 에러 표시
 // =========================================================
 function showLoading(targetEl, message = "데이터 불러오는 중...") {
   if (!targetEl) return;
@@ -85,7 +86,7 @@ function showError(targetEl, message = "데이터 로딩 실패") {
 }
 
 // =========================================================
-// 🔐 Supabase Auth — 로그인 세션 유지
+// 🔐 Supabase Auth — 세션 유지
 // =========================================================
 (async () => {
   try {
@@ -93,6 +94,7 @@ function showError(targetEl, message = "데이터 로딩 실패") {
     window.SWINGINV = window.SWINGINV || {};
     SWINGINV.user = session?.user || null;
 
+    // 로그인 상태 변경 감시
     db.auth.onAuthStateChange((_event, session) => {
       SWINGINV.user = session?.user || null;
       SWINGINV_updateHeaderAuthUI();
@@ -102,11 +104,16 @@ function showError(targetEl, message = "데이터 로딩 실패") {
   }
 })();
 
-// ✅ 이메일 로그인 / 로그아웃 함수
+// =========================================================
+// ✉️ 이메일 로그인 / 로그아웃
+// =========================================================
 async function loginWithEmail(email) {
   const { error } = await db.auth.signInWithOtp({ email });
-  if (error) alert("❌ 로그인 실패: " + error.message);
-  else alert("📩 로그인 링크를 이메일로 보냈습니다.");
+  if (error) {
+    alert("❌ 로그인 실패: " + error.message);
+  } else {
+    alert("📩 로그인 링크를 이메일로 보냈습니다. 메일을 확인하세요!");
+  }
 }
 
 async function logoutUser() {
@@ -116,7 +123,7 @@ async function logoutUser() {
 }
 
 // =========================================================
-// 🧭 헤더 로그인 상태 관리 (공통 UI)
+// 🧭 헤더 로그인 상태 표시 제어
 // =========================================================
 function SWINGINV_updateHeaderAuthUI() {
   const userLabel = document.getElementById("user-email");
@@ -131,7 +138,7 @@ function SWINGINV_updateHeaderAuthUI() {
     loginBtn.style.display = "none";
     logoutBtn.style.display = "inline-block";
   } else {
-    userLabel.textContent = "로그 아웃중.";
+    userLabel.textContent = "로그아웃 중";
     loginBtn.style.display = "inline-block";
     logoutBtn.style.display = "none";
   }
@@ -144,28 +151,27 @@ function SWINGINV_updateHeaderAuthUI() {
 }
 
 // =========================================================
-// 🧭 네비게이션 메뉴 활성화 (nav.js 통합)
+// 🧭 네비게이션 메뉴 활성화
 // =========================================================
 document.addEventListener("DOMContentLoaded", () => {
-  // 현재 페이지 파일명 추출
   const current = location.pathname.split("/").pop();
-
-  // 스크롤 메뉴 버튼 강조
   const menuButtons = document.querySelectorAll(".scroll-menu button");
+
   menuButtons.forEach((btn) => {
     const match = btn.getAttribute("onclick")?.match(/'(.*?)'/);
     if (match && current === match[1]) {
       btn.style.background = "#e0e7ff";
       btn.style.fontWeight = "600";
+      btn.style.color = "#1d4ed8";
     }
   });
 
-  // 로그인 상태 표시 갱신
+  // 로그인 상태 갱신
   SWINGINV_updateHeaderAuthUI();
 });
 
 // =========================================================
-// 🌍 전역 네임스페이스 내보내기
+// 🌍 전역 네임스페이스 등록
 // =========================================================
 window.SWINGINV = {
   ...window.SWINGINV,
