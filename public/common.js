@@ -1,15 +1,12 @@
 /* ==========================================================
-   🌐 SWING INVESTOR common.js
-   ----------------------------------------------------------
-   모든 페이지에서 공통으로 사용하는 전역 유틸리티
+   🌐 SWING INVESTOR common.js (회원가입 + 로그인 통합)
    ----------------------------------------------------------
    포함 기능:
    - Supabase 연결 및 세션 유지
-   - 숫자/퍼센트/날짜 포맷팅
-   - 공통 클릭 이벤트 (종목 상세 이동)
-   - 로딩/에러 표시
-   - 로그인/로그아웃 관리
-   - 헤더/메뉴 활성화
+   - 회원가입 / 로그인 / 로그아웃
+   - 숫자, 퍼센트, 날짜 포맷
+   - 종목 상세 이동 / 로딩 / 에러
+   - 헤더 로그인 상태 UI 반영
    ========================================================== */
 
 console.log("🌐 SWING INVESTOR common.js loaded");
@@ -25,7 +22,7 @@ const { createClient } = window.supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // =========================================================
-// 🔢 포맷팅 유틸
+// 🧩 포맷팅 유틸
 // =========================================================
 function nf(num) {
   if (num === null || num === undefined || num === "") return "-";
@@ -59,7 +56,7 @@ function esc(str) {
 }
 
 // =========================================================
-// 🖱️ 종목 클릭 → 상세 페이지 이동
+// 📈 종목 클릭 시 상세 페이지 이동
 // =========================================================
 document.addEventListener("click", (e) => {
   const target = e.target.closest(".clickable-name");
@@ -94,7 +91,6 @@ function showError(targetEl, message = "데이터 로딩 실패") {
     window.SWINGINV = window.SWINGINV || {};
     SWINGINV.user = session?.user || null;
 
-    // 로그인 상태 변경 감시
     db.auth.onAuthStateChange((_event, session) => {
       SWINGINV.user = session?.user || null;
       SWINGINV_updateHeaderAuthUI();
@@ -105,25 +101,41 @@ function showError(targetEl, message = "데이터 로딩 실패") {
 })();
 
 // =========================================================
-// ✉️ 이메일 로그인 / 로그아웃
+// 🧑‍💻 회원가입 / 로그인 / 로그아웃
 // =========================================================
-async function loginWithEmail(email) {
-  const { error } = await db.auth.signInWithOtp({ email });
+
+// ✅ 회원가입
+async function signUpWithEmail(email, password) {
+  const { error } = await db.auth.signUp({ email, password });
   if (error) {
-    alert("❌ 로그인 실패: " + error.message);
+    alert("❌ 회원가입 실패: " + error.message);
   } else {
-    alert("📩 로그인 링크를 이메일로 보냈습니다. 메일을 확인하세요!");
+    alert("✅ 회원가입 완료! 이메일 인증 후 로그인하세요.");
   }
 }
 
+// ✅ 로그인
+async function loginWithPassword(email, password) {
+  const { data, error } = await db.auth.signInWithPassword({ email, password });
+  if (error) {
+    alert("❌ 로그인 실패: " + error.message);
+  } else {
+    alert("✅ 로그인 성공");
+    SWINGINV.user = data.user;
+    SWINGINV_updateHeaderAuthUI();
+  }
+}
+
+// ✅ 로그아웃
 async function logoutUser() {
   await db.auth.signOut();
-  alert("🚪 로그아웃 완료");
+  SWINGINV.user = null;
   SWINGINV_updateHeaderAuthUI();
+  alert("🚪 로그아웃 완료");
 }
 
 // =========================================================
-// 🧭 헤더 로그인 상태 표시 제어
+// 🧭 헤더 로그인 상태 반영
 // =========================================================
 function SWINGINV_updateHeaderAuthUI() {
   const userLabel = document.getElementById("user-email");
@@ -144,9 +156,19 @@ function SWINGINV_updateHeaderAuthUI() {
   }
 
   loginBtn.onclick = async () => {
+    const mode = prompt("로그인 또는 회원가입 중 선택 (login/signup):");
     const email = prompt("이메일을 입력하세요:");
-    if (email) await loginWithEmail(email);
+    const password = prompt("비밀번호를 입력하세요 (6자 이상):");
+
+    if (!email || !password) return alert("이메일과 비밀번호를 모두 입력하세요.");
+
+    if (mode === "signup") {
+      await signUpWithEmail(email, password);
+    } else {
+      await loginWithPassword(email, password);
+    }
   };
+
   logoutBtn.onclick = async () => await logoutUser();
 }
 
@@ -166,7 +188,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // 로그인 상태 갱신
   SWINGINV_updateHeaderAuthUI();
 });
 
@@ -182,7 +203,8 @@ window.SWINGINV = {
   esc,
   showLoading,
   showError,
-  loginWithEmail,
+  signUpWithEmail,
+  loginWithPassword,
   logoutUser,
   SWINGINV_updateHeaderAuthUI,
 };
