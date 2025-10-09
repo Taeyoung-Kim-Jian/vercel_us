@@ -131,7 +131,7 @@ function SWINGINV_updateHeaderAuthUI() {
     loginBtn.style.display = "none";
     logoutBtn.style.display = "inline-block";
   } else {
-    userLabel.textContent = "로그인되지 않았습니다.";
+    userLabel.textContent = "로그 아웃중.";
     loginBtn.style.display = "inline-block";
     logoutBtn.style.display = "none";
   }
