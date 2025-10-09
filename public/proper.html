@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>💰 스윙 적정가격 | ECONews</title>
+  <title>💰 스윙 적정가격 | SWING INVESTOR</title>
   <link rel="stylesheet" href="./style.css" />
 
   <!-- ✅ Supabase & Common -->
@@ -12,10 +12,19 @@
 </head>
 
 <body>
-  <!-- ================================
-       📊 상단 헤더 와 스크롤바
-  ================================= -->
-   <script src="./nav.js"></script>
+  <!-- ✅ 공통 헤더 로드 -->
+  <div id="header-container"></div>
+  <script>
+    fetch("./header.html")
+      .then((r) => r.text())
+      .then((html) => {
+        document.getElementById("header-container").innerHTML = html;
+        if (typeof SWINGINV_updateHeaderAuthUI === "function") {
+          SWINGINV_updateHeaderAuthUI();
+        }
+      });
+  </script>
+
   <!-- ================================
        💰 스윙 적정가격 본문
   ================================= -->
@@ -43,10 +52,10 @@
        ⚙️ 푸터
   ================================= -->
   <footer>
-    <p>© 2025 ECONews | 데이터 제공: Supabase</p>
+    <p>© 2025 SWING INVESTOR | 데이터 제공: Supabase</p>
   </footer>
 
-  <!-- ✅ JS -->
+  <!-- ✅ 페이지 전용 스크립트 -->
   <script src="./proper.js"></script>
 </body>
 </html>
