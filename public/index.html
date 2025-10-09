@@ -5,14 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SWING INVESTOR Dashboard</title>
   <link rel="stylesheet" href="./style.css" />
-
-  <!-- ✅ Supabase & Common -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./common.js"></script>
 </head>
 <body>
-  <!-- ✅ 상단 헤더 자동 삽입 -->
+  <!-- ✅ 공통 헤더 -->
   <div id="header-container"></div>
+  <script>
+    fetch("./header.html")
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById("header-container").innerHTML = html;
+        if (typeof SWINGINV_updateHeaderAuthUI === "function") SWINGINV_updateHeaderAuthUI();
+      });
+  </script>
 
   <main class="content">
     <!-- 🏆 수익률 Top 5 -->
@@ -29,10 +35,7 @@
       <table>
         <thead>
           <tr>
-            <th>종목명</th>
-            <th>시작가격</th>
-            <th>현재가격</th>
-            <th>수익률</th>
+            <th>종목명</th><th>시작가격</th><th>현재가격</th><th>수익률</th>
           </tr>
         </thead>
         <tbody id="total-table-body">
@@ -42,16 +45,13 @@
       <button id="loadMoreTotalBtn">더보기</button>
     </div>
 
-    <!-- 💰 스윙 적정가격 (뷰 기반) -->
+    <!-- 💰 스윙 적정가격 -->
     <div class="table-wrap">
       <h3>💰 스윙 적정가격</h3>
       <table>
         <thead>
           <tr>
-            <th>종목명</th>
-            <th>적정매수가</th>
-            <th>현재가</th>
-            <th>괴리율</th>
+            <th>종목명</th><th>적정매수가</th><th>현재가</th><th>괴리율</th>
           </tr>
         </thead>
         <tbody id="swing-table-body">
@@ -63,18 +63,6 @@
   </main>
 
   <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
-
-  <!-- ✅ 페이지 전용 스크립트 -->
   <script src="./main.js"></script>
-
-  <!-- ✅ 헤더 로드 스크립트 -->
-  <script>
-    fetch("./header.html")
-      .then((r) => r.text())
-      .then((html) => {
-        document.getElementById("header-container").innerHTML = html;
-        SWINGINV_updateHeaderAuthUI(); // 로그인 상태 반영
-      });
-  </script>
 </body>
 </html>
