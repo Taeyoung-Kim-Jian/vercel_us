@@ -39,16 +39,6 @@ window.addEventListener('DOMContentLoaded', async () => {
       totalTbody.innerHTML = `<tr><td colspan="4">❌ 불러오기 실패</td></tr>`;
     }
   }
-// ✅ 탭 메뉴 클릭 시 active 변경
-document.addEventListener('DOMContentLoaded', () => {
-  const menuItems = document.querySelectorAll('.nav-menu li');
-  menuItems.forEach((item) => {
-    item.addEventListener('click', () => {
-      menuItems.forEach((li) => li.classList.remove('active'));
-      item.classList.add('active');
-    });
-  });
-});
 
   // === Top5 카드 ====
   function renderTop5Card(rows) {
