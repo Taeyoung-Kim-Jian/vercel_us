@@ -3,26 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>종목 상세 | ECONews</title>
+  <title>종목 상세 차트 | ECONews</title>
   <link rel="stylesheet" href="./style.css" />
+
+  <!-- ✅ Supabase & ECharts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5"></script>
+  <script src="./common.js"></script>
 </head>
 <body>
-  <!-- ✅ 공통 헤더 & 메뉴 -->
+  <!-- ✅ 상단 헤더/메뉴 -->
   <script src="./nav.js"></script>
 
   <main class="content">
     <section class="page-header">
-      <h2 id="detail-title">📈 종목 상세 차트</h2>
-      <p id="detail-info">데이터를 불러오는 중...</p>
+      <h2 id="chart-title">📈 종목 상세</h2>
+      <p id="chart-sub">데이터를 불러오는 중...</p>
       <button class="back-btn" onclick="history.back()">← 뒤로가기</button>
     </section>
 
-    <!-- 차트 영역 -->
-    <div id="chart" style="height: 400px; max-width: 1000px; margin: 0 auto;"></div>
+    <!-- 📊 차트 표시 영역 -->
+    <div id="chart" style="height:400px; max-width:1000px; margin:0 auto;"></div>
 
-    <!-- 잘못된 접근 안내 -->
+    <!-- ⚠️ 잘못된 접근 -->
     <div id="error-box" class="error-box" style="display:none;">
       <p>⚠️ 잘못된 접근입니다.<br>메인 페이지에서 종목을 선택해주세요.</p>
       <button class="back-btn" onclick="location.href='index.html'">메인으로 이동</button>
