@@ -1,34 +1,37 @@
+/* =========================================================
+   📈 detail.js
+   - 종목 클릭 시 detail.html 로드
+   - Supabase prices 테이블에서 시세 가져와 ECharts 표시
+   ========================================================= */
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const SUPABASE_URL = "https://sssmldmhcfuodutvvcqf.supabase.co";
-  const SUPABASE_ANON_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1b2R1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4";
-
-  const { createClient } = window.supabase;
-  const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
   const params = new URLSearchParams(location.search);
   const code = params.get("code");
   const name = params.get("name");
 
   const chartEl = document.getElementById("chart");
-  const infoEl = document.getElementById("detail-info");
+  const titleEl = document.getElementById("chart-title");
+  const subEl = document.getElementById("chart-sub");
   const errorBox = document.getElementById("error-box");
 
-  // 🚫 접근 제한: URL 파라미터 없을 경우 진입 차단
+  // 🚫 파라미터 누락 시 접근 차단
   if (!code || !name) {
     chartEl.style.display = "none";
-    infoEl.style.display = "none";
+    subEl.style.display = "none";
     errorBox.style.display = "block";
     return;
   }
 
-  // ✅ 정상 접근 시 차트 로딩
+  // ✅ 차트 제목
+  titleEl.textContent = `📊 ${name} (${code})`;
+
+  // ✅ ECharts 초기화
   const chart = echarts.init(chartEl);
   chart.showLoading("default", { text: "차트 데이터를 불러오는 중..." });
 
   try {
-    const { data, error } = await db
+    // ✅ Supabase prices 테이블에서 데이터 조회
+    const { data, error } = await ECONews.db
       .from("prices")
       .select("날짜, 시가, 고가, 저가, 종가")
       .eq("종목코드", code)
@@ -36,21 +39,21 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (error) throw error;
     if (!data || data.length === 0) {
-      infoEl.textContent = "데이터가 없습니다.";
+      subEl.textContent = "📭 데이터가 없습니다.";
       chart.hideLoading();
       return;
     }
 
-    infoEl.textContent = `총 ${data.length}개 데이터 로드됨`;
-
+    // ✅ 날짜 / 가격 배열 생성
     const dates = data.map((d) => d.날짜);
     const ohlc = data.map((d) => [+d.시가, +d.종가, +d.저가, +d.고가]);
 
+    // ✅ ECharts 옵션
     const option = {
       title: {
         text: `${name} (${code})`,
         left: "center",
-        textStyle: { fontSize: 14 },
+        textStyle: { fontSize: 14, fontWeight: 600 },
       },
       tooltip: { trigger: "axis" },
       grid: { left: 40, right: 20, top: 60, bottom: 40 },
@@ -71,12 +74,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       ],
     };
 
+    // ✅ 차트 렌더링
     chart.hideLoading();
     chart.setOption(option);
+    subEl.textContent = `총 ${data.length}개 데이터 로드됨`;
   } catch (err) {
     console.error("❌ 차트 로딩 오류:", err);
-    infoEl.textContent = "데이터 로딩 실패";
+    subEl.textContent = "데이터 로딩 실패";
   }
 
+  // ✅ 반응형
   window.addEventListener("resize", () => chart.resize());
 });
