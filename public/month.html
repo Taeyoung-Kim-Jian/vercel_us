@@ -22,7 +22,7 @@
         <thead>
           <tr>
             <th>종목명</th>
-            <th>포착날짜</th>
+            <th>포착날짜</th> <!-- ✅ 실제 값은 측정일 -->
             <th>당시가격</th>
             <th>현재가</th>
             <th>현재수익률</th>
@@ -114,6 +114,7 @@
                 <td class="clickable-name" data-code="${r.종목코드}" data-name="${r.종목명}">
                   ${ECONews.esc(r.종목명)}
                 </td>
+                <!-- ✅ 포착날짜 = 측정일 -->
                 <td style="text-align:center">${ECONews.fmtDate(r.측정일)}</td>
                 <td style="text-align:right">${ECONews.nf(r.측정일종가)}</td>
                 <td style="text-align:right">${ECONews.nf(r.현재가)}</td>
