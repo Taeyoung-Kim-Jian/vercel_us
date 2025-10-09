@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <li data-page="total.html">전체 종목</li>
         <li data-page="month.html">월별 성과</li>
         <li data-page="proper.html">스윙 적정가격</li>
-        <li data-page="write.html">게시판</li>
+        <li data-page="board.html">게시판</li>
         <li data-page="swing.html">스윙전략</li>
       </ul>
     </nav>
