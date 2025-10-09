@@ -1,1 +1,284 @@
 
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>ECONews 게시판</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./common.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      max-width: 900px;
+      margin: auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .tab-bar {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .tab-bar button {
+      margin: 0 5px;
+      padding: 8px 15px;
+      border: none;
+      border-radius: 6px;
+      background: #eee;
+      cursor: pointer;
+    }
+    .tab-bar button.active {
+      background: #2563eb;
+      color: #fff;
+    }
+    #postForm {
+      margin-bottom: 25px;
+      border: 1px solid #ddd;
+      padding: 15px;
+      border-radius: 6px;
+      background: #fafafa;
+    }
+    #postForm input, #postForm textarea {
+      width: 100%;
+      margin-top: 6px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    #postForm button {
+      margin-top: 10px;
+      padding: 8px 14px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .post {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 10px 0;
+    }
+    .post-title {
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .time {
+      color: #6b7280;
+      font-size: 0.85em;
+    }
+    .comments {
+      margin-left: 15px;
+      margin-top: 5px;
+      border-left: 2px solid #e5e7eb;
+      padding-left: 10px;
+    }
+    .comment {
+      font-size: 0.9em;
+      margin: 5px 0;
+    }
+    .comment .time {
+      color: #9ca3af;
+    }
+    .comment-form {
+      margin-top: 10px;
+    }
+    .comment-form input {
+      width: 80%;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .comment-form button {
+      padding: 5px 8px;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      margin-left: 5px;
+      cursor: pointer;
+    }
+    #auth-info {
+      text-align: right;
+      color: #4b5563;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧭 ECONews 게시판</h1>
+
+  <!-- 로그인 상태 표시 -->
+  <div id="auth-info">
+    <span id="user-email">로그인 정보 확인 중...</span>
+    <button id="loginBtn">🔑 로그인</button>
+    <button id="logoutBtn" style="display:none;">🚪 로그아웃</button>
+  </div>
+
+  <!-- 게시판 탭 -->
+  <div class="tab-bar">
+    <button class="tab active" data-type="notice">📢 공지사항</button>
+    <button class="tab" data-type="free">💬 자유게시판</button>
+    <button class="tab" data-type="idea">💡 아이디어</button>
+  </div>
+
+  <!-- 게시글 작성 -->
+  <form id="postForm">
+    <input type="text" id="title" placeholder="제목을 입력하세요" required />
+    <textarea id="content" placeholder="내용을 입력하세요" required></textarea>
+    <button type="submit">등록</button>
+  </form>
+
+  <!-- 게시글 목록 -->
+  <div id="posts"></div>
+
+  <script>
+    const supabase = ECONews.db;
+    let currentBoard = "notice";
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const userInfo = document.getElementById("user-email");
+      const loginBtn = document.getElementById("loginBtn");
+      const logoutBtn = document.getElementById("logoutBtn");
+      const postForm = document.getElementById("postForm");
+      const postsEl = document.getElementById("posts");
+
+      // 로그인 상태 초기화
+      updateAuthUI();
+
+      // 🔐 로그인 버튼
+      loginBtn.addEventListener("click", async () => {
+        const email = prompt("이메일을 입력하세요:");
+        if (email) await ECONews.loginWithEmail(email);
+      });
+
+      // 🚪 로그아웃 버튼
+      logoutBtn.addEventListener("click", async () => {
+        await ECONews.logoutUser();
+        updateAuthUI();
+      });
+
+      // 탭 전환
+      document.querySelectorAll(".tab").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".tab").forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          currentBoard = btn.dataset.type;
+          loadPosts();
+        });
+      });
+
+      // 게시글 등록
+      postForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const title = document.getElementById("title").value.trim();
+        const content = document.getElementById("content").value.trim();
+        const user = ECONews.user;
+
+        if (!user) {
+          alert("로그인 후 이용 가능합니다.");
+          return;
+        }
+        if (!title) return alert("제목을 입력하세요.");
+
+        const { error } = await supabase.from("boards").insert([
+          { board_type: currentBoard, user_id: user.id, title, content },
+        ]);
+        if (error) alert("❌ 등록 실패: " + error.message);
+        else {
+          e.target.reset();
+          loadPosts();
+        }
+      });
+
+      // 게시글 목록 불러오기
+      async function loadPosts() {
+        ECONews.showLoading(postsEl);
+        const { data, error } = await supabase
+          .from("boards")
+          .select("*, comments(*)")
+          .eq("board_type", currentBoard)
+          .order("created_at", { ascending: false });
+
+        if (error) return ECONews.showError(postsEl, "로드 실패: " + error.message);
+        if (!data.length) return (postsEl.innerHTML = "<p>📭 게시물이 없습니다.</p>");
+
+        postsEl.innerHTML = data
+          .map(
+            (p) => `
+            <div class="post">
+              <div class="post-title">${ECONews.esc(p.title)}</div>
+              <div class="time">${new Date(p.created_at).toLocaleString()}</div>
+              <p>${ECONews.esc(p.content)}</p>
+              <div class="comments">
+                ${(p.comments || [])
+                  .map(
+                    (c) => `
+                    <div class="comment">
+                      💬 ${ECONews.esc(c.comment)} 
+                      <span class="time">${new Date(c.created_at).toLocaleString()}</span>
+                    </div>`
+                  )
+                  .join("")}
+                ${
+                  ECONews.user
+                    ? `<form class="comment-form" onsubmit="return addComment(${p.id}, this)">
+                        <input type="text" name="comment" placeholder="댓글 입력" required />
+                        <button type="submit">등록</button>
+                      </form>`
+                    : ""
+                }
+              </div>
+            </div>`
+          )
+          .join("");
+      }
+
+      // 댓글 등록
+      window.addComment = async function (postId, form) {
+        const comment = form.comment.value.trim();
+        if (!comment) return false;
+        const user = ECONews.user;
+        if (!user) return alert("로그인 후 이용하세요.");
+
+        const { error } = await supabase
+          .from("comments")
+          .insert([{ board_id: postId, user_id: user.id, comment }]);
+
+        if (error) alert("댓글 등록 실패: " + error.message);
+        else {
+          form.reset();
+          loadPosts();
+        }
+        return false;
+      };
+
+      // 로그인 상태 UI 업데이트
+      function updateAuthUI() {
+        const user = ECONews.user;
+        if (user) {
+          userInfo.textContent = `👤 ${user.email}`;
+          loginBtn.style.display = "none";
+          logoutBtn.style.display = "inline-block";
+          postForm.style.display = "block";
+          loadPosts();
+        } else {
+          userInfo.textContent = "로그인되지 않았습니다.";
+          loginBtn.style.display = "inline-block";
+          logoutBtn.style.display = "none";
+          postForm.style.display = "none";
+          postsEl.innerHTML = "<p>🔐 로그인 후 게시판을 이용할 수 있습니다.</p>";
+        }
+      }
+
+      // 로그인 상태 변화 감시
+      supabase.auth.onAuthStateChange((_event, session) => {
+        ECONews.user = session?.user || null;
+        updateAuthUI();
+      });
+    });
+  </script>
+</body>
+</html>
