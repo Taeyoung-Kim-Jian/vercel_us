@@ -9,8 +9,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const loadMoreTotalBtn = document.getElementById("loadMoreTotalBtn");
   const loadMoreSwingBtn = document.getElementById("loadMoreSwingBtn");
 
-  ECONews.showLoading(totalBody);
-  ECONews.showLoading(swingBody);
+  SWINGINV.showLoading(totalBody);
+  SWINGINV.showLoading(swingBody);
 
   const PAGE_SIZE = 10;
   let totalPage = 0;
@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   try {
     /* ✅ 1️⃣ 전체 수익률 (기존 테이블에서 그대로 가져옴) */
-    const { data: totalDataRaw, error: totalErr } = await ECONews.db
+    const { data: totalDataRaw, error: totalErr } = await SWINGINV.db
       .from("total_return")
       .select("종목명, 종목코드, 시작가격, 현재가격, 수익률")
       .order("수익률", { ascending: false });
@@ -39,9 +39,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           <li>
             <span class="rank">${i + 1}.</span>
             <span class="clickable-name" data-code="${r.종목코드}" data-name="${r.종목명}">
-              ${ECONews.esc(r.종목명)}
+              ${SWINGINV.esc(r.종목명)}
             </span>
-            <span class="rate">${ECONews.fmtPct(r.수익률)}</span>
+            <span class="rate">${SWINGINV.fmtPct(r.수익률)}</span>
           </li>
         `
           )
@@ -60,11 +60,11 @@ document.addEventListener("DOMContentLoaded", async () => {
           (r) => `
         <tr>
           <td class="clickable-name" data-code="${r.종목코드}" data-name="${r.종목명}">
-            ${ECONews.esc(r.종목명)}
+            ${SWINGINV.esc(r.종목명)}
           </td>
-          <td style="text-align:right">${ECONews.nf(r.시작가격)}</td>
-          <td style="text-align:right">${ECONews.nf(r.현재가격)}</td>
-          <td style="text-align:right">${ECONews.fmtPct(r.수익률)}</td>
+          <td style="text-align:right">${SWINGINV.nf(r.시작가격)}</td>
+          <td style="text-align:right">${SWINGINV.nf(r.현재가격)}</td>
+          <td style="text-align:right">${SWINGINV.fmtPct(r.수익률)}</td>
         </tr>
       `
         )
@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     loadMoreTotalBtn.addEventListener("click", renderTotalPage);
 
     /* ✅ 2️⃣ 스윙 적정가격 (뷰 기반: swing_proper_view) */
-    const { data: swingView, error: swingErr } = await ECONews.db
+    const { data: swingView, error: swingErr } = await SWINGINV.db
       .from("swing_proper_view")
       .select("*")
       .order("괴리율", { ascending: true });
@@ -99,11 +99,11 @@ document.addEventListener("DOMContentLoaded", async () => {
           (r) => `
         <tr>
           <td class="clickable-name" data-code="${r.종목코드}" data-name="${r.종목명}">
-            ${ECONews.esc(r.종목명)}
+            ${SWINGINV.esc(r.종목명)}
           </td>
-          <td style="text-align:right">${ECONews.nf(r.적정매수가)}</td>
-          <td style="text-align:right">${ECONews.nf(r.현재가)}</td>
-          <td style="text-align:right">${ECONews.fmtPct(r.괴리율)}</td>
+          <td style="text-align:right">${SWINGINV.nf(r.적정매수가)}</td>
+          <td style="text-align:right">${SWINGINV.nf(r.현재가)}</td>
+          <td style="text-align:right">${SWINGINV.fmtPct(r.괴리율)}</td>
         </tr>
       `
         )
@@ -120,7 +120,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     loadMoreSwingBtn.addEventListener("click", renderSwingPage);
   } catch (err) {
     console.error("❌ 데이터 로딩 오류:", err);
-    ECONews.showError(totalBody, "전체 수익률 데이터를 불러오지 못했습니다.");
-    ECONews.showError(swingBody, "스윙 적정가격 데이터를 불러오지 못했습니다.");
+    SWINGINV.showError(totalBody, "전체 수익률 데이터를 불러오지 못했습니다.");
+    SWINGINV.showError(swingBody, "스윙 적정가격 데이터를 불러오지 못했습니다.");
   }
 });
