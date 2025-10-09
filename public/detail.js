@@ -1,69 +1,80 @@
 /* =========================================================
-   📈 detail.js
-   - 종목 클릭 시 detail.html 로드
-   - Supabase prices 테이블에서 시세 가져와 ECharts 표시
+   📈 ECONews detail.js (페이징 + 전체 데이터 로드)
    ========================================================= */
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const params = new URLSearchParams(location.search);
-  const code = params.get("code");
-  const name = params.get("name");
+  const urlParams = new URLSearchParams(window.location.search);
+  const code = urlParams.get("code");
+  const name = urlParams.get("name");
 
-  const chartEl = document.getElementById("chart");
-  const titleEl = document.getElementById("chart-title");
-  const subEl = document.getElementById("chart-sub");
-  const errorBox = document.getElementById("error-box");
-
-  // 🚫 파라미터 누락 시 접근 차단
-  if (!code || !name) {
-    chartEl.style.display = "none";
-    subEl.style.display = "none";
-    errorBox.style.display = "block";
+  if (!code) {
+    document.body.innerHTML = "<h2>❌ 종목 코드가 없습니다.</h2>";
     return;
   }
 
-  // ✅ 차트 제목
-  titleEl.textContent = `📊 ${name} (${code})`;
-
-  // ✅ ECharts 초기화
-  const chart = echarts.init(chartEl);
-  chart.showLoading("default", { text: "차트 데이터를 불러오는 중..." });
+  const chartEl = document.getElementById("chart");
+  chartEl.innerHTML = `<div style="padding:20px; text-align:center;">⏳ 데이터 불러오는 중...</div>`;
 
   try {
-    // ✅ Supabase prices 테이블에서 데이터 조회
-    const { data, error } = await ECONews.db
-      .from("prices")
-      .select("날짜, 시가, 고가, 저가, 종가")
-      .eq("종목코드", code)
-      .order("날짜", { ascending: true });
+    // ✅ Supabase 페이징 유틸 (1000개씩 전체 가져오기)
+    async function fetchAllRows(builderFactory, pageSize = 1000) {
+      const all = [];
+      let from = 0;
+      while (true) {
+        const to = from + pageSize - 1;
+        const { data, error } = await builderFactory().range(from, to);
+        if (error) throw error;
+        if (!data || data.length === 0) break;
+        all.push(...data);
+        if (data.length < pageSize) break; // 마지막 페이지
+        from += pageSize;
+      }
+      return all;
+    }
 
-    if (error) throw error;
-    if (!data || data.length === 0) {
-      subEl.textContent = "📭 데이터가 없습니다.";
-      chart.hideLoading();
+    // ✅ 전체 price 데이터 불러오기 (한국 컬럼명 기준)
+    const allData = await fetchAllRows(() =>
+      ECONews.db
+        .from("prices")
+        .select("날짜, 시가, 고가, 저가, 종가")
+        .eq("종목코드", code)
+        .order("날짜", { ascending: true })
+    );
+
+    if (!allData || allData.length === 0) {
+      chartEl.innerHTML = `<p style="text-align:center; color:#999;">데이터가 없습니다.</p>`;
       return;
     }
 
-    // ✅ 날짜 / 가격 배열 생성
-    const dates = data.map((d) => d.날짜);
-    const ohlc = data.map((d) => [+d.시가, +d.종가, +d.저가, +d.고가]);
+    // ✅ ECharts 차트 생성
+    const dates = allData.map((d) => d.날짜);
+    const prices = allData.map((d) => [
+      d.시가,
+      d.종가,
+      d.저가,
+      d.고가,
+    ]);
 
-    // ✅ ECharts 옵션
-    const option = {
+    const chart = echarts.init(chartEl);
+
+    chart.setOption({
       title: {
-        text: `${name} (${code})`,
+        text: `${name || code}`,
         left: "center",
         textStyle: { fontSize: 14, fontWeight: 600 },
       },
       tooltip: { trigger: "axis" },
-      grid: { left: 40, right: 20, top: 60, bottom: 40 },
-      xAxis: { type: "category", data: dates, boundaryGap: true },
+      xAxis: {
+        type: "category",
+        data: dates,
+        boundaryGap: true,
+      },
       yAxis: { scale: true },
       dataZoom: [{ type: "inside" }, { type: "slider" }],
       series: [
         {
           type: "candlestick",
-          data: ohlc,
+          data: prices,
           itemStyle: {
             color: "#22c55e",
             color0: "#ef4444",
@@ -72,17 +83,12 @@ document.addEventListener("DOMContentLoaded", async () => {
           },
         },
       ],
-    };
+    });
 
-    // ✅ 차트 렌더링
-    chart.hideLoading();
-    chart.setOption(option);
-    subEl.textContent = `총 ${data.length}개 데이터 로드됨`;
-  } catch (err) {
-    console.error("❌ 차트 로딩 오류:", err);
-    subEl.textContent = "데이터 로딩 실패";
+    chart.resize();
+    window.addEventListener("resize", () => chart.resize());
+  } catch (e) {
+    console.error(e);
+    chartEl.innerHTML = `<p style="color:red; text-align:center;">❌ 데이터 불러오기 실패: ${e.message}</p>`;
   }
-
-  // ✅ 반응형
-  window.addEventListener("resize", () => chart.resize());
 });
