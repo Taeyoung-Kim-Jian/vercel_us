@@ -6,8 +6,8 @@
     </h1>
 
     <div class="auth-area">
-      <span id="user-email">로그인 확인 중...</span>
-      <button id="loginBtn" class="btn-login">로그인</button>
+      <span id="user-email">로그아웃 중</span>
+      <button id="loginBtn" class="btn-login" onclick="location.href='login.html'">로그인</button>
       <button id="logoutBtn" class="btn-logout" style="display:none;">로그아웃</button>
     </div>
   </div>
@@ -22,28 +22,8 @@
   </nav>
 </header>
 
-<!-- ✅ 로그인 / 회원가입 모달 -->
-<div id="loginModal" class="modal hidden">
-  <div class="modal-content">
-    <span class="close-btn">&times;</span>
-    <h3 id="modal-title">🔑 로그인</h3>
-
-    <input type="email" id="modal-email" placeholder="이메일 주소" required />
-    <input type="password" id="modal-password" placeholder="비밀번호 (6자 이상)" required />
-
-    <button id="modal-submit">로그인</button>
-
-    <p class="switch-mode">
-      아직 계정이 없나요?
-      <a href="#" id="switchToSignup">회원가입</a>
-    </p>
-  </div>
-</div>
-
+<!-- ✅ 스타일 (네이버형 미니 헤더) -->
 <style>
-  /* =============================
-     🌐 헤더 기본 구조
-  ============================= */
   #site-header {
     background: #fff;
     border-bottom: 1px solid #e5e7eb;
@@ -65,13 +45,12 @@
   }
 
   .logo {
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 700;
     color: #1f2937;
     cursor: pointer;
   }
 
-  /* 🔐 로그인 영역 */
   .auth-area {
     display: flex;
     align-items: center;
@@ -95,6 +74,7 @@
     border-color: #2563eb;
     background: #f8fafc;
   }
+
   .btn-login:hover {
     background: #eff6ff;
   }
@@ -103,7 +83,6 @@
     color: #6b7280;
   }
 
-  /* 📋 메뉴 영역 */
   .gnb {
     display: flex;
     justify-content: center;
@@ -120,7 +99,7 @@
 
   .gnb button {
     flex-shrink: 0;
-    padding: 10px 12px;
+    padding: 9px 12px;
     border: none;
     background: none;
     color: #374151;
@@ -140,7 +119,6 @@
     border-bottom: 2px solid #1d4ed8;
   }
 
-  /* 📱 반응형 */
   @media (max-width: 768px) {
     .header-top {
       flex-direction: column;
@@ -158,86 +136,9 @@
       padding: 8px 10px;
     }
   }
-
-  /* =============================
-     🔐 로그인 모달
-  ============================= */
-  .modal {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.4);
-    z-index: 1000;
-  }
-  .modal.hidden {
-    display: none;
-  }
-
-  .modal-content {
-    background: #fff;
-    padding: 25px;
-    border-radius: 10px;
-    width: 300px;
-    text-align: center;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-    position: relative;
-  }
-
-  .modal-content h3 {
-    margin-bottom: 15px;
-    color: #111827;
-    font-size: 16px;
-  }
-
-  .modal-content input {
-    width: 100%;
-    padding: 8px;
-    margin: 6px 0;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 13px;
-  }
-
-  .modal-content button {
-    width: 100%;
-    background: #2563eb;
-    color: white;
-    padding: 9px;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    margin-top: 8px;
-    cursor: pointer;
-  }
-
-  .modal-content button:hover {
-    background: #1e40af;
-  }
-
-  .switch-mode {
-    margin-top: 10px;
-    font-size: 12px;
-  }
-
-  .switch-mode a {
-    color: #2563eb;
-    cursor: pointer;
-    text-decoration: none;
-    font-weight: 600;
-  }
-
-  .close-btn {
-    position: absolute;
-    top: 8px;
-    right: 12px;
-    cursor: pointer;
-    font-size: 18px;
-    color: #555;
-  }
 </style>
 
+<!-- ✅ 로그인 상태 반영 -->
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     if (typeof SWINGINV_updateHeaderAuthUI === "function") {
