@@ -5,6 +5,7 @@
    - 숫자/퍼센트 포맷팅
    - 공통 클릭 이벤트
    - 전역 로딩/에러 핸들링
+   - 로그인 세션 유지 (추가)
    ========================================================= */
 
 console.log("🌐 ECONews common.js loaded");
@@ -19,7 +20,7 @@ const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ==========================================================
 // 🧩 공통 유틸 함수
-// =========================================================
+// ==========================================================
 
 // ✅ 숫자 포맷팅 (천 단위 콤마)
 function nf(num) {
@@ -89,9 +90,49 @@ function showError(targetEl, message = "데이터 로딩 실패") {
 }
 
 // =========================================================
+// 🔐 Supabase Auth (로그인 세션 유지 추가)
+// =========================================================
+
+// ✅ 로그인 상태 감시 및 유지
+(async () => {
+  try {
+    const { data: { session } } = await db.auth.getSession();
+    window.ECONews = window.ECONews || {};
+    ECONews.user = session?.user || null;
+
+    db.auth.onAuthStateChange((_event, session) => {
+      ECONews.user = session?.user || null;
+      if (ECONews.user) {
+        console.log(`✅ 로그인 유지됨: ${ECONews.user.email}`);
+      } else {
+        console.log("🚪 로그아웃됨");
+      }
+    });
+  } catch (err) {
+    console.error("❌ Auth 초기화 오류:", err.message);
+  }
+})();
+
+// ✅ 로그인/로그아웃 유틸 함수
+async function loginWithEmail(email) {
+  const { error } = await db.auth.signInWithOtp({ email });
+  if (error) {
+    alert("❌ 로그인 실패: " + error.message);
+  } else {
+    alert("📩 로그인 링크를 이메일로 보냈습니다.");
+  }
+}
+
+async function logoutUser() {
+  await db.auth.signOut();
+  alert("🚪 로그아웃 완료");
+}
+
+// =========================================================
 // 🧭 전역 네임스페이스로 내보내기
 // =========================================================
 window.ECONews = {
+  ...window.ECONews,
   db,
   nf,
   fmtPct,
@@ -99,5 +140,6 @@ window.ECONews = {
   esc,
   showLoading,
   showError,
+  loginWithEmail,
+  logoutUser,
 };
-
