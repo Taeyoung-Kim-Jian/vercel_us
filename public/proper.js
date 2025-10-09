@@ -1,6 +1,5 @@
-
 /* =========================================================
-   💰 proper.js — 스윙 적정가격 (view 기반)
+   💰 proper.js — swing_proper_view 기반 페이지
    ========================================================= */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -13,17 +12,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   let allData = [];
 
   try {
-    // ✅ 1) 뷰에서 직접 데이터 가져오기
+    // ✅ Supabase View에서 데이터 로드
     const { data, error } = await ECONews.db
       .from("swing_proper_view")
       .select("*")
       .order("괴리율", { ascending: true });
 
     if (error) throw error;
-
     allData = data || [];
 
-    // ✅ 2) 렌더링
+    // ✅ 페이지 렌더링
     const renderPage = () => {
       const start = currentPage * PAGE_SIZE;
       const end = start + PAGE_SIZE;
@@ -32,15 +30,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       const rows = pageData
         .map(
           (r) => `
-        <tr>
-          <td class="clickable-name" data-code="${r.종목코드}" data-name="${r.종목명}">
-            ${ECONews.esc(r.종목명)}
-          </td>
-          <td style="text-align:right">${ECONews.nf(r.적정매수가)}</td>
-          <td style="text-align:right">${ECONews.nf(r.현재가)}</td>
-          <td style="text-align:right">${ECONews.fmtPct(r.괴리율)}</td>
-        </tr>
-      `
+            <tr>
+              <td class="clickable-name" data-code="${r.종목코드}" data-name="${r.종목명}">
+                ${ECONews.esc(r.종목명)}
+              </td>
+              <td style="text-align:right">${ECONews.nf(r.적정매수가)}</td>
+              <td style="text-align:right">${ECONews.nf(r.현재가)}</td>
+              <td style="text-align:right">${ECONews.fmtPct(r.괴리율)}</td>
+            </tr>
+          `
         )
         .join("");
 
@@ -54,7 +52,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderPage();
     loadMoreBtn.addEventListener("click", renderPage);
   } catch (err) {
-    console.error("❌ 스윙 적정가격 로드 오류:", err);
+    console.error("❌ 데이터 로드 오류:", err);
     ECONews.showError(tbody, "데이터 로딩 실패");
   }
 });
