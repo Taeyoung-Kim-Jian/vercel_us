@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -13,31 +12,34 @@
 </head>
 
 <body>
-  <!-- ✅ 상단 고정 헤더 -->
-  <header class="top-header">
-    <div class="header-left">💰 스윙 적정가격</div>
-    <div class="header-right">
-      <a href="index.html" class="nav-link">🏠 메인</a>
-      <a href="total.html" class="nav-link">📊 전체 수익률</a>
-      <a href="month.html" class="nav-link">📅 월별 성과</a>
-      <a href="proper.html" class="nav-link active">💰 적정가격</a>
+  <!-- ================================
+       📊 상단 헤더
+  ================================= -->
+  <header>
+    <div class="header-inner">
+      <h1 class="logo" onclick="location.href='index.html'">📊 ECONews</h1>
+      <button class="login-btn">로그인</button>
     </div>
   </header>
 
-  <!-- ✅ 스크롤 메뉴바 -->
-  <nav class="scroll-menu">
-    <button onclick="location.href='index.html'">메인</button>
-    <button onclick="location.href='total.html'">전체수익률</button>
-    <button onclick="location.href='month.html'">월별성과</button>
-    <button onclick="location.href='proper.html'">스윙적정가격</button>
-    <button onclick="location.href='detail.html'">차트</button>
+  <!-- ================================
+       📱 스크롤 메뉴바
+  ================================= -->
+  <nav class="nav-bar">
+    <a href="index.html">🏠 메인</a>
+    <a href="total.html">📊 전체 수익률</a>
+    <a href="month.html">📅 월별성과</a>
+    <a href="proper.html" class="active">💰 스윙적정가격</a>
+    <a href="detail.html">📈 차트</a>
   </nav>
 
-  <!-- ✅ 본문 -->
-  <main class="content">
-    <div class="table-wrap">
-      <h3>💰 스윙 적정가격</h3>
-      <table>
+  <!-- ================================
+       💰 스윙 적정가격 본문
+  ================================= -->
+  <main>
+    <section class="table-section">
+      <h2>💰 스윙 적정가격</h2>
+      <table class="data-table">
         <thead>
           <tr>
             <th>종목명</th>
@@ -50,13 +52,18 @@
           <tr><td colspan="4">데이터를 불러오는 중...</td></tr>
         </tbody>
       </table>
-      <button id="loadMoreSwingBtn">더보기</button>
-    </div>
+      <button id="loadMoreSwingBtn" class="load-btn">더보기</button>
+    </section>
   </main>
 
-  <footer>© 2025 ECONews | 데이터 제공: Supabase</footer>
+  <!-- ================================
+       ⚙️ 푸터
+  ================================= -->
+  <footer>
+    <p>© 2025 ECONews | 데이터 제공: Supabase</p>
+  </footer>
 
-  <!-- ✅ 페이지 전용 스크립트 -->
+  <!-- ✅ JS -->
   <script src="./proper.js"></script>
 </body>
 </html>
