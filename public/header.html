@@ -1,6 +1,10 @@
+<!-- ✅ SWING INVESTOR 공통 헤더 -->
 <header id="site-header">
   <div class="header-inner">
+    <!-- 🏠 로고 -->
     <h2 class="logo" onclick="location.href='index.html'">SWING INVESTOR</h2>
+
+    <!-- 🔐 로그인 상태 영역 -->
     <div class="auth-area">
       <span id="user-email">로그인 확인 중...</span>
       <button id="loginBtn">🔑 로그인</button>
@@ -8,6 +12,7 @@
     </div>
   </div>
 
+  <!-- 📋 네비게이션 메뉴 -->
   <nav class="scroll-menu">
     <button onclick="location.href='index.html'">🏠 홈</button>
     <button onclick="location.href='board.html'">💬 게시판</button>
@@ -16,7 +21,9 @@
   </nav>
 </header>
 
+<!-- ✅ 스타일 -->
 <style>
+  /* ===== 헤더 기본 ===== */
   #site-header {
     border-bottom: 1px solid #e5e7eb;
     margin-bottom: 15px;
@@ -24,46 +31,100 @@
     position: sticky;
     top: 0;
     z-index: 100;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   }
+
+  /* ===== 헤더 내부 영역 ===== */
   .header-inner {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 10px 20px;
   }
+
   .logo {
-    font-weight: 700;
+    font-weight: 800;
     color: #111827;
+    font-size: 1.3rem;
     cursor: pointer;
+    letter-spacing: 0.5px;
   }
+
+  /* ===== 로그인 영역 ===== */
   .auth-area {
     display: flex;
     align-items: center;
     gap: 8px;
+    font-size: 0.9rem;
+    color: #374151;
   }
+
   .auth-area button {
     background: #2563eb;
-    color: white;
+    color: #fff;
     border: none;
     border-radius: 6px;
     padding: 5px 10px;
     cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s ease-in-out;
   }
+
+  .auth-area button:hover {
+    background: #1e40af;
+  }
+
+  /* ===== 스크롤 메뉴 ===== */
   .scroll-menu {
     overflow-x: auto;
     white-space: nowrap;
     border-top: 1px solid #e5e7eb;
     background: #f9fafb;
+    -webkit-overflow-scrolling: touch;
   }
+
   .scroll-menu button {
     display: inline-block;
     background: none;
     border: none;
-    padding: 10px 14px;
+    padding: 10px 16px;
     cursor: pointer;
     font-size: 15px;
+    color: #111827;
+    transition: background 0.2s;
   }
+
   .scroll-menu button:hover {
     background: #e5e7eb;
   }
+
+  /* ===== 반응형 ===== */
+  @media (max-width: 600px) {
+    .header-inner {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .auth-area {
+      align-self: flex-end;
+      margin-right: 5px;
+    }
+
+    .logo {
+      font-size: 1.1rem;
+    }
+  }
 </style>
+
+<!-- ✅ 로그인 상태 갱신 스크립트 -->
+<script>
+  // 헤더는 fetch로 로드되므로 DOM 로드 후 로그인 상태 반영
+  document.addEventListener("DOMContentLoaded", () => {
+    if (typeof SWINGINV_updateHeaderAuthUI === "function") {
+      SWINGINV_updateHeaderAuthUI();
+    } else {
+      console.warn("⚠️ common.js에서 SWINGINV_updateHeaderAuthUI()를 찾을 수 없습니다.");
+    }
+  });
+</script>
