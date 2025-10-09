@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <ul>
         <li data-page="index.html">메인</li>
         <li data-page="total.html">전체 종목</li>
-        <li data-page="month.html">월별 성과/li>
+        <li data-page="month.html">월별 성과</li>
         <li data-page="proper.html">해외주식</li>
         <li data-page="etf.html">ETF</li>
         <li data-page="swing.html">스윙전략</li>
