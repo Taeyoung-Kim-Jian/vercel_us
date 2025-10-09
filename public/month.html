@@ -1,1 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>월별성과 | ECONews</title>
+  <link rel="stylesheet" href="./style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./common.js"></script>
+  <script src="./nav.js" defer></script>
+</head>
+<body>
+  <main class="content">
+    <h2>📅 월별 성과 리포트</h2>
+
+    <!-- 📆 월 탭 -->
+    <div id="month-tabs" class="scroll-menu"></div>
+
+    <!-- 📊 테이블 -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>월</th>
+            <th>종목명</th>
+            <th>종목코드</th>
+            <th>측정일</th>
+            <th>당시가격</th>
+            <th>현재가</th>
+            <th>수익률</th>
+            <th>최고</th>
+            <th>최저</th>
+          </tr>
+        </thead>
+        <tbody id="month-table-body">
+          <tr><td colspan="9">데이터 불러오는 중...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer>© 2025 ECONews | 데이터 제공: Supabase</footer>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const tabsEl = document.getElementById("month-tabs");
+      const bodyEl = document.getElementById("month-table-body");
+      ECONews.showLoading(bodyEl);
+
+      try {
+        // ✅ 뷰에서 바로 가져오기
+        const { data, error } = await ECONews.db
+          .from("monthly_performance_view")
+          .select("*")
+          .order("월", { ascending: false });
+
+        if (error) throw error;
+        if (!data?.length) {
+          ECONews.showError(bodyEl, "데이터가 없습니다.");
+          return;
+        }
+
+        // ✅ 월 목록 생성
+        const months = [...new Set(data.map((d) => d.월.slice(0, 7)))];
+        tabsEl.innerHTML = months
+          .map(
+            (m, i) =>
+              `<button class="tab-btn ${i === 0 ? "active" : ""}" data-month="${m}">${m}</button>`
+          )
+          .join("");
+
+        // ✅ 기본 표시
+        renderMonth(months[0]);
+
+        // ✅ 탭 클릭 이벤트
+        tabsEl.querySelectorAll(".tab-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            tabsEl.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+            renderMonth(btn.dataset.month);
+          });
+        });
+
+        // ✅ 월별 렌더 함수
+        function renderMonth(month) {
+          const filtered = data.filter((d) => d.월.startsWith(month));
+          if (!filtered.length) {
+            ECONews.showError(bodyEl, `${month} 데이터가 없습니다.`);
+            return;
+          }
+
+          bodyEl.innerHTML = filtered
+            .map(
+              (r) => `
+              <tr>
+                <td>${r.월.slice(0, 7)}</td>
+                <td class="clickable-name" data-code="${r.종목코드}" data-name="${r.종목명}">
+                  ${ECONews.esc(r.종목명)}
+                </td>
+                <td>${ECONews.esc(r.종목코드)}</td>
+                <td>${ECONews.fmtDate(r.측정일)}</td>
+                <td style="text-align:right">${ECONews.nf(r.측정일종가)}</td>
+                <td style="text-align:right">${ECONews.nf(r.현재가)}</td>
+                <td style="text-align:right">${ECONews.fmtPct(r.수익률)}</td>
+                <td style="text-align:right">${ECONews.fmtPct(r.최고수익률)}</td>
+                <td style="text-align:right">${ECONews.fmtPct(r.최저수익률)}</td>
+              </tr>`
+            )
+            .join("");
+        }
+      } catch (err) {
+        console.error("❌ 월별성과 로딩 실패:", err);
+        ECONews.showError(bodyEl, "데이터 로딩 실패");
+      }
+    });
+  </script>
+</body>
+</html>
 
