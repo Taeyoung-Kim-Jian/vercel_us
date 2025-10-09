@@ -11,7 +11,7 @@
 </head>
 <body>
   <main class="content">
-    <h2>📅 월별 성과 분석</h2>
+    <h2>📅 월별 ±5% 구간 성과</h2>
 
     <!-- 📆 월 탭 -->
     <div id="month-tabs" class="scroll-menu"></div>
@@ -22,6 +22,7 @@
         <thead>
           <tr>
             <th>종목명</th>
+            <th>포착날짜</th>
             <th>당시가격</th>
             <th>현재가</th>
             <th>현재수익률</th>
@@ -30,7 +31,7 @@
           </tr>
         </thead>
         <tbody id="month-table-body">
-          <tr><td colspan="6">데이터 불러오는 중...</td></tr>
+          <tr><td colspan="7">데이터 불러오는 중...</td></tr>
         </tbody>
       </table>
     </div>
@@ -45,7 +46,7 @@
       ECONews.showLoading(bodyEl);
 
       try {
-        // ✅ Supabase View에서 데이터 불러오기
+        // ✅ Supabase View 호출
         const { data, error } = await ECONews.db
           .from("monthly_performance_view")
           .select("*")
@@ -93,11 +94,12 @@
                 <td class="clickable-name" data-code="${r.종목코드}" data-name="${r.종목명}">
                   ${ECONews.esc(r.종목명)}
                 </td>
+                <td style="text-align:center">${ECONews.fmtDate(r.포착날짜)}</td>
                 <td style="text-align:right">${ECONews.nf(r.측정일종가)}</td>
                 <td style="text-align:right">${ECONews.nf(r.현재가)}</td>
-                <td style="text-align:right">${ECONews.fmtPct(r.측정일대비수익률)}</td>
-                <td style="text-align:right">${ECONews.fmtPct(r.최고수익률)}</td>
-                <td style="text-align:right">${ECONews.fmtPct(r.최저수익률)}</td>
+                <td style="text-align:right">${ECONews.fmtPct(r.현재수익률)}</td>
+                <td style="text-align:right">${ECONews.nf(r.이후최고가)}</td>
+                <td style="text-align:right">${ECONews.nf(r.이후최저가)}</td>
               </tr>`
             )
             .join("");
