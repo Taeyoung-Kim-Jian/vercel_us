@@ -1,118 +1,187 @@
-/* ===============================
-   HEADER - 네이버 경제 스타일
-================================ */
-.header {
-  position: sticky;
-  top: 0;
-  background: #fff;
-  border-bottom: 1px solid #e5e7eb;
-  z-index: 100;
-  height: 54px;
+/* -----------------------------
+   기본 설정 및 리셋
+----------------------------- */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  font-family: "Pretendard", "Noto Sans KR", Arial, sans-serif;
+  background-color: #f8f9fa;
+  color: #222;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  font-size: 15px; /* ✅ 기존 14px → 15px */
 }
 
-.header-inner {
-  max-width: 1100px;
+/* -----------------------------
+   헤더
+----------------------------- */
+header {
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  padding: 12px 0;
+  text-align: center;
+  font-size: 1.05rem; /* 기존 1rem */
+  font-weight: 700;
+  color: #111;
+}
+
+/* -----------------------------
+   메인
+----------------------------- */
+main {
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 8px 14px;
+  padding: 14px;
+}
+
+/* -----------------------------
+   카드 섹션
+----------------------------- */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.card h3 {
+  font-size: 1rem; /* 기존 0.95rem */
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #111;
+}
+
+/* -----------------------------
+   Top5 리스트
+----------------------------- */
+.top5-list { list-style: none; margin: 0; padding: 0; }
+
+.top5-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  padding: 5px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 0.95rem; /* 기존 0.85rem */
 }
 
-.logo {
+.top5-item:last-child { border-bottom: none; }
+
+.rank {
   font-weight: 700;
-  font-size: 1.1rem;
-  color: #111;
-  white-space: nowrap;
-}
-
-/* 메뉴 영역 */
-.nav-menu {
-  flex: 1;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; /* Firefox */
-}
-
-.nav-menu::-webkit-scrollbar {
-  display: none; /* Chrome, Safari */
-}
-
-.nav-menu ul {
-  display: flex;
-  gap: 18px;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.nav-menu li {
-  white-space: nowrap;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #444;
-  cursor: pointer;
-  padding-bottom: 3px;
-  border-bottom: 2px solid transparent;
-  transition: all 0.2s ease;
-}
-
-.nav-menu li:hover {
-  color: #1e40af;
-}
-
-.nav-menu li.active {
-  color: #1e40af;
-  border-bottom: 2px solid #1e40af;
-}
-
-/* 로그인 버튼 */
-.login-btn button {
-  background: #1e40af;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 0.85rem;
-  cursor: pointer;
-}
-
-.login-btn button:hover {
-  background: #1d4ed8;
-}
-
-/* 메인 콘텐츠 */
-.content {
-  margin-top: 20px;
-  font-family: 'Noto Sans KR', sans-serif;
-  line-height: 1.6;
-  color: #222;
-}
-
-/* 푸터 */
-footer {
-  border-top: 1px solid #eee;
+  color: #888;
+  width: 22px;
   text-align: center;
-  padding: 20px;
-  font-size: 0.9rem;
-  color: #666;
+  font-size: 0.9rem; /* 기존 0.8 */
 }
 
-/* 모바일 대응 */
+.name {
+  flex: 1;
+  padding-left: 8px;
+  color: #333;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rate {
+  font-weight: 600;
+  min-width: 60px;
+  text-align: right;
+  font-size: 0.9rem; /* 기존 0.8 */
+}
+
+/* -----------------------------
+   테이블 스타일
+----------------------------- */
+.table-wrap {
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+  padding: 14px;
+  margin-bottom: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem; /* 기존 0.85 */
+}
+
+thead th {
+  text-align: left;
+  background-color: #f1f3f5;
+  padding: 8px 10px;
+  font-weight: 600;
+  border-bottom: 1px solid #ddd;
+}
+
+tbody td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #eee;
+  color: #333;
+}
+
+tbody tr:hover { background-color: #f8f9fa; }
+
+/* -----------------------------
+   버튼
+----------------------------- */
+button {
+  display: inline-block;
+  padding: 7px 12px;
+  background: #0d6efd;
+  color: #fff;
+  font-size: 0.9rem; /* 기존 0.8 */
+  font-weight: 500;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.2s;
+}
+
+button:hover { background: #0b5ed7; }
+
+/* -----------------------------
+   푸터
+----------------------------- */
+footer {
+  background-color: #fff;
+  border-top: 1px solid #e5e7eb;
+  padding: 12px;
+  text-align: center;
+  font-size: 0.85rem; /* 기존 0.75 */
+  color: #777;
+  margin-top: 26px;
+}
+
+/* -----------------------------
+   반응형 (모바일 2단)
+----------------------------- */
 @media (max-width: 768px) {
-  .header-inner {
-    gap: 8px;
-    padding: 6px 10px;
-  }
-  .nav-menu ul {
-    gap: 14px;
-  }
-  .nav-menu li {
-    font-size: 0.85rem;
-  }
-  .login-btn button {
-    padding: 5px 8px;
-    font-size: 0.8rem;
-  }
+  html, body { font-size: 14px; } /* 기존 13px */
+  .cards { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  table { font-size: 0.9rem; }
+  button { width: 100%; }
+}
+
+@media (max-width: 480px) {
+  html, body { font-size: 13px; } /* 기존 12px */
+  .cards { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .card { padding: 12px; }
 }
