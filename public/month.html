@@ -97,9 +97,9 @@
                 <td style="text-align:center">${ECONews.fmtDate(r.포착날짜)}</td>
                 <td style="text-align:right">${ECONews.nf(r.측정일종가)}</td>
                 <td style="text-align:right">${ECONews.nf(r.현재가)}</td>
-                <td style="text-align:right">${ECONews.fmtPct(r.현재수익률)}</td>
-                <td style="text-align:right">${ECONews.nf(r.이후최고가)}</td>
-                <td style="text-align:right">${ECONews.nf(r.이후최저가)}</td>
+                <td style="text-align:right">${ECONews.fmtPct(r.측정일대비수익률)}</td>
+                <td style="text-align:right">${ECONews.fmtPct(r.최고수익률)}</td>
+                <td style="text-align:right">${ECONews.fmtPct(r.최저수익률)}</td>
               </tr>`
             )
             .join("");
