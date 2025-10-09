@@ -1,1 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>전체 종목 목록 | ECONews</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- ===============================
+        HEADER (재사용)
+  ================================ -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo" onclick="location.href='index.html'">📊 ECONews 대시보드</div>
+      <div class="login-btn">
+        <button>로그인</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===============================
+        PAGE TITLE
+  ================================ -->
+  <main class="content">
+    <section class="page-header">
+      <h2>📋 전체 종목 목록</h2>
+      <p>Supabase total_return 테이블의 모든 종목 데이터를 표시합니다.</p>
+      <button class="back-btn" onclick="location.href='index.html'">← 메인으로 돌아가기</button>
+    </section>
+
+    <!-- ===============================
+          TABLE SECTION
+    ================================ -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>순위</th>
+            <th>종목명</th>
+            <th>종목코드</th>
+            <th>시작가격</th>
+            <th>현재가격</th>
+            <th>수익률</th>
+            <th>기간(일)</th>
+          </tr>
+        </thead>
+        <tbody id="total-list-body">
+          <tr><td colspan="7">⏳ 데이터를 불러오는 중...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer>
+    © 2025 ECONews | 데이터 제공: Supabase
+  </footer>
+
+  <script src="./total.js"></script>
+</body>
+</html>
 
