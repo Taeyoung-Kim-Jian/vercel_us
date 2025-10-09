@@ -3,18 +3,122 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>종목 상세 차트 | ECONews</title>
+  <title>종목 상세 차트 | SWING INVESTOR</title>
   <link rel="stylesheet" href="./style.css" />
 
   <!-- ✅ Supabase & ECharts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5"></script>
   <script src="./common.js"></script>
-</head>
-<body>
-  <!-- ✅ 상단 헤더/메뉴 -->
-  <script src="./nav.js"></script>
 
+  <style>
+    /* ✅ 헤더 스타일 */
+    #site-header {
+      border-bottom: 1px solid #e5e7eb;
+      margin-bottom: 20px;
+      background: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+    }
+    .logo {
+      font-weight: 700;
+      color: #111827;
+      cursor: pointer;
+    }
+    .auth-area {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .auth-area button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    .scroll-menu {
+      overflow-x: auto;
+      white-space: nowrap;
+      border-top: 1px solid #e5e7eb;
+      background: #f9fafb;
+    }
+    .scroll-menu button {
+      display: inline-block;
+      background: none;
+      border: none;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+    .scroll-menu button:hover {
+      background: #e5e7eb;
+    }
+
+    /* ✅ 페이지 스타일 */
+    main.content {
+      max-width: 1000px;
+      margin: auto;
+      padding: 20px;
+    }
+    .page-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .back-btn {
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .error-box {
+      background: #fef2f2;
+      color: #b91c1c;
+      text-align: center;
+      padding: 30px;
+      border-radius: 8px;
+      margin-top: 40px;
+    }
+    footer {
+      text-align: center;
+      color: #555;
+      font-size: 0.9em;
+      padding: 15px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ✅ 상단 헤더 -->
+  <header id="site-header">
+    <div class="header-inner">
+      <h2 class="logo" onclick="location.href='index.html'">SWING INVESTOR</h2>
+      <div class="auth-area">
+        <span id="user-email">로그인 확인 중...</span>
+        <button id="loginBtn">🔑 로그인</button>
+        <button id="logoutBtn" style="display:none;">🚪 로그아웃</button>
+      </div>
+    </div>
+    <nav class="scroll-menu">
+      <button onclick="location.href='index.html'">🏠 홈</button>
+      <button onclick="location.href='board.html'">💬 게시판</button>
+      <button onclick="location.href='watch.html'">⭐ 관심종목</button>
+      <button onclick="location.href='month.html'">📅 월별성과</button>
+    </nav>
+  </header>
+
+  <!-- ✅ 본문 -->
   <main class="content">
     <section class="page-header">
       <h2 id="chart-title">📈 종목 상세</h2>
@@ -32,8 +136,17 @@
     </div>
   </main>
 
-  <footer>© 2025 ECONews | 데이터 제공: Supabase</footer>
+  <!-- ✅ 푸터 -->
+  <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
 
+  <!-- ✅ 페이지 전용 스크립트 -->
   <script src="./detail.js"></script>
+
+  <!-- ✅ 헤더 로그인 상태 반영 -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      SWINGINV_updateHeaderAuthUI(); // common.js 내부 함수
+    });
+  </script>
 </body>
 </html>
