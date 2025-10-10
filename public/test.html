@@ -3,19 +3,92 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>차트 보기 | SWING INVESTOR</title>
+  <title>종목 차트 | SWING INVESTOR</title>
   <link rel="stylesheet" href="./style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5"></script>
   <script src="./common.js"></script>
+
+  <style>
+    body {
+      font-family: "Pretendard", sans-serif;
+      background: #f8fafc;
+      margin: 0;
+      padding: 0;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 30px auto;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+      padding: 20px;
+    }
+
+    #chart {
+      width: 100%;
+      height: 550px;
+      margin-top: 30px;
+    }
+
+    #backBtn {
+      display: inline-block;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    #backBtn:hover {
+      background: #1d4ed8;
+    }
+
+    h2 {
+      color: #1e293b;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    p#subtitle {
+      text-align: center;
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #777;
+    }
+  </style>
 </head>
 
-<body style="background:#f8fafc;">
-  <main style="max-width:1000px;margin:30px auto;padding:20px;background:#fff;border-radius:10px;">
-    <h2 id="chart-title" style="text-align:center;">📈 차트</h2>
-    <div id="chart" style="width:100%;height:500px;margin-top:20px;"></div>
-    <button id="backBtn" style="margin:20px auto;display:block;padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:6px;">← 뒤로가기</button>
+<body>
+  <div id="header-container"></div>
+  <script>
+    fetch("./header.html")
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById("header-container").innerHTML = html;
+        if (typeof SWINGINV_updateHeaderAuthUI === "function") SWINGINV_updateHeaderAuthUI();
+      });
+  </script>
+
+  <main>
+    <button id="backBtn">← 뒤로가기</button>
+    <h2 id="chart-title">📈 차트 로딩 중...</h2>
+    <p id="subtitle"></p>
+
+    <div id="chart"></div>
+    <div id="error-box" style="display:none;text-align:center;color:red;margin-top:20px;"></div>
   </main>
+
+  <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
 
   <script src="./test.js"></script>
 </body>
