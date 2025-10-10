@@ -7,6 +7,51 @@
   <link rel="stylesheet" href="./style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./common.js"></script>
+
+  <style>
+    /* ✅ 월별 탭 (가로 스크롤 네이버 스타일) */
+    .scroll-menu {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 12px 10px;
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .scroll-menu::-webkit-scrollbar { display: none; }
+
+    .month-tab {
+      flex: 0 0 auto;
+      background: #f1f5f9;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #1e3a8a;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .month-tab:hover {
+      background: #1e3a8a;
+      color: #fff;
+    }
+
+    .month-tab.active {
+      background: #1e40af;
+      color: #fff;
+      border-color: #1e40af;
+    }
+
+    h2 {
+      margin: 20px 0 10px;
+      font-size: 1.2rem;
+      color: #111827;
+    }
+  </style>
 </head>
 <body>
   <!-- ✅ 공통 헤더 -->
@@ -22,8 +67,11 @@
 
   <main class="content">
     <h2>📅 월별 성과 분석</h2>
+
+    <!-- ✅ 월 탭 -->
     <div id="month-tabs" class="scroll-menu"></div>
 
+    <!-- ✅ 데이터 테이블 -->
     <div class="table-wrap">
       <table>
         <thead>
@@ -40,6 +88,33 @@
   </main>
 
   <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
+
   <script src="./month.js"></script>
+
+  <!-- ✅ 월 탭 생성 스크립트 -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const monthTabs = document.getElementById("month-tabs");
+      const year = 2025;
+      const months = Array.from({ length: 12 }, (_, i) => `${year}.${i + 1}`);
+
+      monthTabs.innerHTML = months
+        .map(
+          (m, i) => `<div class="month-tab ${i === 0 ? "active" : ""}" data-month="${m}">${m}</div>`
+        )
+        .join("");
+
+      monthTabs.addEventListener("click", (e) => {
+        const btn = e.target.closest(".month-tab");
+        if (!btn) return;
+
+        document.querySelectorAll(".month-tab").forEach(el => el.classList.remove("active"));
+        btn.classList.add("active");
+
+        // ✅ 여기에 month.js 데이터 로딩 함수 호출 가능
+        console.log(`📅 선택된 월: ${btn.dataset.month}`);
+      });
+    });
+  </script>
 </body>
 </html>
