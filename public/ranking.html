@@ -7,6 +7,42 @@
   <link rel="stylesheet" href="./style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./common.js"></script>
+  <style>
+    .tab-bar {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .tab-bar button {
+      margin: 0 5px;
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      background: #e5e7eb;
+      cursor: pointer;
+    }
+    .tab-bar button.active {
+      background: #2563eb;
+      color: white;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    th {
+      background: #2563eb;
+      color: white;
+      padding: 10px;
+    }
+    td {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 10px;
+      text-align: center;
+    }
+  </style>
 </head>
 
 <body>
@@ -23,11 +59,17 @@
 
   <main class="content">
     <section class="page-header">
-      <h2>📊 공개 관심종목 수익률 TOP 20</h2>
-      <p>회원들이 공개로 등록한 종목 중 수익률이 높은 순서대로 보여집니다.</p>
+      <h2>📊 관심종목 랭킹</h2>
+      <p>공개된 종목과 나의 관심종목을 함께 확인해보세요.</p>
     </section>
 
-    <div id="ranking-table" style="max-width:1000px; margin:20px auto;">
+    <!-- ✅ 탭 -->
+    <div class="tab-bar">
+      <button class="tab active" data-tab="ranking">전체 랭킹</button>
+      <button class="tab" data-tab="mywatch">나의 관심종목</button>
+    </div>
+
+    <div id="table-container">
       <p style="text-align:center;">⏳ 데이터를 불러오는 중...</p>
     </div>
   </main>
@@ -37,6 +79,7 @@
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
       const wait = (ms) => new Promise(r => setTimeout(r, ms));
+      const container = document.getElementById("table-container");
       let db;
 
       // ✅ Supabase 로드 대기
@@ -45,13 +88,25 @@
         await wait(250);
       }
 
-      const container = document.getElementById("ranking-table");
       if (!db) {
-        container.innerHTML = "<p style='text-align:center;color:red;'>❌ Supabase 초기화 실패</p>";
+        container.innerHTML = "<p style='color:red;text-align:center;'>❌ Supabase 초기화 실패</p>";
         return;
       }
 
-      try {
+      const tabs = document.querySelectorAll(".tab");
+      tabs.forEach((t) =>
+        t.addEventListener("click", () => {
+          tabs.forEach((b) => b.classList.remove("active"));
+          t.classList.add("active");
+          const type = t.dataset.tab;
+          if (type === "ranking") loadRanking();
+          else if (type === "mywatch") loadMyWatchlist();
+        })
+      );
+
+      // ✅ 전체 랭킹 (공개 관심종목 TOP 20)
+      async function loadRanking() {
+        SWINGINV.showLoading(container, "📊 공개 관심종목 불러오는 중...");
         const { data, error } = await db
           .from("watchlist_with_return")
           .select("닉네임, 종목명, 등록일, 등록종가, 현재가, 수익률")
@@ -59,54 +114,76 @@
           .order("수익률", { ascending: false })
           .limit(20);
 
-        if (error) throw error;
-        if (!data || data.length === 0) {
-          container.innerHTML = "<p style='text-align:center;'>📭 표시할 데이터가 없습니다.</p>";
+        if (error) return SWINGINV.showError(container, "로드 실패: " + error.message);
+        if (!data?.length) return (container.innerHTML = "<p style='text-align:center;'>📭 데이터 없음</p>");
+
+        renderTable(data, "전체 랭킹");
+      }
+
+      // ✅ 나의 관심종목
+      async function loadMyWatchlist() {
+        const user = SWINGINV.user;
+        if (!user) {
+          container.innerHTML = `<p style='text-align:center;'>🔐 로그인 후 확인 가능합니다.</p>`;
           return;
         }
 
-        // ✅ 테이블 생성
+        SWINGINV.showLoading(container, "⭐ 나의 관심종목 불러오는 중...");
+
+        const { data, error } = await db
+          .from("watchlist_with_return")
+          .select("닉네임, 종목명, 등록일, 등록종가, 현재가, 수익률")
+          .eq("user_id", user.id)
+          .order("등록일", { ascending: false });
+
+        if (error) return SWINGINV.showError(container, "로드 실패: " + error.message);
+        if (!data?.length)
+          return (container.innerHTML = "<p style='text-align:center;'>📭 등록된 관심종목이 없습니다.</p>");
+
+        renderTable(data, "나의 관심종목");
+      }
+
+      // ✅ 공통 테이블 렌더링 함수
+      function renderTable(data, title) {
         let html = `
-          <table class="ranking-table" style="width:100%; border-collapse:collapse; background:white; border-radius:10px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
-            <thead style="background:#2563eb; color:white;">
+          <table>
+            <thead>
               <tr>
-                <th style="padding:10px;">순위</th>
-                <th style="padding:10px;">닉네임</th>
-                <th style="padding:10px;">종목명</th>
-                <th style="padding:10px;">등록일</th>
-                <th style="padding:10px;">등록종가</th>
-                <th style="padding:10px;">현재가</th>
-                <th style="padding:10px;">수익률</th>
+                <th>순위</th>
+                <th>닉네임</th>
+                <th>종목명</th>
+                <th>등록일</th>
+                <th>등록종가</th>
+                <th>현재가</th>
+                <th>수익률</th>
               </tr>
             </thead>
             <tbody>
         `;
-
         data.forEach((row, i) => {
           const rate = parseFloat(row["수익률"]);
           const rateColor = rate >= 0 ? "#d32f2f" : "#1976d2";
           const rateSign = rate >= 0 ? "▲" : "▼";
-          const nickname = row["닉네임"] || "익명 투자자";
+          const nickname = row["닉네임"] || "익명";
 
           html += `
-            <tr style="border-bottom:1px solid #e5e7eb; text-align:center;">
-              <td style="padding:10px;">${i + 1}</td>
-              <td style="padding:10px; font-weight:600;">${SWINGINV.esc(nickname)}</td>
-              <td style="padding:10px; text-align:left;">${SWINGINV.esc(row["종목명"])}</td>
-              <td style="padding:10px;">${SWINGINV.fmtDate(row["등록일"])}</td>
-              <td style="padding:10px;">${SWINGINV.nf(row["등록종가"])}</td>
-              <td style="padding:10px;">${SWINGINV.nf(row["현재가"])}</td>
-              <td style="padding:10px; font-weight:600; color:${rateColor};">${rateSign}${Math.abs(rate).toFixed(2)}%</td>
-            </tr>
-          `;
+            <tr>
+              <td>${i + 1}</td>
+              <td>${SWINGINV.esc(nickname)}</td>
+              <td style="text-align:left;">${SWINGINV.esc(row["종목명"])}</td>
+              <td>${SWINGINV.fmtDate(row["등록일"])}</td>
+              <td>${SWINGINV.nf(row["등록종가"])}</td>
+              <td>${SWINGINV.nf(row["현재가"])}</td>
+              <td style="font-weight:600;color:${rateColor};">${rateSign}${Math.abs(rate).toFixed(2)}%</td>
+            </tr>`;
         });
 
         html += "</tbody></table>";
         container.innerHTML = html;
-      } catch (err) {
-        console.error(err);
-        container.innerHTML = `<p style='text-align:center;color:red;'>❌ 데이터 로드 실패: ${err.message}</p>`;
       }
+
+      // ✅ 기본 탭 로드
+      loadRanking();
     });
   </script>
 </body>
