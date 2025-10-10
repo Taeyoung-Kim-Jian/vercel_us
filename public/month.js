@@ -1,7 +1,7 @@
 /* ==========================================================
-   📅 SWING INVESTOR month.js (v1.0)
+   📅 SWING INVESTOR month.js (v1.1)
    - Supabase에서 월별 성과 데이터 조회
-   - 탭별 데이터 필터링 및 테이블 출력
+   - 컬럼명: 등록일 기반 (발생일 → 등록일 수정)
    ========================================================== */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -15,13 +15,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     // ✅ Supabase 연결
     const db = SWINGINV.db;
 
-    // ✅ 데이터 가져오기 (예: total_return 테이블)
-    // total_return 테이블은 다음 컬럼을 가진다고 가정:
-    // 종목명, 발생일, 발생일종가, 현재가격, 최고, 최저, 수익률
+    // ✅ 데이터 가져오기
     const { data, error } = await db
       .from("total_return")
-      .select("종목명, 발생일, 발생일종가, 현재가격, 최고, 최저, 수익률")
-      .order("발생일", { ascending: false });
+      .select("종목명, 등록일, 발생일종가, 현재가격, 최고, 최저, 수익률")
+      .order("등록일", { ascending: false });
 
     if (error || !data || data.length === 0) {
       SWINGINV.showError(tableBody, "데이터가 없습니다.");
@@ -32,7 +30,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // ✅ 월별 그룹핑
     const grouped = {};
     data.forEach((row) => {
-      const d = new Date(row.발생일);
+      const d = new Date(row.등록일);
       const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       if (!grouped[ym]) grouped[ym] = [];
       grouped[ym].push(row);
@@ -83,7 +81,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         return `
           <tr>
             <td>${SWINGINV.esc(r.종목명)}</td>
-            <td>${SWINGINV.fmtDate(r.발생일)}</td>
+            <td>${SWINGINV.fmtDate(r.등록일)}</td>
             <td>${SWINGINV.nf(r.발생일종가)}</td>
             <td>${SWINGINV.nf(r.현재가격)}</td>
             <td style="color:${color};font-weight:500;">${sign}${수익률.toFixed(2)}%</td>
