@@ -1,109 +1,82 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>관심 종목 수익률 랭킹 | SWING INVESTOR</title>
-
-  <!-- Supabase -->
+  <title>랭킹 | SWING INVESTOR</title>
+  <link rel="stylesheet" href="./style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./common.js"></script>
-
-  <style>
-    body {
-      font-family: "Noto Sans KR", sans-serif;
-      background: #f9fafb;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      font-size: 1.5rem;
-      margin-bottom: 20px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-    thead {
-      background: #2563eb;
-      color: white;
-    }
-    th, td {
-      padding: 12px;
-      text-align: center;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    tr:hover {
-      background: #f1f5f9;
-    }
-    th {
-      font-weight: 600;
-    }
-    .up {
-      color: #d32f2f;
-      font-weight: 600;
-    }
-    .down {
-      color: #1976d2;
-      font-weight: 600;
-    }
-  </style>
 </head>
 
 <body>
-  <h1>📈 공개된 관심 종목 수익률 TOP 20</h1>
+  <!-- ✅ 공통 헤더 -->
+  <div id="header-container"></div>
+  <script>
+    fetch("./header.html")
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById("header-container").innerHTML = html;
+        if (typeof SWINGINV_updateHeaderAuthUI === "function") SWINGINV_updateHeaderAuthUI();
+      });
+  </script>
 
-  <div id="table-wrap">
-    <p style="text-align:center;">⏳ 데이터를 불러오는 중...</p>
-  </div>
+  <main class="content">
+    <section class="page-header">
+      <h2>📊 공개 관심종목 수익률 TOP 20</h2>
+      <p>회원들이 공개로 등록한 종목 중 수익률이 높은 순서대로 보여집니다.</p>
+    </section>
+
+    <div id="ranking-table" style="max-width:1000px; margin:20px auto;">
+      <p style="text-align:center;">⏳ 데이터를 불러오는 중...</p>
+    </div>
+  </main>
+
+  <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
 
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
-      const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      const wait = (ms) => new Promise(r => setTimeout(r, ms));
       let db;
+
+      // ✅ Supabase 로드 대기
       for (let i = 0; i < 20; i++) {
-        if (window.SWINGINV?.db) {
-          db = SWINGINV.db;
-          break;
-        }
+        if (window.SWINGINV?.db) { db = SWINGINV.db; break; }
         await wait(250);
       }
+
+      const container = document.getElementById("ranking-table");
       if (!db) {
-        document.getElementById("table-wrap").innerHTML = "<p>❌ Supabase 초기화 실패</p>";
+        container.innerHTML = "<p style='text-align:center;color:red;'>❌ Supabase 초기화 실패</p>";
         return;
       }
 
       try {
         const { data, error } = await db
           .from("watchlist_with_return")
-          .select("*")
+          .select("닉네임, 종목명, 등록일, 등록종가, 현재가, 수익률")
           .eq("공개여부", true)
           .order("수익률", { ascending: false })
           .limit(20);
 
         if (error) throw error;
         if (!data || data.length === 0) {
-          document.getElementById("table-wrap").innerHTML = "<p style='text-align:center;'>데이터가 없습니다.</p>";
+          container.innerHTML = "<p style='text-align:center;'>📭 표시할 데이터가 없습니다.</p>";
           return;
         }
 
+        // ✅ 테이블 생성
         let html = `
-          <table>
-            <thead>
+          <table class="ranking-table" style="width:100%; border-collapse:collapse; background:white; border-radius:10px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+            <thead style="background:#2563eb; color:white;">
               <tr>
-                <th>순위</th>
-                <th>종목명</th>
-                <th>종목코드</th>
-                <th>등록일</th>
-                <th>등록종가</th>
-                <th>현재가</th>
-                <th>수익률</th>
+                <th style="padding:10px;">순위</th>
+                <th style="padding:10px;">닉네임</th>
+                <th style="padding:10px;">종목명</th>
+                <th style="padding:10px;">등록일</th>
+                <th style="padding:10px;">등록종가</th>
+                <th style="padding:10px;">현재가</th>
+                <th style="padding:10px;">수익률</th>
               </tr>
             </thead>
             <tbody>
@@ -111,26 +84,28 @@
 
         data.forEach((row, i) => {
           const rate = parseFloat(row["수익률"]);
-          const rateCls = rate >= 0 ? "up" : "down";
+          const rateColor = rate >= 0 ? "#d32f2f" : "#1976d2";
+          const rateSign = rate >= 0 ? "▲" : "▼";
+          const nickname = row["닉네임"] || "익명 투자자";
+
           html += `
-            <tr>
-              <td>${i + 1}</td>
-              <td>${SWINGINV.esc(row["종목명"])}</td>
-              <td>${row["종목코드"]}</td>
-              <td>${SWINGINV.fmtDate(row["등록일"])}</td>
-              <td>${SWINGINV.nf(row["등록종가"])}</td>
-              <td>${SWINGINV.nf(row["현재가"])}</td>
-              <td class="${rateCls}">${rate.toFixed(2)}%</td>
+            <tr style="border-bottom:1px solid #e5e7eb; text-align:center;">
+              <td style="padding:10px;">${i + 1}</td>
+              <td style="padding:10px; font-weight:600;">${SWINGINV.esc(nickname)}</td>
+              <td style="padding:10px; text-align:left;">${SWINGINV.esc(row["종목명"])}</td>
+              <td style="padding:10px;">${SWINGINV.fmtDate(row["등록일"])}</td>
+              <td style="padding:10px;">${SWINGINV.nf(row["등록종가"])}</td>
+              <td style="padding:10px;">${SWINGINV.nf(row["현재가"])}</td>
+              <td style="padding:10px; font-weight:600; color:${rateColor};">${rateSign}${Math.abs(rate).toFixed(2)}%</td>
             </tr>
           `;
         });
 
         html += "</tbody></table>";
-        document.getElementById("table-wrap").innerHTML = html;
+        container.innerHTML = html;
       } catch (err) {
         console.error(err);
-        document.getElementById("table-wrap").innerHTML =
-          "<p style='text-align:center;color:red;'>❌ 데이터 로딩 실패: " + err.message + "</p>";
+        container.innerHTML = `<p style='text-align:center;color:red;'>❌ 데이터 로드 실패: ${err.message}</p>`;
       }
     });
   </script>
