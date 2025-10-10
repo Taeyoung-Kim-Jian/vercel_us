@@ -18,12 +18,11 @@
     <button onclick="location.href='total.html'">전체 종목</button>
     <button onclick="location.href='month.html'">월별 성과</button>
     <button onclick="location.href='board.html'">게시판</button>
-     <button onclick="location.href='ranking.html'">관심종목</button>
-
+    <button onclick="location.href='ranking.html'">관심종목</button>
   </nav>
 </header>
 
-<!-- ✅ 스타일 (네이버형 미니 헤더) -->
+<!-- ✅ 스타일 -->
 <style>
   #site-header {
     background: #fff;
@@ -34,7 +33,6 @@
     z-index: 100;
     font-family: "Noto Sans KR", "Segoe UI", Arial, sans-serif;
   }
-
   .header-top {
     display: flex;
     justify-content: space-between;
@@ -44,14 +42,12 @@
     max-width: 1200px;
     margin: 0 auto;
   }
-
   .logo {
     font-size: 0.95rem;
     font-weight: 700;
     color: #1f2937;
     cursor: pointer;
   }
-
   .auth-area {
     display: flex;
     align-items: center;
@@ -59,31 +55,21 @@
     font-size: 12px;
     color: #4b5563;
   }
-
-  .auth-area button {
-    padding: 3px 8px;
-    border-radius: 4px;
-    border: 1px solid #d1d5db;
-    background: #f9fafb;
-    font-size: 12px;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-
   .btn-login {
     color: #2563eb;
-    border-color: #2563eb;
+    border: 1px solid #2563eb;
     background: #f8fafc;
+    border-radius: 4px;
+    padding: 3px 8px;
   }
-
-  .btn-login:hover {
-    background: #eff6ff;
-  }
-
+  .btn-login:hover { background: #eff6ff; }
   .btn-logout {
     color: #6b7280;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+    border-radius: 4px;
+    padding: 3px 8px;
   }
-
   .gnb {
     display: flex;
     justify-content: center;
@@ -93,11 +79,7 @@
     white-space: nowrap;
     scrollbar-width: none;
   }
-
-  .gnb::-webkit-scrollbar {
-    display: none;
-  }
-
+  .gnb::-webkit-scrollbar { display: none; }
   .gnb button {
     flex-shrink: 0;
     padding: 9px 12px;
@@ -108,42 +90,24 @@
     cursor: pointer;
     transition: all 0.15s ease-in-out;
   }
-
   .gnb button:hover {
     color: #2563eb;
     background: #f1f5ff;
   }
-
-  .gnb button.active {
-    color: #1d4ed8;
-    font-weight: 600;
-    border-bottom: 2px solid #1d4ed8;
-  }
-
   @media (max-width: 768px) {
-    .header-top {
-      flex-direction: column;
-      align-items: flex-start;
-      height: auto;
-      gap: 4px;
-      padding: 8px 12px;
-    }
-    .auth-area {
-      align-self: flex-end;
-      font-size: 11px;
-    }
-    .gnb button {
-      font-size: 12px;
-      padding: 8px 10px;
-    }
+    .header-top { flex-direction: column; align-items: flex-start; }
+    .auth-area { align-self: flex-end; font-size: 11px; }
+    .gnb button { font-size: 12px; padding: 8px 10px; }
   }
 </style>
 
-<!-- ✅ 로그인 상태 반영 -->
+<!-- ✅ 로그인 상태 자동 반영 -->
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     if (typeof SWINGINV_updateHeaderAuthUI === "function") {
       SWINGINV_updateHeaderAuthUI();
+    } else {
+      console.warn("⚠️ Supabase 초기화 전 header.js 실행됨");
     }
   });
 </script>
