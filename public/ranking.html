@@ -275,6 +275,25 @@
             window.location.href = `test.html?code=${code}&name=${name}`;
           });
         });
+<script>
+  // ✅ 1. common.js의 함수 완전 덮어쓰기
+  window.SWINGINV = window.SWINGINV || {};
+  SWINGINV.goDetail = function (code, name) {
+    window.location.href = `test.html?code=${code}&name=${encodeURIComponent(name)}`;
+  };
+
+  // ✅ 2. 모든 종목 클릭 이벤트 캡처 단계에서 강제 test.html로 이동
+  document.addEventListener("click", (e) => {
+    const el = e.target.closest(".clickable-name");
+    if (!el) return;
+    e.stopImmediatePropagation();
+    e.preventDefault();
+    const code = el.dataset.code;
+    const name = encodeURIComponent(el.dataset.name);
+    if (!code) return;
+    window.location.href = `test.html?code=${code}&name=${name}`;
+  }, true);
+</script>
 
         if (enableDelete) attachDeleteHandlers();
       }
