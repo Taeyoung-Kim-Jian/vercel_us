@@ -11,8 +11,8 @@
 
   <style>
     html, body {
-      height: auto !important;
-      overflow-y: auto !important;
+      height: auto;
+      overflow-y: auto;
       background: #f8fafc;
     }
 
@@ -24,7 +24,7 @@
 
     .page-header {
       text-align: center;
-      margin: 25px 0;
+      margin: 25px 0 10px;
       position: relative;
     }
 
@@ -40,54 +40,49 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 15px;
-      margin: 15px 0 25px 0;
+      margin: 12px 0 20px;
       font-size: 14px;
     }
+    #toolbar label { cursor: pointer; }
+    #toolbar input[type="checkbox"] { transform: scale(1.1); margin-right: 5px; }
 
-    #toolbar label {
-      cursor: pointer;
-    }
-
-    #toolbar input[type="checkbox"] {
-      transform: scale(1.1);
-      margin-right: 5px;
-    }
-
+    /* ✅ 차트 컨테이너를 상대배치로 (버튼 오버레이용) */
     #chart {
+      position: relative;            /* ← 중요 */
       width: 100%;
-      height: 450px; /* ✅ PC에서 적절한 크기 */
+      height: 450px;                 /* PC */
       max-width: 1000px;
       margin: 0 auto 80px auto;
       background: #fff;
       border-radius: 10px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-      touch-action: pan-y;
+      touch-action: pan-y;           /* 모바일 세로 스크롤 허용 */
       pointer-events: auto;
       overflow: visible;
     }
-
     @media (max-width: 768px) {
-      #chart {
-        height: 300px; /* ✅ 모바일에서 자동 축소 */
-      }
+      #chart { height: 300px; }      /* 모바일에서 축소 */
     }
 
-    /* ✅ 뒤로가기 버튼 */
-    #backBtn {
+    /* ✅ 차트 안쪽 오른쪽 위에 뒤로가기 버튼 */
+    .chart-back {
       position: absolute;
-      right: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      background: #2563eb;
-      color: white;
+      top: 8px;
+      right: 8px;
+      z-index: 3;                    /* 캔버스 위로 */
+      background: rgba(37,99,235,.92);
+      color: #fff;
       border: none;
-      border-radius: 6px;
-      padding: 5px 10px;
-      font-size: 13px;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+      line-height: 1;
       cursor: pointer;
-      transition: 0.2s;
+      pointer-events: auto;          /* 클릭 가능 */
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      transition: transform .15s ease, opacity .15s ease;
     }
-    #backBtn:hover { background: #1d4ed8; }
+    .chart-back:hover { transform: translateY(-1px); }
 
     footer {
       text-align: center;
@@ -109,13 +104,11 @@
       .then(r => r.text())
       .then(html => {
         document.getElementById("header-container").innerHTML = html;
-        if (typeof SWINGINV_updateHeaderAuthUI === "function")
-          SWINGINV_updateHeaderAuthUI();
+        if (typeof SWINGINV_updateHeaderAuthUI === "function") SWINGINV_updateHeaderAuthUI();
       });
   </script>
 
   <main class="content">
-    <!-- 🔹 상단 제목 -->
     <section class="page-header">
       <h2 id="chart-title">📈 종목 상세</h2>
       <p id="chart-sub" style="color:#555;">데이터를 불러오는 중...</p>
@@ -127,13 +120,15 @@
       <label><input type="checkbox" id="watchToggle"> ⭐ 관심종목 등록</label>
     </div>
 
-    <!-- 🔹 차트 영역 -->
+    <!-- 🔹 차트 영역 (← JS가 이 안에 뒤로가기 버튼을 삽입) -->
     <div id="chart"></div>
 
-    <!-- 🔹 에러 박스 -->
     <div id="error-box" class="error-box" style="display:none;text-align:center;margin-top:30px;">
       <p>⚠️ 잘못된 접근입니다.<br>메인 페이지에서 종목을 선택해주세요.</p>
-      <button onclick="location.href='index.html'" style="padding:6px 12px;background:#2563eb;color:white;border:none;border-radius:6px;cursor:pointer;">메인으로 이동</button>
+      <button onclick="location.href='index.html'"
+              style="padding:6px 12px;background:#2563eb;color:white;border:none;border-radius:6px;cursor:pointer;">
+        메인으로 이동
+      </button>
     </div>
   </main>
 
