@@ -9,7 +9,14 @@
   <script src="./common.js"></script>
 
   <style>
-    /* ✅ 카드 영역 - 네이버 스타일 (깔끔 + 라운드 + 그림자) */
+    /* ✅ 메인 콘텐츠 중앙 정렬 (ranking.html과 동일) */
+    main.content {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* ✅ 카드 영역 - 네이버 스타일 */
     .cards {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -80,7 +87,7 @@
     .top5-return.up { color: #dc2626; }
     .top5-return.down { color: #2563eb; }
 
-    /* ✅ 테이블 영역 - ranking.html 스타일로 통일 */
+    /* ✅ 테이블 스타일 - ranking.html 통일 버전 */
     .table-wrap {
       background: #fff;
       border-radius: 12px;
@@ -202,8 +209,6 @@
   </main>
 
   <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
-
-  <!-- ✅ 기존 데이터 연동(main.js) 유지 -->
   <script src="./main.js"></script>
 </body>
 </html>
