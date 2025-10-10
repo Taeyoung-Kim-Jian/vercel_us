@@ -1,5 +1,5 @@
 /* ==========================================================
-   🌐 SWING INVESTOR common.js (최신 통합버전)
+   🌐 SWING INVESTOR common.js (최신 통합 안정버전)
    ========================================================== */
 console.log("🌐 SWING INVESTOR common.js loaded");
 
@@ -27,20 +27,59 @@ if (!window.SWINGINV.db) {
 } else {
   console.log("ℹ️ Supabase client already initialized.");
 }
+
 // ------------------------------------------
-// ⏳ 로딩 표시 / 에러 표시 함수
+// 🧩 공통 유틸 함수
 // ------------------------------------------
+
+/** 숫자 포맷 (1,234 형식) */
+SWINGINV.nf = (num) => {
+  if (num == null || num === "") return "-";
+  const n = parseFloat(num);
+  return isNaN(n) ? "-" : n.toLocaleString();
+};
+
+/** 퍼센트 형식 (▲1.25% / ▼0.85%) */
+SWINGINV.fmtPct = (v) => {
+  if (v == null || isNaN(v)) return "-";
+  const n = parseFloat(v);
+  const sign = n >= 0 ? "▲" : "▼";
+  const color = n >= 0 ? "#d32f2f" : "#2563eb";
+  return `<span style="color:${color};font-weight:500;">${sign}${Math.abs(n).toFixed(2)}%</span>`;
+};
+
+/** 날짜 YYYY.MM.DD 형식 */
+SWINGINV.fmtDate = (str) => {
+  if (!str) return "-";
+  const d = new Date(str);
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+};
+
+/** HTML Escape (XSS 방지) ✅ */
+SWINGINV.esc = (str) => {
+  if (str == null) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+};
+
+/** 로딩 표시 */
 SWINGINV.showLoading = (el, msg = "⏳ 로딩 중...") => {
   if (el)
     el.innerHTML = `<div style="text-align:center;color:#666;padding:20px;">${msg}</div>`;
 };
 
+/** 에러 표시 */
 SWINGINV.showError = (el, msg = "❌ 오류 발생") => {
   if (el)
     el.innerHTML = `<div style="text-align:center;color:#b91c1c;padding:20px;">${msg}</div>`;
 };
+
 // ------------------------------------------
-// 🧭 종목명 클릭 시 detail.html로 이동
+// 🧭 종목명 클릭 시 detail.html 이동
 // ------------------------------------------
 document.addEventListener("click", (e) => {
   const target = e.target.closest(".clickable-name");
@@ -55,27 +94,10 @@ document.addEventListener("click", (e) => {
 });
 
 // ------------------------------------------
-// 🧩 공통 유틸 함수
-// ------------------------------------------
-SWINGINV.nf = (num) => (isNaN(num) ? "-" : parseFloat(num).toLocaleString());
-SWINGINV.fmtDate = (str) => {
-  if (!str) return "-";
-  const d = new Date(str);
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(
-    d.getDate()
-  ).padStart(2, "0")}`;
-};
-
-// ------------------------------------------
 // 🔐 로그인 상태 갱신 함수
 // ------------------------------------------
 async function SWINGINV_updateHeaderAuthUI() {
   try {
-    if (!window.SWINGINV?.db) {
-      console.warn("⚠️ Supabase 클라이언트가 아직 준비되지 않았습니다.");
-      return;
-    }
-
     const db = SWINGINV.db;
     const { data: { session } } = await db.auth.getSession();
 
@@ -94,17 +116,19 @@ async function SWINGINV_updateHeaderAuthUI() {
         .eq("id", session.user.id)
         .single();
 
-      if (profile?.nickname) {
-        emailSpan.textContent = `${profile.nickname} (${session.user.email}) 로그인 중`;
-      } else {
-        emailSpan.textContent = `${session.user.email} 로그인 중`;
+      if (emailSpan) {
+        emailSpan.textContent = profile?.nickname
+          ? `${profile.nickname} (${session.user.email}) 로그인 중`
+          : `${session.user.email} 로그인 중`;
       }
 
-      logoutBtn.onclick = async () => {
-        await db.auth.signOut();
-        alert("로그아웃되었습니다.");
-        location.href = "login.html";
-      };
+      if (logoutBtn) {
+        logoutBtn.onclick = async () => {
+          await db.auth.signOut();
+          alert("로그아웃되었습니다.");
+          location.href = "login.html";
+        };
+      }
     } else {
       // 🚪 로그아웃 상태
       if (emailSpan) emailSpan.textContent = "로그아웃 중";
@@ -115,3 +139,5 @@ async function SWINGINV_updateHeaderAuthUI() {
     console.error("Header 로그인 상태 갱신 오류:", err);
   }
 }
+
+console.log("✅ SWINGINV common.js fully initialized.");
