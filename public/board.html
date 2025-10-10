@@ -10,68 +10,86 @@
   <script src="./auth.js"></script>
 
   <style>
+    body {
+      font-family: "Noto Sans KR", sans-serif;
+      background: #f9fafb;
+      margin: 0;
+    }
+
     main {
       max-width: 960px;
       margin: 30px auto;
       background: #fff;
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      padding: 25px;
+      padding: 20px;
     }
+
     h1 {
       text-align: center;
-      font-size: 1.4rem;
+      font-size: 1.3rem;
+      color: #333;
       margin-bottom: 20px;
     }
+
+    /* 탭 버튼 */
     .tab-bar {
       display: flex;
       justify-content: center;
+      margin-bottom: 15px;
       gap: 10px;
-      margin-bottom: 20px;
     }
     .tab-bar button {
+      background: #e5e7eb;
       border: none;
-      background: #f1f5f9;
-      padding: 8px 16px;
+      color: #333;
+      padding: 8px 15px;
       border-radius: 6px;
       cursor: pointer;
       transition: 0.2s;
-      color: #555;
     }
     .tab-bar button.active {
       background: #2563eb;
-      color: white;
+      color: #fff;
       font-weight: 600;
     }
 
-    .write-btn {
+    /* 글쓰기 버튼 */
+    #writeBtn {
       display: block;
       margin: 0 auto 15px;
       background: #2563eb;
-      color: white;
+      color: #fff;
       border: none;
       border-radius: 6px;
-      padding: 8px 16px;
+      padding: 8px 15px;
       cursor: pointer;
+      font-weight: 500;
     }
-    .write-btn:hover { background: #1d4ed8; }
+    #writeBtn:hover {
+      background: #1d4ed8;
+    }
 
-    /* 게시글 폼 */
+    /* 글쓰기 폼 */
     #postForm {
       display: none;
-      border: 1px solid #ddd;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 25px;
       background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 25px;
     }
     #postForm input, #postForm textarea {
       width: 100%;
       border: 1px solid #ccc;
       border-radius: 4px;
-      margin-top: 8px;
+      margin-top: 6px;
       padding: 8px;
       font-family: inherit;
+    }
+    #postForm textarea {
+      height: 150px;
+      resize: vertical;
     }
     #postForm button {
       background: #2563eb;
@@ -81,52 +99,80 @@
       padding: 8px 14px;
       cursor: pointer;
       margin-top: 10px;
-      font-weight: 500;
     }
 
-    /* 테이블 */
+    /* 게시글 목록 */
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.95rem;
     }
     th, td {
       border-bottom: 1px solid #e5e7eb;
       padding: 10px 8px;
       text-align: center;
+      font-size: 0.95rem;
     }
     th {
-      background: #f1f5f9;
+      background: #f3f4f6;
       font-weight: 600;
     }
-    tr:hover {
-      background: #f9fafb;
-    }
-    .title {
+    td.title {
       text-align: left;
       color: #2563eb;
       cursor: pointer;
     }
+    td.title:hover {
+      text-decoration: underline;
+    }
 
-    /* 본문 / 댓글 */
+    /* 게시글 본문 */
     .post-content {
       display: none;
-      background: #fafafa;
+      background: #f9fafb;
       border-left: 3px solid #2563eb;
       padding: 15px;
+      margin-top: 10px;
+      border-radius: 6px;
     }
-    .comments { margin-top: 10px; border-top: 1px solid #e5e7eb; padding-top: 10px; }
-    .comment { padding: 6px 0; border-bottom: 1px solid #f0f0f0; font-size: 0.9rem; }
-    .comment .time { color: #9ca3af; font-size: 0.8rem; }
-    .comment-form { display: flex; gap: 6px; margin-top: 8px; }
+
+    /* 댓글 */
+    .comments {
+      margin-top: 15px;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 10px;
+    }
+    .comment {
+      font-size: 0.9rem;
+      border-bottom: 1px solid #f0f0f0;
+      padding: 6px 0;
+    }
+    .comment .time {
+      color: #9ca3af;
+      font-size: 0.85rem;
+      margin-left: 8px;
+    }
+    .comment-form {
+      display: flex;
+      margin-top: 10px;
+      gap: 6px;
+    }
     .comment-form input {
-      flex: 1; border: 1px solid #ccc; border-radius: 4px; padding: 6px;
+      flex: 1;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 6px;
     }
     .comment-form button {
-      background: #2563eb; color: white; border: none; border-radius: 4px; padding: 6px 10px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 6px 10px;
+      cursor: pointer;
     }
   </style>
 </head>
+
 <body>
   <!-- ✅ 공통 헤더 -->
   <div id="header-container"></div>
@@ -148,20 +194,23 @@
       <button class="tab" data-type="idea">💡 아이디어</button>
     </div>
 
-    <button id="writeBtn" class="write-btn">✏️ 글쓰기</button>
+    <button id="writeBtn">✏️ 글쓰기</button>
 
+    <!-- 글쓰기 폼 -->
     <form id="postForm">
       <input type="text" id="title" placeholder="제목을 입력하세요" required />
       <textarea id="content" placeholder="내용을 입력하세요" required></textarea>
       <button type="submit">등록</button>
     </form>
 
+    <!-- 게시글 목록 -->
     <div id="posts"></div>
   </main>
 
-  <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
+  <footer style="text-align:center; padding:20px; color:#888;">© 2025 SWING INVESTOR</footer>
 
   <script>
+    const db = SWINGINV.db; // ✅ Supabase 객체 참조
     let currentBoard = "notice";
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -169,10 +218,7 @@
       const postsEl = document.getElementById("posts");
       const writeBtn = document.getElementById("writeBtn");
 
-      writeBtn.addEventListener("click", () => {
-        postForm.style.display = postForm.style.display === "none" ? "block" : "none";
-      });
-
+      // 🔘 탭 전환
       document.querySelectorAll(".tab").forEach(tab => {
         tab.addEventListener("click", () => {
           document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
@@ -182,6 +228,12 @@
         });
       });
 
+      // ✏️ 글쓰기 버튼 클릭 → 폼 토글
+      writeBtn.addEventListener("click", () => {
+        postForm.style.display = postForm.style.display === "none" ? "block" : "none";
+      });
+
+      // 📝 글 등록
       postForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         const user = SWINGINV.user;
@@ -192,14 +244,16 @@
         if (!title || !content) return alert("제목과 내용을 입력하세요.");
 
         const { error } = await db.from("boards").insert([
-          { board_type: currentBoard, user_id: user.id, title, content }
+          { board_type: currentBoard, user_id: user.id, title, content },
         ]);
+
         if (error) return alert("등록 실패: " + error.message);
         e.target.reset();
         postForm.style.display = "none";
         loadPosts();
       });
 
+      // 📥 게시글 목록 로드
       async function loadPosts() {
         SWINGINV.showLoading(postsEl);
         const { data, error } = await db
@@ -213,9 +267,16 @@
 
         let html = `
           <table>
-            <thead><tr>
-              <th>번호</th><th>제목</th><th>작성일</th><th>조회수</th><th>댓글</th>
-            </tr></thead><tbody>
+            <thead>
+              <tr>
+                <th>번호</th>
+                <th>제목</th>
+                <th>작성일</th>
+                <th>조회수</th>
+                <th>댓글</th>
+              </tr>
+            </thead>
+            <tbody>
         `;
 
         data.forEach((p, i) => {
@@ -232,20 +293,22 @@
             </tr>
           `;
         });
+
         html += "</tbody></table>";
         postsEl.innerHTML = html;
 
-        document.querySelectorAll(".post-row").forEach(row => {
+        document.querySelectorAll(".post-row").forEach((row) => {
           row.addEventListener("click", () => togglePost(row.dataset.id));
         });
       }
 
+      // 📄 게시글 상세 토글
       async function togglePost(id) {
         const contentRow = document.getElementById(`content-${id}`);
         const contentBox = document.getElementById(`detail-${id}`);
         const isVisible = contentRow.style.display === "table-row";
 
-        document.querySelectorAll(".post-content").forEach(r => (r.style.display = "none"));
+        document.querySelectorAll(".post-content").forEach(r => r.style.display = "none");
         if (isVisible) return (contentRow.style.display = "none");
 
         SWINGINV.showLoading(contentBox, "게시글 불러오는 중...");
@@ -256,18 +319,26 @@
           .select("title, content, created_at, comments(*)")
           .eq("id", id)
           .single();
+
         if (error) return SWINGINV.showError(contentBox, error.message);
 
-        const commentsHTML = (data.comments || []).map(
-          c => `<div class="comment">💬 ${SWINGINV.esc(c.comment)}
-                <span class="time">${SWINGINV.fmtDate(c.created_at)}</span></div>`
-        ).join("");
+        const commentsHTML = (data.comments || [])
+          .map(
+            (c) => `
+              <div class="comment">
+                💬 ${SWINGINV.esc(c.comment)}
+                <span class="time">${new Date(c.created_at).toLocaleString()}</span>
+              </div>`
+          )
+          .join("");
 
-        const commentForm = SWINGINV.user ? `
-          <form class="comment-form" onsubmit="return addComment(${id}, this)">
-            <input type="text" name="comment" placeholder="댓글 입력..." required />
-            <button type="submit">등록</button>
-          </form>` : "";
+        const commentForm = SWINGINV.user
+          ? `
+            <form class="comment-form" onsubmit="return addComment(${id}, this)">
+              <input type="text" name="comment" placeholder="댓글 입력..." required />
+              <button type="submit">등록</button>
+            </form>`
+          : "";
 
         contentBox.innerHTML = `
           <div>${SWINGINV.esc(data.content)}</div>
@@ -275,6 +346,7 @@
         `;
       }
 
+      // 💬 댓글 등록
       window.addComment = async function (postId, form) {
         const comment = form.comment.value.trim();
         if (!comment) return false;
@@ -284,6 +356,7 @@
         const { error } = await db
           .from("comments")
           .insert([{ board_id: postId, user_id: user.id, comment }]);
+
         if (error) alert("댓글 등록 실패: " + error.message);
         else form.reset();
         togglePost(postId);
