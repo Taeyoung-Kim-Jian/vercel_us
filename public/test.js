@@ -1,108 +1,94 @@
-// test.js
-document.addEventListener("DOMContentLoaded", async () => {
-  const params = new URLSearchParams(window.location.search);
-  const code = params.get("code") || "005850"; // 기본값: 에스엘
-  const name = decodeURIComponent(params.get("name") || "에스엘");
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>종목 차트 | SWING INVESTOR</title>
+  <link rel="stylesheet" href="./style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5"></script>
+  <script src="./common.js"></script>
 
-  const titleEl = document.getElementById("chart-title");
-  const subEl = document.getElementById("subtitle");
-  const errBox = document.getElementById("error-box");
-  const chartEl = document.getElementById("chart");
-
-  document.getElementById("backBtn").addEventListener("click", () => history.back());
-
-  // ✅ Supabase 연결 대기
-  let db;
-  for (let i = 0; i < 20; i++) {
-    if (window.SWINGINV?.db) {
-      db = SWINGINV.db;
-      break;
+  <style>
+    body {
+      font-family: "Pretendard", sans-serif;
+      background: #f8fafc;
+      margin: 0;
+      padding: 0;
+      overflow-y: auto; /* 스크롤 허용 */
     }
-    await new Promise(r => setTimeout(r, 200));
-  }
 
-  if (!db) {
-    errBox.style.display = "block";
-    errBox.textContent = "❌ Supabase 초기화 실패";
-    return;
-  }
+    main {
+      max-width: 1100px;
+      margin: 30px auto;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+      padding: 20px;
+    }
 
-  titleEl.textContent = `${name} (${code}) 차트`;
-  subEl.textContent = "가격 데이터를 불러오는 중...";
+    #chart {
+      width: 100%;
+      height: 500px;
+      margin-top: 20px;
+    }
 
-  // ✅ 가격 데이터 가져오기
-  const { data, error } = await db
-    .from("prices")
-    .select("날짜, 종가")
-    .eq("종목코드", code)
-    .order("날짜", { ascending: true });
+    #backBtn {
+      display: inline-block;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    #backBtn:hover {
+      background: #1d4ed8;
+    }
 
-  if (error) {
-    errBox.style.display = "block";
-    errBox.textContent = "데이터 로드 실패: " + error.message;
-    return;
-  }
+    h2 {
+      color: #1e293b;
+      text-align: center;
+      margin-bottom: 10px;
+    }
 
-  if (!data?.length) {
-    errBox.style.display = "block";
-    errBox.textContent = "📭 데이터가 없습니다.";
-    return;
-  }
+    p#subtitle {
+      text-align: center;
+      color: #64748b;
+      font-size: 0.9rem;
+    }
 
-  // ✅ 차트 데이터 준비
-  const dates = data.map(r => r["날짜"]);
-  const closes = data.map(r => r["종가"]);
+    #error-box {
+      margin-top: 20px;
+      color: red;
+      text-align: center;
+    }
+  </style>
+</head>
 
-  subEl.textContent = `${dates[0]} ~ ${dates[dates.length - 1]} (${data.length}일치 데이터)`;
+<body>
+  <div id="header-container"></div>
+  <script>
+    fetch("./header.html")
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById("header-container").innerHTML = html;
+        if (typeof SWINGINV_updateHeaderAuthUI === "function") SWINGINV_updateHeaderAuthUI();
+      });
+  </script>
 
-  // ✅ ECharts 초기화
-  const chart = echarts.init(chartEl);
-  const option = {
-    backgroundColor: "#fff",
-    tooltip: { trigger: "axis" },
-    grid: { left: "6%", right: "4%", top: 60, bottom: 60 },
-    title: {
-      text: `${name} (${code}) 일봉 차트`,
-      left: "center",
-      top: 10,
-      textStyle: { fontSize: 16, fontWeight: 600 },
-    },
-    xAxis: {
-      type: "category",
-      data: dates,
-      axisLabel: { rotate: 45, fontSize: 10 },
-      boundaryGap: false,
-    },
-    yAxis: {
-      type: "value",
-      scale: true,
-      axisLabel: {
-        formatter: value => value.toLocaleString(),
-      },
-      splitLine: { lineStyle: { color: "#e2e8f0" } },
-    },
-    series: [
-      {
-        name: "종가",
-        type: "line",
-        data: closes,
-        smooth: true,
-        symbol: "none",
-        lineStyle: { color: "#2563eb", width: 2 },
-        areaStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: "rgba(37,99,235,0.3)" },
-            { offset: 1, color: "rgba(37,99,235,0)" },
-          ]),
-        },
-      },
-    ],
-    dataZoom: [
-      { type: "inside", start: 80, end: 100 },
-      { type: "slider", start: 80, end: 100 },
-    ],
-  };
+  <main>
+    <button id="backBtn">← 뒤로가기</button>
+    <h2 id="chart-title">📈 종목 차트</h2>
+    <p id="subtitle"></p>
 
-  chart.setOption(option);
-  window.addEventListener("resize", () => chart.resize());
-});
+    <div id="chart"></div>
+    <div id="error-box" style="display:none;"></div>
+  </main>
+
+  <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
+
+  <script src="./test.js"></script>
+</body>
+</html>
