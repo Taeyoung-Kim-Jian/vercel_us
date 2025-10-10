@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   SWINGINV.showLoading(totalBody);
   SWINGINV.showLoading(swingBody);
 
-  const PAGE_SIZE = 10;
+  const PAGE_SIZE = 5;
   let totalPage = 0;
   let swingPage = 0;
   let totalData = [];
