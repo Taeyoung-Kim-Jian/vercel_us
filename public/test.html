@@ -15,6 +15,7 @@
       background: #f8fafc;
       margin: 0;
       padding: 0;
+      overflow-y: auto; /* 스크롤 허용 */
     }
 
     main {
@@ -28,8 +29,8 @@
 
     #chart {
       width: 100%;
-      height: 550px;
-      margin-top: 30px;
+      height: 500px;
+      margin-top: 20px;
     }
 
     #backBtn {
@@ -41,9 +42,7 @@
       padding: 6px 12px;
       font-size: 14px;
       cursor: pointer;
-      margin-bottom: 10px;
     }
-
     #backBtn:hover {
       background: #1d4ed8;
     }
@@ -60,10 +59,10 @@
       font-size: 0.9rem;
     }
 
-    footer {
+    #error-box {
+      margin-top: 20px;
+      color: red;
       text-align: center;
-      padding: 20px;
-      color: #777;
     }
   </style>
 </head>
@@ -81,11 +80,11 @@
 
   <main>
     <button id="backBtn">← 뒤로가기</button>
-    <h2 id="chart-title">📈 차트 로딩 중...</h2>
+    <h2 id="chart-title">📈 종목 차트</h2>
     <p id="subtitle"></p>
 
     <div id="chart"></div>
-    <div id="error-box" style="display:none;text-align:center;color:red;margin-top:20px;"></div>
+    <div id="error-box" style="display:none;"></div>
   </main>
 
   <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
