@@ -1,74 +1,135 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1.0" />
-<title>로그인 | SWING INVESTOR</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="./common.js"></script>
-<script src="./auth.js"></script>
-<style>
-body{font-family:"Noto Sans KR";display:flex;align-items:center;justify-content:center;height:100vh;background:#f9fafb;margin:0;}
-.box{width:360px;background:#fff;padding:25px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,.05);}
-input,button{width:100%;padding:10px;margin:5px 0;border-radius:6px;}
-button{border:none;background:#2563eb;color:#fff;font-weight:500;cursor:pointer;}
-#msg{font-size:13px;color:#444;text-align:center;margin-top:10px;}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>로그인 / 회원가입</title>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f7f7f7;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+      width: 360px;
+      text-align: center;
+    }
+    input {
+      width: 100%;
+      margin: 8px 0;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover { background: #0056b3; }
+    #logoutBtn { background: #dc3545; }
+    #logoutBtn:hover { background: #a71d2a; }
+    .nickname { margin-top: 20px; font-weight: bold; }
+  </style>
 </head>
+
 <body>
-<div class="box">
-<h2>SWING INVESTOR 로그인</h2>
-<input id="loginEmail" placeholder="이메일" type="email">
-<input id="loginPw" placeholder="비밀번호" type="password">
-<button id="loginBtn">로그인</button>
+  <div class="container">
+    <h2>Supabase 로그인</h2>
+    <input type="email" id="email" placeholder="이메일" />
+    <input type="password" id="password" placeholder="비밀번호" />
+    <input type="text" id="nickname" placeholder="닉네임 (회원가입 시)" />
 
-<hr>
-<h3>회원가입</h3>
-<input id="newEmail" placeholder="이메일">
-<input id="nickname" placeholder="닉네임">
-<button id="signupBtn">회원가입</button>
+    <button id="signupBtn">회원가입</button>
+    <button id="loginBtn">로그인</button>
+    <button id="logoutBtn" style="display:none;">로그아웃</button>
 
-<p id="msg"></p>
-</div>
+    <div class="nickname" id="userInfo"></div>
+  </div>
 
-<script>
-document.addEventListener("DOMContentLoaded", async()=>{
-  const msg=document.getElementById("msg");
-  const db=SWINGINV.db;
+  <script>
+    const SUPABASE_URL = "https://sssmldmhcfuodutvvcqf.supabase.co";
+    const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY"; // ← 여기에 anon key 입력
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // ✅ 로그인
-  document.getElementById("loginBtn").onclick=async()=>{
-    const email=document.getElementById("loginEmail").value.trim();
-    const pw=document.getElementById("loginPw").value.trim();
-    if(!email||!pw)return alert("입력필요");
-    try{
-      const {error}=await db.auth.signInWithPassword({email,password:pw});
-      if(error)throw error;
-      alert("✅ 로그인 성공");
-      location.href="index.html";
-    }catch(err){alert("❌ 로그인 실패: "+err.message);}
-  };
+    // 페이지 로드시 로그인 상태 확인
+    checkLogin();
 
-  // ✅ 회원가입
-  document.getElementById("signupBtn").onclick=async()=>{
-    const email=document.getElementById("newEmail").value.trim();
-    const nickname=document.getElementById("nickname").value.trim();
-    if(!email||!nickname)return alert("이메일/닉네임 입력");
-    const dup=await SWINGINV.checkDuplicate(email,nickname);
-    if(dup.email)return alert("이미 가입된 이메일");
-    if(dup.nickname)return alert("닉네임 중복");
+    async function checkLogin() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        showUser(user);
+      }
+    }
 
-    try{
-      const {error}=await db.auth.signUp({
+    // 회원가입
+    document.getElementById("signupBtn").onclick = async () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const nickname = document.getElementById("nickname").value;
+
+      const { data, error } = await supabase.auth.signUp({
         email,
-        password:Math.random().toString(36).slice(2)+"!tmp",
-        options:{emailRedirectTo:`${window.location.origin}/set-password.html?email=${encodeURIComponent(email)}&nickname=${encodeURIComponent(nickname)}`}
+        password,
+        options: {
+          data: { nickname },
+          redirectTo: 'https://vercel-project-1.onrender.com/set-password.html'
+        }
       });
-      if(error)throw error;
-      alert("📩 인증메일 발송. 확인 후 비밀번호 설정하세요.");
-    }catch(err){alert("❌ 회원가입 실패: "+err.message);}
-  };
-});
-</script>
+
+      if (error) alert("회원가입 실패: " + error.message);
+      else alert("인증 메일을 확인해주세요!");
+    };
+
+    // 로그인
+    document.getElementById("loginBtn").onclick = async () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) return alert("로그인 실패: " + error.message);
+
+      showUser(data.user);
+    };
+
+    // 로그아웃
+    document.getElementById("logoutBtn").onclick = async () => {
+      await supabase.auth.signOut();
+      document.getElementById("userInfo").innerText = "";
+      document.getElementById("logoutBtn").style.display = "none";
+      alert("로그아웃되었습니다.");
+    };
+
+    // 사용자 정보 표시
+    async function showUser(user) {
+      document.getElementById("logoutBtn").style.display = "block";
+
+      // auth.users의 id로 profiles에서 닉네임 가져오기
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("nickname")
+        .eq("id", user.id)
+        .single();
+
+      if (profile && profile.nickname) {
+        document.getElementById("userInfo").innerText = `환영합니다, ${profile.nickname}님!`;
+      } else {
+        document.getElementById("userInfo").innerText = `${user.email}로 로그인 중`;
+      }
+    }
+  </script>
 </body>
 </html>
