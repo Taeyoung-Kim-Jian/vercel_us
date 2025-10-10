@@ -4,6 +4,32 @@
    ========================================================== */
 
 console.log("🌐 SWING INVESTOR common.js loaded");
+/* ==========================================================
+   🌐 SWING INVESTOR common.js
+   ========================================================== */
+console.log("🌐 SWING INVESTOR common.js loaded");
+
+// ------------------------------------------
+// 🔗 Supabase 연결
+// ------------------------------------------
+const SUPABASE_URL = "https://sssmldmhcfuodutvvcqf.supabase.co";
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1b2R1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4";
+
+const { createClient } = window.supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
+});
+
+// 🌍 전역 객체 등록
+window.SWINGINV = window.SWINGINV || {};
+SWINGINV.db = db;
+
+console.log("✅ SWINGINV common.js initialized successfully");
 
 // ------------------------------------------
 // 🔗 Supabase 연결
