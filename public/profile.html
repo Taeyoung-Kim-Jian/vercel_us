@@ -1,1 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>프로필 설정 | SWING INVESTOR</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./common.js"></script>
 
+  <style>
+    body { font-family: "Noto Sans KR", sans-serif; background: #f9fafb;
+           display: flex; justify-content: center; align-items: flex-start;
+           height: 100vh; margin: 0; padding-top: 60px; }
+    .profile-box {
+      background: #fff; width: 360px; padding: 30px;
+      border-radius: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+    }
+    label { display: block; margin-top: 15px; font-size: 14px; color: #374151; }
+    input { width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px; }
+    button { width: 100%; background: #2563eb; color: white; border: none; border-radius: 6px; padding: 10px; margin-top: 20px; }
+    .msg { text-align: center; margin-top: 10px; padding: 8px; border-radius: 6px; display: none; font-size: 13px; }
+    .success { background: #dcfce7; color: #166534; }
+    .error { background: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+
+<body>
+  <div class="profile-box">
+    <h2>👤 프로필 관리</h2>
+
+    <label>닉네임 변경</label>
+    <input id="nicknameInput" placeholder="새 닉네임 입력 (2~12자)" />
+
+    <label>비밀번호 변경</label>
+    <input id="passwordInput" type="password" placeholder="새 비밀번호 (6자 이상)" />
+
+    <button id="saveBtn">변경 저장</button>
+    <div id="msgBox" class="msg"></div>
+  </div>
+
+  <script type="module">
+    import { db } from "./common.js";
+    const msgBox = document.getElementById("msgBox");
+
+    function showMsg(msg, ok = true) {
+      msgBox.textContent = msg;
+      msgBox.className = `msg ${ok ? "success" : "error"}`;
+      msgBox.style.display = "block";
+      setTimeout(() => (msgBox.style.display = "none"), 3000);
+    }
+
+    const { data: { session } } = await db.auth.getSession();
+    if (!session) location.href = "login.html?redirect=profile.html";
+    const user = session.user;
+
+    document.getElementById("saveBtn").onclick = async () => {
+      const nickname = document.getElementById("nicknameInput").value.trim();
+      const password = document.getElementById("passwordInput").value.trim();
+
+      // 닉네임
+      if (nickname) {
+        if (nickname.length < 2 || nickname.length > 12)
+          return showMsg("닉네임은 2~12자여야 합니다.", false);
+        const { data: dup } = await db.from("profiles").select("nickname").eq("nickname", nickname);
+        if (dup.length > 0) return showMsg("이미 사용 중인 닉네임입니다.", false);
+        const { error: errNick } = await db.from("profiles").upsert({ id: user.id, nickname });
+        if (errNick) return showMsg("닉네임 변경 실패: " + errNick.message, false);
+        showMsg("✅ 닉네임이 변경되었습니다.");
+      }
+
+      // 비밀번호
+      if (password) {
+        if (password.length < 6) return showMsg("비밀번호는 6자 이상이어야 합니다.", false);
+        const { error: errPw } = await db.auth.updateUser({ password });
+        if (errPw) return showMsg("비밀번호 변경 실패: " + errPw.message, false);
+        showMsg("🔒 비밀번호가 변경되었습니다.");
+      }
+    };
+  </script>
+</body>
+</html>
