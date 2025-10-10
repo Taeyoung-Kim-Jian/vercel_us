@@ -2,38 +2,46 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- ✅ 수정: 터치 스크롤 최적화 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
   <title>종목 상세 | SWING INVESTOR</title>
   <link rel="stylesheet" href="./style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5"></script>
   <script src="./common.js"></script>
-
   <style>
-    html, body {
-      height: auto;
-      overflow-y: auto;
-      background: #f8fafc;
+    /* ✅ 전역 스크롤 보장 */
+    * {
+      -webkit-tap-highlight-color: transparent;
     }
-
+    
+    html, body {
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: #f8fafc;
+      -webkit-overflow-scrolling: touch; /* iOS 부드러운 스크롤 */
+    }
+    
     main.content {
       max-width: 1100px;
       margin: 0 auto;
       padding: 16px;
+      min-height: calc(100vh - 200px); /* 푸터 공간 확보 */
     }
-
+    
     .page-header {
       text-align: center;
       margin: 25px 0 10px;
       position: relative;
     }
-
+    
     .page-header h2 {
       font-size: 1.2rem;
       margin: 0;
       color: #1e293b;
     }
-
+    
     #toolbar {
       display: flex;
       justify-content: center;
@@ -43,59 +51,138 @@
       margin: 12px 0 20px;
       font-size: 14px;
     }
-    #toolbar label { cursor: pointer; }
-    #toolbar input[type="checkbox"] { transform: scale(1.1); margin-right: 5px; }
-
-    /* ✅ 차트 컨테이너를 상대배치로 (버튼 오버레이용) */
+    
+    #toolbar label { 
+      cursor: pointer;
+      user-select: none;
+    }
+    
+    #toolbar input[type="checkbox"] { 
+      transform: scale(1.1); 
+      margin-right: 5px; 
+    }
+    
+    /* ✅ 차트 컨테이너 수정 */
     #chart {
-      position: relative;            /* ← 중요 */
+      position: relative;
       width: 100%;
-      height: 450px;                 /* PC */
+      height: 450px;
       max-width: 1000px;
       margin: 0 auto 80px auto;
       background: #fff;
       border-radius: 10px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-      touch-action: pan-y;           /* 모바일 세로 스크롤 허용 */
-      pointer-events: auto;
+      
+      /* ✅ 핵심: 터치 스크롤 허용 */
+      touch-action: pan-y pan-x pinch-zoom;
+      -ms-touch-action: pan-y pan-x pinch-zoom;
+      
+      /* ✅ 수정: overflow 제거 (차트가 잘리지 않도록) */
       overflow: visible;
+      
+      /* ✅ 차트 내부 캔버스만 pointer-events 활성화 */
+      pointer-events: none;
     }
+    
+    /* ✅ 차트 내부 요소는 클릭 가능하게 */
+    #chart > * {
+      pointer-events: auto;
+    }
+    
     @media (max-width: 768px) {
-      #chart { height: 300px; }      /* 모바일에서 축소 */
+      #chart { 
+        height: 350px; /* 모바일에서 적절한 높이 */
+        margin-bottom: 40px;
+      }
+      
+      main.content {
+        padding: 12px;
+      }
     }
-
-    /* ✅ 차트 안쪽 오른쪽 위에 뒤로가기 버튼 */
+    
+    /* ✅ 뒤로가기 버튼 */
     .chart-back {
       position: absolute;
-      top: 8px;
-      right: 8px;
-      z-index: 3;                    /* 캔버스 위로 */
-      background: rgba(37,99,235,.92);
+      top: 12px;
+      right: 12px;
+      z-index: 999; /* 차트 위로 확실히 올림 */
+      background: rgba(37,99,235,0.95);
       color: #fff;
       border: none;
       border-radius: 8px;
-      padding: 6px 10px;
-      font-size: 12px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 500;
       line-height: 1;
       cursor: pointer;
-      pointer-events: auto;          /* 클릭 가능 */
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      transition: transform .15s ease, opacity .15s ease;
+      pointer-events: auto; /* 버튼은 클릭 가능 */
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      transition: all 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
     }
-    .chart-back:hover { transform: translateY(-1px); }
-
+    
+    .chart-back:hover {
+      background: rgba(37,99,235,1);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+    
+    .chart-back:active {
+      transform: translateY(0);
+    }
+    
+    @media (max-width: 768px) {
+      .chart-back {
+        top: 8px;
+        right: 8px;
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+    }
+    
     footer {
       text-align: center;
-      padding: 16px;
-      font-size: 0.8rem;
-      color: #777;
+      padding: 20px 16px;
+      font-size: 0.85rem;
+      color: #64748b;
       background: #f1f5f9;
-      border-top: 1px solid #e5e7eb;
+      border-top: 1px solid #e2e8f0;
+      margin-top: 60px;
+    }
+    
+    .error-box {
+      text-align: center;
       margin-top: 50px;
+      padding: 30px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .error-box p {
+      font-size: 1rem;
+      color: #475569;
+      line-height: 1.6;
+    }
+    
+    .error-box button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .error-box button:hover {
+      background: #1d4ed8;
     }
   </style>
 </head>
-
 <body>
   <!-- ✅ 공통 헤더 -->
   <div id="header-container"></div>
@@ -104,35 +191,39 @@
       .then(r => r.text())
       .then(html => {
         document.getElementById("header-container").innerHTML = html;
-        if (typeof SWINGINV_updateHeaderAuthUI === "function") SWINGINV_updateHeaderAuthUI();
-      });
+        if (typeof SWINGINV_updateHeaderAuthUI === "function") {
+          SWINGINV_updateHeaderAuthUI();
+        }
+      })
+      .catch(err => console.error('헤더 로드 실패:', err));
   </script>
 
   <main class="content">
     <section class="page-header">
       <h2 id="chart-title">📈 종목 상세</h2>
-      <p id="chart-sub" style="color:#555;">데이터를 불러오는 중...</p>
+      <p id="chart-sub" style="color:#64748b; font-size: 0.9rem;">데이터를 불러오는 중...</p>
     </section>
 
-    <!-- 🔹 툴바 (B가격 / 관심종목 등록) -->
+    <!-- 🔹 툴바 -->
     <div id="toolbar">
       <label><input type="checkbox" id="toggleB" checked> B가격 표시</label>
       <label><input type="checkbox" id="watchToggle"> ⭐ 관심종목 등록</label>
     </div>
 
-    <!-- 🔹 차트 영역 (← JS가 이 안에 뒤로가기 버튼을 삽입) -->
+    <!-- 🔹 차트 영역 (JS가 내부에 버튼 추가) -->
     <div id="chart"></div>
 
-    <div id="error-box" class="error-box" style="display:none;text-align:center;margin-top:30px;">
+    <!-- 🔹 에러 박스 -->
+    <div id="error-box" class="error-box" style="display:none;">
       <p>⚠️ 잘못된 접근입니다.<br>메인 페이지에서 종목을 선택해주세요.</p>
-      <button onclick="location.href='index.html'"
-              style="padding:6px 12px;background:#2563eb;color:white;border:none;border-radius:6px;cursor:pointer;">
+      <button onclick="location.href='index.html'">
         메인으로 이동
       </button>
     </div>
   </main>
 
   <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
+  
   <script src="./detail.js"></script>
 </body>
 </html>
