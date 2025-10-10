@@ -4,8 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>로그인 | SWING INVESTOR</title>
-
-  <!-- ✅ Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./common.js"></script>
 
@@ -19,163 +17,164 @@
       height: 100vh;
       margin: 0;
     }
-    .auth-box {
-      width: 380px;
-      background: #fff;
+    .login-box {
+      width: 360px;
+      background: white;
       border-radius: 12px;
-      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
-      padding: 30px 25px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+      padding: 30px 25px 40px;
+      text-align: center;
     }
     h2 {
-      text-align: center;
       font-size: 1.3rem;
+      font-weight: 700;
       margin-bottom: 20px;
       color: #111827;
     }
-    label {
-      font-weight: 500;
-      font-size: 13px;
-      display: block;
-      margin-bottom: 5px;
-    }
-    input {
+    input[type="email"],
+    input[type="password"],
+    input[type="text"] {
       width: 100%;
       padding: 10px;
-      margin-bottom: 12px;
       border: 1px solid #d1d5db;
       border-radius: 6px;
       font-size: 14px;
+      margin-bottom: 12px;
     }
     button {
       width: 100%;
       padding: 10px;
+      background: #2563eb;
+      color: white;
+      font-size: 14px;
       border: none;
       border-radius: 6px;
       cursor: pointer;
-      font-size: 14px;
+      margin-bottom: 10px;
+      transition: background 0.2s;
     }
-    .btn-primary {
-      background: #2563eb;
-      color: white;
-      margin-top: 5px;
-    }
-    .btn-secondary {
-      background: #fff;
-      border: 1px solid #d1d5db;
-      color: #374151;
+    button:hover {
+      background: #1e3a8a;
     }
     .divider {
+      position: relative;
       margin: 20px 0;
       text-align: center;
-      color: #6b7280;
-      font-size: 12px;
-      position: relative;
     }
     .divider::before,
     .divider::after {
       content: "";
       position: absolute;
+      top: 50%;
       width: 40%;
       height: 1px;
       background: #e5e7eb;
-      top: 50%;
     }
-    .divider::before { left: 0; }
-    .divider::after { right: 0; }
-    .error {
-      color: #b91c1c;
+    .divider::before {
+      left: 0;
+    }
+    .divider::after {
+      right: 0;
+    }
+    .divider span {
+      background: #fff;
+      padding: 0 8px;
+      color: #6b7280;
+      font-size: 12px;
+    }
+    .google-btn {
+      background: #fff;
+      color: #374151;
+      border: 1px solid #d1d5db;
+    }
+    .google-btn:hover {
+      background: #f3f4f6;
+    }
+    .info {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 10px;
+    }
+    #error-box {
+      display: none;
       background: #fee2e2;
+      color: #b91c1c;
+      font-size: 13px;
       border-radius: 6px;
       padding: 8px;
-      font-size: 13px;
-      margin-bottom: 10px;
-      display: none;
-    }
-    .link {
-      display: inline-block;
-      text-align: center;
-      width: 100%;
-      margin-top: 12px;
-      font-size: 13px;
-      color: #2563eb;
-      cursor: pointer;
+      margin-bottom: 12px;
+      text-align: left;
     }
   </style>
 </head>
 
 <body>
-  <div class="auth-box">
+  <div class="login-box">
     <h2>SWING INVESTOR 로그인</h2>
-    <div id="error-box" class="error"></div>
+    <div id="error-box"></div>
 
-    <!-- ✅ 로그인 -->
-    <div id="login-form">
-      <label>이메일</label>
-      <input type="email" id="loginEmail" placeholder="example@email.com" />
-      <label>비밀번호</label>
-      <input type="password" id="loginPassword" placeholder="비밀번호" />
-      <button class="btn-primary" id="loginBtn">로그인</button>
-      <div class="link" id="toSignup">회원가입하기</div>
-    </div>
+    <!-- 로그인 -->
+    <input id="loginEmail" type="email" placeholder="이메일" />
+    <input id="loginPassword" type="password" placeholder="비밀번호" />
+    <button id="loginBtn">로그인</button>
 
-    <!-- ✅ 회원가입 -->
-    <div id="signup-form" style="display:none;">
-      <label>이메일</label>
-      <input type="email" id="signupEmail" placeholder="example@email.com" />
-      <label>닉네임</label>
-      <input type="text" id="signupNickname" placeholder="2~12자 닉네임" />
-      <button class="btn-primary" id="signupBtn">인증 메일 보내기</button>
-      <div class="link" id="toLogin">← 로그인으로 돌아가기</div>
-    </div>
+    <div class="divider"><span>또는</span></div>
 
-    <div class="divider">또는</div>
+    <!-- 회원가입 -->
+    <input id="signupEmail" type="email" placeholder="이메일 (회원가입)" />
+    <input id="signupNickname" type="text" placeholder="닉네임 (2~12자)" />
+    <button id="signupBtn">회원가입 (인증 메일 발송)</button>
 
-    <!-- ✅ 소셜 로그인 -->
-    <button class="btn-secondary" id="googleLogin">🔑 Google 로그인</button>
+    <div class="divider"><span>또는</span></div>
+
+    <!-- 구글 로그인 -->
+    <button id="googleBtn" class="google-btn">🔑 Google 계정으로 로그인</button>
+
+    <p class="info">이메일 인증 후 비밀번호를 설정하세요.</p>
   </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const db = SWINGINV.db;
-      const errorBox = document.getElementById("error-box");
-      const loginForm = document.getElementById("login-form");
-      const signupForm = document.getElementById("signup-form");
+  document.addEventListener("DOMContentLoaded", async () => {
+    const db = SWINGINV.db;
+    const errBox = document.getElementById("error-box");
+    const showError = (msg) => { errBox.style.display="block"; errBox.textContent=msg; };
+    const hideError = () => { errBox.style.display="none"; };
 
-      // 에러 표시
-      function showError(msg) {
-        errorBox.textContent = msg;
-        errorBox.style.display = "block";
-      }
-      function hideError() {
-        errorBox.style.display = "none";
-      }
+    // ✅ 로그인 처리
+    document.getElementById("loginBtn").onclick = async () => {
+      hideError();
+      const email = loginEmail.value.trim();
+      const password = loginPassword.value.trim();
+      if (!email || !password) return showError("이메일과 비밀번호를 입력해주세요.");
 
-      // ✅ 로그인 버튼
-      document.getElementById("loginBtn").addEventListener("click", async () => {
-        hideError();
-        const email = document.getElementById("loginEmail").value.trim();
-        const password = document.getElementById("loginPassword").value.trim();
-        if (!email || !password) return showError("이메일과 비밀번호를 입력해주세요.");
+      const { error } = await db.auth.signInWithPassword({ email, password });
+      if (error) return showError("로그인 실패: " + error.message);
+      alert("✅ 로그인 성공!");
+      location.href = "index.html";
+    };
 
-        const { data, error } = await db.auth.signInWithPassword({ email, password });
-        if (error) return showError("로그인 실패: " + error.message);
-        location.href = "index.html";
-      });
+    // ✅ 회원가입 처리
+    document.getElementById("signupBtn").onclick = async () => {
+      hideError();
+      const email = signupEmail.value.trim();
+      const nickname = signupNickname.value.trim();
 
-      // ✅ 회원가입 버튼
-      document.getElementById("signupBtn").addEventListener("click", async () => {
-        hideError();
-        const email = document.getElementById("signupEmail").value.trim();
-        const nickname = document.getElementById("signupNickname").value.trim();
+      if (!email || !nickname) return showError("이메일과 닉네임을 모두 입력해주세요.");
+      if (nickname.length < 2 || nickname.length > 12)
+        return showError("닉네임은 2~12자여야 합니다.");
 
-        if (!email || !nickname) return showError("이메일과 닉네임을 모두 입력해주세요.");
-        if (nickname.length < 2 || nickname.length > 12) return showError("닉네임은 2~12자여야 합니다.");
+      try {
+        // 이메일 중복 확인
+        const { data: emailDup } = await db.from("profiles").select("email").eq("email", email);
+        if (emailDup && emailDup.length > 0)
+          return showError("이미 등록된 이메일입니다.");
 
-        // 닉네임 중복 체크
-        const { data: dup } = await db.from("profiles").select("nickname").eq("nickname", nickname);
-        if (dup && dup.length > 0) return showError("이미 사용 중인 닉네임입니다.");
+        // 닉네임 중복 확인
+        const { data: nickDup } = await db.from("profiles").select("nickname").eq("nickname", nickname);
+        if (nickDup && nickDup.length > 0)
+          return showError("이미 사용 중인 닉네임입니다.");
 
-        // 인증 메일 발송
+        // 회원가입 요청 (인증 메일 발송)
         const { error } = await db.auth.signUp({
           email,
           password: Math.random().toString(36).slice(2) + "!temp",
@@ -186,29 +185,20 @@
 
         if (error) return showError("회원가입 실패: " + error.message);
         alert("📩 인증 메일이 발송되었습니다. 메일함을 확인해주세요.");
-      });
+      } catch (err) {
+        showError("오류 발생: " + err.message);
+      }
+    };
 
-      // ✅ 폼 전환
-      document.getElementById("toSignup").addEventListener("click", () => {
-        loginForm.style.display = "none";
-        signupForm.style.display = "block";
-        hideError();
+    // ✅ Google 로그인
+    document.getElementById("googleBtn").onclick = async () => {
+      const { error } = await db.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/index.html` }
       });
-      document.getElementById("toLogin").addEventListener("click", () => {
-        signupForm.style.display = "none";
-        loginForm.style.display = "block";
-        hideError();
-      });
-
-      // ✅ Google 로그인
-      document.getElementById("googleLogin").addEventListener("click", async () => {
-        const { error } = await db.auth.signInWithOAuth({
-          provider: "google",
-          options: { redirectTo: `${window.location.origin}/index.html` }
-        });
-        if (error) showError("Google 로그인 실패: " + error.message);
-      });
-    });
+      if (error) showError("Google 로그인 실패: " + error.message);
+    };
+  });
   </script>
 </body>
 </html>
