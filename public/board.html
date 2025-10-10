@@ -3,14 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SWING INVESTOR 토론 게시판</title>
+  <title>SWING INVESTOR 게시판</title>
+
+  <!-- ✅ Tailwind & Supabase -->
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./common.js"></script>
   <script src="./auth.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  </style>
 </head>
+
 <body class="bg-gray-50 min-h-screen">
-  <!-- ✅ 공통 헤더 -->
+
+  <!-- ✅ 공통 헤더 (모든 페이지 동일) -->
   <div id="header-container"></div>
   <script>
     fetch("./header.html")
@@ -21,11 +34,13 @@
       });
   </script>
 
-  <main class="max-w-3xl mx-auto py-8 px-4">
-    <!-- 상단 헤더 -->
+  <!-- ✅ 본문 -->
+  <main class="max-w-4xl mx-auto py-8 px-4">
+    <!-- 타이틀 -->
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold text-gray-800">💬 SWING INVESTOR 토론 게시판</h1>
-      <button id="newPostBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">
+      <h1 class="text-2xl font-bold text-gray-800">💬 SWING INVESTOR 게시판</h1>
+      <button id="newPostBtn"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">
         ✏️ 새 글쓰기
       </button>
     </div>
@@ -35,14 +50,26 @@
       <div class="bg-white w-full max-w-md rounded-lg shadow-lg p-6">
         <h2 class="text-lg font-semibold mb-3">✍️ 새 글 작성</h2>
         <form id="postForm" class="space-y-3">
-          <input id="title" type="text" placeholder="제목" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500" required />
-          <textarea id="content" placeholder="내용을 입력하세요..." class="w-full border rounded-lg px-3 py-2 h-32 focus:ring-2 focus:ring-blue-500" required></textarea>
+          <input id="title" type="text" placeholder="제목을 입력하세요"
+            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500" required />
+          <textarea id="content" placeholder="내용을 입력하세요"
+            class="w-full border rounded-lg px-3 py-2 h-32 focus:ring-2 focus:ring-blue-500" required></textarea>
           <div class="flex justify-end gap-2">
             <button type="button" id="cancelBtn" class="px-4 py-2 bg-gray-200 rounded-lg text-sm">취소</button>
             <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">등록</button>
           </div>
         </form>
       </div>
+    </div>
+
+    <!-- 탭 -->
+    <div class="flex gap-3 justify-center mb-6">
+      <button class="tab-btn active px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium"
+        data-type="notice">📢 공지사항</button>
+      <button class="tab-btn px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium"
+        data-type="free">💬 자유게시판</button>
+      <button class="tab-btn px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium"
+        data-type="idea">💡 아이디어</button>
     </div>
 
     <!-- 게시글 목록 -->
@@ -57,14 +84,29 @@
 
   <script>
     const db = SWINGINV.db;
-    const user = SWINGINV.user;
+    let currentBoard = "notice";
+
     const postsEl = document.getElementById("posts");
     const newPostModal = document.getElementById("newPostModal");
     const newPostBtn = document.getElementById("newPostBtn");
     const cancelBtn = document.getElementById("cancelBtn");
     const postForm = document.getElementById("postForm");
 
-    // ✅ 모달 열기/닫기
+    // ✅ 탭 전환
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => {
+          b.classList.remove("bg-blue-600", "text-white");
+          b.classList.add("bg-gray-200", "text-gray-700");
+        });
+        btn.classList.remove("bg-gray-200", "text-gray-700");
+        btn.classList.add("bg-blue-600", "text-white");
+        currentBoard = btn.dataset.type;
+        loadPosts();
+      });
+    });
+
+    // ✅ 모달 열기 / 닫기
     newPostBtn.addEventListener("click", () => newPostModal.classList.remove("hidden"));
     cancelBtn.addEventListener("click", () => newPostModal.classList.add("hidden"));
 
@@ -73,35 +115,33 @@
       e.preventDefault();
       const title = document.getElementById("title").value.trim();
       const content = document.getElementById("content").value.trim();
-      if (!title || !content) return alert("제목과 내용을 입력하세요.");
 
       const user = SWINGINV.user;
       if (!user) return alert("로그인 후 이용 가능합니다.");
 
       const { error } = await db.from("boards").insert([
-        { title, content, user_id: user.id, board_type: "discussion" }
+        { board_type: currentBoard, user_id: user.id, title, content }
       ]);
 
-      if (error) {
-        alert("등록 실패: " + error.message);
-      } else {
-        postForm.reset();
-        newPostModal.classList.add("hidden");
-        loadPosts();
-      }
+      if (error) return alert("등록 실패: " + error.message);
+
+      e.target.reset();
+      newPostModal.classList.add("hidden");
+      loadPosts();
     });
 
     // ✅ 게시글 목록 불러오기
     async function loadPosts() {
-      SWINGINV.showLoading(postsEl);
+      SWINGINV.showLoading(postsEl, "게시글을 불러오는 중...");
+
       const { data, error } = await db
         .from("boards")
         .select("id, title, content, created_at, views, comments(id)")
-        .eq("board_type", "discussion")
+        .eq("board_type", currentBoard)
         .order("created_at", { ascending: false });
 
       if (error) {
-        SWINGINV.showError(postsEl, "로드 실패: " + error.message);
+        SWINGINV.showError(postsEl, error.message);
         return;
       }
 
@@ -110,30 +150,27 @@
         return;
       }
 
-      postsEl.innerHTML = data
-        .map(
-          (p) => `
-          <div class="bg-white p-5 rounded-xl shadow hover:shadow-md transition cursor-pointer border border-gray-100"
-               onclick="openPost(${p.id})">
-            <div class="flex justify-between items-center mb-2">
-              <h3 class="text-lg font-semibold text-gray-800">${SWINGINV.esc(p.title)}</h3>
-              <span class="text-xs text-gray-400">${SWINGINV.fmtDate(p.created_at)}</span>
-            </div>
-            <p class="text-gray-600 text-sm line-clamp-2">${SWINGINV.esc(p.content)}</p>
-            <div class="flex items-center gap-3 text-gray-400 text-xs mt-2">
-              👁️ ${p.views || 0} · 💬 ${p.comments?.length || 0}
-            </div>
+      postsEl.innerHTML = data.map((p) => `
+        <div class="bg-white p-5 rounded-xl shadow hover:shadow-md transition border border-gray-100 cursor-pointer"
+             onclick="openPost(${p.id})">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="text-lg font-semibold text-gray-800">${SWINGINV.esc(p.title)}</h3>
+            <span class="text-xs text-gray-400">${SWINGINV.fmtDate(p.created_at)}</span>
           </div>
-        `
-        )
-        .join("");
+          <p class="text-gray-600 text-sm line-clamp-2">${SWINGINV.esc(p.content)}</p>
+          <div class="flex items-center gap-3 text-gray-400 text-xs mt-2">
+            👁️ ${p.views || 0} · 💬 ${p.comments?.length || 0}
+          </div>
+        </div>
+      `).join("");
     }
 
-    // ✅ 글 상세보기 페이지 이동
+    // ✅ 게시글 상세보기 페이지 이동
     window.openPost = (id) => {
       location.href = `post.html?id=${id}`;
     };
 
+    // ✅ 초기 로드
     loadPosts();
   </script>
 </body>
