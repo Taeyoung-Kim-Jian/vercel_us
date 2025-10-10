@@ -1,7 +1,5 @@
 /* ==========================================================
-   📈 detail.js — ECharts + Supabase
-   - 뒤로가기 버튼: JS에서 동적 추가
-   - 모바일 스크롤: touch-action 강제 허용
+   📈 detail.js — ECharts + Supabase 통합 안정버전
    ========================================================== */
 document.addEventListener("DOMContentLoaded", async () => {
   const urlParams = new URLSearchParams(window.location.search);
@@ -19,10 +17,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     const backBtn = document.createElement("button");
     backBtn.id = "backBtn";
     backBtn.textContent = "← 뒤로가기";
+    backBtn.style.cssText = `
+      position:absolute;
+      right:0;
+      top:50%;
+      transform:translateY(-50%);
+      background:#2563eb;
+      color:white;
+      border:none;
+      border-radius:6px;
+      padding:5px 10px;
+      font-size:13px;
+      cursor:pointer;
+      transition:0.2s;
+    `;
     backBtn.addEventListener("click", () => history.back());
     header.appendChild(backBtn);
   })();
 
+  /* ✅ 종목코드 없을 때 에러 처리 */
   if (!code) {
     chartEl.style.display = "none";
     errorBox.style.display = "block";
@@ -32,18 +45,24 @@ document.addEventListener("DOMContentLoaded", async () => {
   titleEl.textContent = `📈 ${name || "종목"} (${code})`;
   const chart = echarts.init(chartEl);
 
-  /* ✅ 모바일에서 차트가 스크롤을 잡아먹지 않게 보강 */
+  /* ✅ 모바일 스크롤 방해 방지 */
   try {
     chart.getDom().style.touchAction = "pan-y";
-    const canvas = chart.getDom().querySelector("canvas");
-    if (canvas) canvas.style.touchAction = "pan-y";
+    const canvases = chartEl.querySelectorAll("canvas");
+    canvases.forEach((c) => {
+      c.style.touchAction = "pan-y";
+      c.style.pointerEvents = "auto";
+    });
   } catch (e) {}
 
   /* ✅ Supabase 로드 대기 */
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   let db;
   for (let i = 0; i < 25; i++) {
-    if (window.SWINGINV?.db) { db = SWINGINV.db; break; }
+    if (window.SWINGINV?.db) {
+      db = SWINGINV.db;
+      break;
+    }
     await wait(200);
   }
   if (!db) {
@@ -51,18 +70,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  /* ✅ 유저 세션 확인 */
+  /* ✅ 로그인 세션 확인 */
   const { data: { session } } = await db.auth.getSession();
   const user = session?.user || null;
   if (user) SWINGINV.user = user;
 
   try {
     /* -----------------------------
-       1) 가격 데이터 로드 (paging)
+       1️⃣ 가격 데이터 로드 (페이징)
     ----------------------------- */
     let allPrices = [];
     const pageSize = 1000;
-    let from = 0, to = pageSize - 1, done = false;
+    let from = 0;
+    let to = pageSize - 1;
+    let done = false;
 
     while (!done) {
       const { data, error } = await db
@@ -88,7 +109,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     /* -----------------------------
-       2) B가격 데이터 로드
+       2️⃣ B가격 데이터 로드
     ----------------------------- */
     const { data: btData } = await db
       .from("bt_points")
@@ -101,7 +122,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const bLines = Array.from(new Set(btData?.map((b) => parseFloat(b.b가격)) || []));
 
     /* -----------------------------
-       3) 차트 옵션
+       3️⃣ 차트 옵션
     ----------------------------- */
     let showBLines = true;
     const baseOption = {
@@ -121,8 +142,8 @@ document.addEventListener("DOMContentLoaded", async () => {
           type: "line",
           data: closePrices,
           smooth: true,
-          lineStyle: { width: 2 },
-          areaStyle: {},
+          lineStyle: { width: 2, color: "#2563eb" },
+          areaStyle: { color: "rgba(37,99,235,0.08)" },
         },
       ],
     };
@@ -131,8 +152,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       const markLines = showBLines
         ? bLines.map((b) => ({
             yAxis: b,
-            lineStyle: { type: "dashed" },
-            label: { formatter: `B ${b.toLocaleString()}` },
+            lineStyle: { color: "#e11d48", type: "dashed" },
+            label: { formatter: `B ${b.toLocaleString()}`, color: "#e11d48" },
           }))
         : [];
 
@@ -150,7 +171,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
 
     /* -----------------------------
-       4) UI 이벤트 (B가격/관심종목)
+       4️⃣ 관심종목 / B가격 토글
     ----------------------------- */
     const toggleB = document.getElementById("toggleB");
     const watchToggle = document.getElementById("watchToggle");
@@ -160,7 +181,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       updateBLines();
     });
 
-    // 이미 관심종목인지 체크
+    /* ✅ 로그인 시 이미 등록된 관심종목 체크 */
     if (user) {
       const { data: existing } = await db
         .from("watchlist")
@@ -168,9 +189,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         .eq("user_id", user.id)
         .eq("종목코드", code)
         .maybeSingle();
+
       if (existing) watchToggle.checked = true;
     }
 
+    /* ✅ 관심종목 등록/삭제 */
     watchToggle.addEventListener("change", async (e) => {
       if (!SWINGINV.user) {
         alert("🔐 로그인 후 이용해주세요.");
@@ -191,7 +214,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           종목코드: code,
           등록일: new Date().toISOString(),
           등록종가: latestPrice,
-          공개여부: true, // ✅ 자동 공개
+          공개여부: true, // ✅ 자동 공개 설정
         });
 
         if (error) {
@@ -216,17 +239,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     /* -----------------------------
-       5) 차트 렌더 + 스크롤 보정
+       5️⃣ 차트 렌더 + 스크롤 복원
     ----------------------------- */
     updateBLines();
     window.addEventListener("resize", () => chart.resize());
     subEl.textContent = "";
 
-    // ✅ 스크롤 보정(혹시 다른 CSS가 막고 있어도 해제)
     document.body.style.overflow = "auto";
-    document.body.style.height = "auto";
     document.documentElement.style.overflow = "auto";
-    document.documentElement.style.height = "auto";
   } catch (err) {
     console.error("❌ 차트 로딩 오류:", err);
     subEl.textContent = "⚠️ 차트를 불러오지 못했습니다.";
