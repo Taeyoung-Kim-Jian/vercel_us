@@ -1,5 +1,5 @@
 /* ==========================================================
-   📈 detail.js — ECharts + Supabase (스크롤 정상 버전)
+   📈 detail.js — ECharts + Supabase (스크롤 정상 완전판)
    ========================================================== */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const chart = echarts.init(chartEl);
 
   try {
-    // 1️⃣ prices 데이터 페이징 로딩
+    // 1️⃣ prices 데이터 로드 (페이징)
     let allPrices = [];
     const pageSize = 1000;
     let from = 0, to = pageSize - 1, done = false;
@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    // 2️⃣ bt_points 데이터 로딩
+    // 2️⃣ bt_points 데이터 로드
     let allBt = [];
     from = 0; to = pageSize - 1; done = false;
 
@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           return `${item.axisValue}<br/>가격: <b>${item.data.toLocaleString()}</b>`;
         },
       },
-      grid: { left: 60, right: 20, top: 40, bottom: 60 },
+      grid: { left: 60, right: 20, top: 40, bottom: 80 },
       xAxis: {
         type: "category",
         data: dates,
@@ -101,6 +101,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         scale: true,
         axisLabel: { color: "#555" },
       },
+      dataZoom: [
+        { type: "inside", zoomOnMouseWheel: true, moveOnMouseMove: true },
+        { type: "slider", bottom: 20 }
+      ],
       series: [
         {
           name: "종가",
@@ -111,8 +115,45 @@ document.addEventListener("DOMContentLoaded", async () => {
           areaStyle: { color: "rgba(37,99,235,0.08)" },
         },
       ],
-      dataZoom: [
-        { type: "inside", zoomOnMouseWheel: true, moveOnMouseMove: true },
-        { type: "slider", bottom: 10 }
-      ],
     };
+
+    // ✅ B가격 라인 표시 함수
+    const updateBLines = () => {
+      if (!showBLines || !bLines.length) {
+        chart.setOption(baseOption, true);
+        return;
+      }
+      const markLines = bLines.map((b) => ({
+        yAxis: b,
+        lineStyle: { color: "#e11d48", type: "dashed" },
+        label: { formatter: `B ${b.toLocaleString()}`, color: "#e11d48", position: "end" },
+      }));
+      chart.setOption({
+        ...baseOption,
+        series: [
+          {
+            ...baseOption.series[0],
+            markLine: { symbol: "none", label: { show: true }, data: markLines },
+          },
+        ],
+      }, true);
+    };
+
+    // ✅ 데이터 로드 완료 후 메시지 제거
+    subEl.textContent = "";
+
+    // ✅ 차트 렌더링
+    updateBLines();
+
+    // ✅ 차트 리사이즈 안정화 (디바운스 적용)
+    let resizeTimeout;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => chart.resize(), 300);
+    });
+
+  } catch (err) {
+    console.error("❌ 차트 로딩 오류:", err);
+    subEl.textContent = "⚠️ 차트를 불러오지 못했습니다.";
+  }
+});
