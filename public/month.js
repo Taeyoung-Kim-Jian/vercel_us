@@ -1,6 +1,6 @@
 /* ==========================================================
-   📅 SWING INVESTOR month.js (v1.5)
-   - 월별 탭: 스크롤 가능 / 2025.1 형식
+   📅 SWING INVESTOR month.js (v1.6)
+   - 월별 스크롤 탭 + 클릭 강조
    - 데이터 소스: monthly_performance_view
    ========================================================== */
 
@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     const db = SWINGINV.db;
 
-    // ✅ monthly_performance_view에서 데이터 조회
+    // ✅ monthly_performance_view 조회
     const { data, error } = await db
       .from("monthly_performance_view")
       .select(`
@@ -45,18 +45,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     // ✅ 월별 그룹화
     const grouped = {};
     data.forEach((row) => {
-      const key = row.월구분; // ex: 2025-01
+      const key = row.월구분; // ex) 2025-01
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(row);
     });
 
     const months = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
-    // ✅ 월 탭 생성 (스크롤 가능 + 2025.1 형식)
+    // ✅ 월 탭 생성 (2025.1 형식)
     tabsContainer.innerHTML = months
       .map((m, i) => {
         const [year, month] = m.split("-");
-        const label = `${year}.${parseInt(month, 10)}`; // 2025.1
+        const label = `${year}.${parseInt(month, 10)}`;
         return `
           <button class="tab-btn ${i === 0 ? "active" : ""}" data-month="${m}">
             ${label}
@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       })
       .join("");
 
-    // ✅ 클릭 시 월별 데이터 표시
+    // ✅ 클릭 이벤트
     tabsContainer.addEventListener("click", (e) => {
       const btn = e.target.closest(".tab-btn");
       if (!btn) return;
@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       renderTable(grouped[monthKey]);
     });
 
-    // ✅ 초기 첫 번째 월 렌더링
+    // ✅ 초기 첫 번째 월 표시
     renderTable(grouped[months[0]]);
   } catch (err) {
     console.error("❌ JS Error:", err);
