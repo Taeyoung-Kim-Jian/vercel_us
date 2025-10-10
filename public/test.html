@@ -1,1 +1,22 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>차트 보기 | SWING INVESTOR</title>
+  <link rel="stylesheet" href="./style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5"></script>
+  <script src="./common.js"></script>
+</head>
 
+<body style="background:#f8fafc;">
+  <main style="max-width:1000px;margin:30px auto;padding:20px;background:#fff;border-radius:10px;">
+    <h2 id="chart-title" style="text-align:center;">📈 차트</h2>
+    <div id="chart" style="width:100%;height:500px;margin-top:20px;"></div>
+    <button id="backBtn" style="margin:20px auto;display:block;padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:6px;">← 뒤로가기</button>
+  </main>
+
+  <script src="./test.js"></script>
+</body>
+</html>
