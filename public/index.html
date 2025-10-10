@@ -9,12 +9,12 @@
   <script src="./common.js"></script>
 
   <style>
-    /* ✅ 카드 영역 (네이버 스타일) */
+    /* ✅ 카드 영역 - 네이버 스타일 (깔끔 + 라운드 + 그림자) */
     .cards {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 20px;
-      margin: 30px 0 50px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+      margin: 30px 0 40px;
     }
 
     .card {
@@ -22,16 +22,17 @@
       border: 1px solid #e5e7eb;
       border-radius: 12px;
       padding: 18px 20px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
       transition: all 0.25s ease;
     }
 
     .card:hover {
       transform: translateY(-3px);
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      background: #fafafa;
     }
 
-    /* ✅ 첫 번째 카드 전용 (Top5 수익률 카드 스타일) */
+    /* ✅ Top5 카드 전용 */
     #top5-card {
       display: flex;
       flex-direction: column;
@@ -59,9 +60,7 @@
       font-size: 14px;
     }
 
-    #top5-card li:last-child {
-      border-bottom: none;
-    }
+    #top5-card li:last-child { border-bottom: none; }
 
     .top5-rank {
       font-weight: 600;
@@ -81,39 +80,18 @@
     .top5-return.up { color: #dc2626; }
     .top5-return.down { color: #2563eb; }
 
-    /* ✅ 나머지 카드 (심플 + 네이버형 그림자) */
-    .cards .card:not(#top5-card) {
-      text-align: left;
-    }
-
-    .cards .card:not(#top5-card)::before {
-      content: "📊";
-      display: inline-block;
-      font-size: 18px;
-      margin-right: 6px;
-    }
-
-    .cards .card:not(#top5-card) {
-      font-size: 15px;
-      color: #374151;
-      line-height: 1.5;
-    }
-
-    .cards .card:not(#top5-card):hover {
-      background: #f9fafb;
-    }
-
-    /* ✅ 테이블 스타일 (기존 유지) */
+    /* ✅ 테이블 영역 - ranking.html 스타일로 통일 */
     .table-wrap {
-      margin-top: 40px;
       background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      margin-top: 40px;
       padding: 20px;
     }
 
     .table-wrap h3 {
       font-size: 1.1rem;
+      font-weight: 600;
       color: #111827;
       margin-bottom: 15px;
       border-left: 4px solid #2563eb;
@@ -124,9 +102,14 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 14px;
+      color: #1f2937;
     }
 
-    thead { background: #f1f5f9; }
+    thead {
+      background: #f8fafc;
+      font-weight: 600;
+      border-bottom: 2px solid #e5e7eb;
+    }
 
     th, td {
       padding: 10px 12px;
@@ -134,13 +117,17 @@
       text-align: center;
     }
 
-    tbody tr:hover { background: #f9fafb; }
+    tbody tr:hover {
+      background: #f9fafb;
+      transition: background 0.2s;
+    }
 
+    /* ✅ 버튼 스타일 */
     button {
       display: block;
       margin: 15px auto 0;
       background: #2563eb;
-      color: white;
+      color: #fff;
       border: none;
       border-radius: 6px;
       padding: 8px 14px;
@@ -150,6 +137,7 @@
 
     button:hover { background: #1e3a8a; }
 
+    /* ✅ 푸터 */
     footer {
       text-align: center;
       color: #6b7280;
@@ -166,7 +154,8 @@
       .then(r => r.text())
       .then(html => {
         document.getElementById("header-container").innerHTML = html;
-        if (typeof SWINGINV_updateHeaderAuthUI === "function") SWINGINV_updateHeaderAuthUI();
+        if (typeof SWINGINV_updateHeaderAuthUI === "function")
+          SWINGINV_updateHeaderAuthUI();
       });
   </script>
 
@@ -214,54 +203,7 @@
 
   <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
 
-  <!-- ✅ total_return Top5 불러오기 -->
-  <script>
-    const supabase = SWINGINV.db;
-
-    async function loadTop5FromTotalReturn() {
-      const el = document.getElementById("top5-card");
-      el.textContent = "⏳ 불러오는 중...";
-
-      try {
-        const { data, error } = await supabase
-          .from("total_return")
-          .select("종목명, 수익률")
-          .not("수익률", "is", null)
-          .order("수익률", { ascending: false })
-          .limit(5);
-
-        if (error) throw error;
-        if (!data || data.length === 0) {
-          el.textContent = "📭 total_return 데이터가 없습니다.";
-          return;
-        }
-
-        el.innerHTML = `
-          <h4>🏆 수익률 Top 5</h4>
-          <ul>
-            ${data
-              .map(
-                (row, i) => `
-                  <li>
-                    <span class="top5-rank">${i + 1}위</span>
-                    <span class="top5-name">${SWINGINV.esc(row["종목명"])}</span>
-                    <span class="top5-return ${row["수익률"] >= 0 ? "up" : "down"}">
-                      ${row["수익률"] >= 0 ? "+" : ""}${row["수익률"].toFixed(2)}%
-                    </span>
-                  </li>
-                `
-              )
-              .join("")}
-          </ul>
-        `;
-      } catch (e) {
-        el.textContent = "❌ 불러오기 실패: " + (e?.message || e);
-      }
-    }
-
-    document.addEventListener("DOMContentLoaded", loadTop5FromTotalReturn);
-  </script>
-
+  <!-- ✅ 기존 데이터 연동(main.js) 유지 -->
   <script src="./main.js"></script>
 </body>
 </html>
