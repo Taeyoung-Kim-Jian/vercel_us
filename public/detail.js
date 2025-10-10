@@ -1,5 +1,5 @@
 /* ==========================================================
-   📈 detail.js — ECharts + Supabase (스크롤 정상 완전판)
+   📈 detail.js — ECharts + Supabase + B가격 토글 완전판
    ========================================================== */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -79,7 +79,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const closePrices = allPrices.map((d) => parseFloat(d.종가));
     const bLines = Array.from(new Set(allBt.map((b) => parseFloat(b.b가격))));
 
-    // ✅ 차트 옵션
+    // ✅ 기본 옵션
     let showBLines = true;
     const baseOption = {
       tooltip: {
@@ -117,35 +117,68 @@ document.addEventListener("DOMContentLoaded", async () => {
       ],
     };
 
-    // ✅ B가격 라인 표시 함수
+    // ✅ B가격 라인 갱신 함수
     const updateBLines = () => {
       if (!showBLines || !bLines.length) {
         chart.setOption(baseOption, true);
         return;
       }
+
       const markLines = bLines.map((b) => ({
         yAxis: b,
         lineStyle: { color: "#e11d48", type: "dashed" },
-        label: { formatter: `B ${b.toLocaleString()}`, color: "#e11d48", position: "end" },
+        label: {
+          formatter: `B ${b.toLocaleString()}`,
+          color: "#e11d48",
+          position: "end",
+        },
       }));
+
       chart.setOption({
         ...baseOption,
         series: [
           {
             ...baseOption.series[0],
-            markLine: { symbol: "none", label: { show: true }, data: markLines },
+            markLine: {
+              symbol: "none",
+              label: { show: true },
+              data: markLines,
+            },
           },
         ],
       }, true);
     };
 
-    // ✅ 데이터 로드 완료 후 메시지 제거
-    subEl.textContent = "";
+    // ✅ UI — B가격 토글 버튼 추가
+    const toolbar = document.createElement("div");
+    toolbar.style.cssText = `
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 6px;
+      margin: 8px 0 6px 0;
+      font-size: 13px;
+    `;
+    toolbar.innerHTML = `
+      <label style="cursor:pointer; color:#333;">
+        <input type="checkbox" id="toggleB" checked
+          style="transform:scale(1.1); margin-right:5px;">
+        B가격 표시
+      </label>
+    `;
+    chartEl.parentNode.insertBefore(toolbar, chartEl);
 
-    // ✅ 차트 렌더링
+    // ✅ 이벤트 연결
+    document.getElementById("toggleB").addEventListener("change", (e) => {
+      showBLines = e.target.checked;
+      updateBLines();
+    });
+
+    // ✅ 데이터 로드 완료 후 상태 초기화
+    subEl.textContent = "";
     updateBLines();
 
-    // ✅ 차트 리사이즈 안정화 (디바운스 적용)
+    // ✅ 리사이즈 안정화
     let resizeTimeout;
     window.addEventListener("resize", () => {
       clearTimeout(resizeTimeout);
