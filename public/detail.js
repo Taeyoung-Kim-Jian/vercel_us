@@ -1,5 +1,9 @@
 /* ==========================================================
    📈 detail.js — ECharts + Supabase (페이징 + B가격 토글)
+   ✅ (2025-10-10 안정판)
+   - 뒤로가기 버튼 중복 제거
+   - toggleB 이벤트 null 에러 해결
+   - 스크롤 정상화
    ========================================================== */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -124,7 +128,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       ],
     };
 
-    // ✅ B가격 라인 적용 함수
+    // ✅ B가격 라인 표시/숨기기
     const updateBLines = () => {
       if (!showBLines || bLines.length === 0) {
         chart.setOption(baseOption, true);
@@ -160,35 +164,37 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
 
     /* --------------------------
-       ✅ UI 구성 변경
+       ✅ UI 구성 (툴바)
     --------------------------- */
 
-    // 🔹 차트 왼쪽 위에 B가격 토글
     const toolbar = document.createElement("div");
     toolbar.style.display = "flex";
-    toolbar.style.justifyContent = "space-between";
+    toolbar.style.justifyContent = "flex-end";
     toolbar.style.alignItems = "center";
-    toolbar.style.margin = "10px 0";
+    toolbar.style.margin = "10px auto";
+    toolbar.style.maxWidth = "1000px";
 
     toolbar.innerHTML = `
-      <div style="font-size:14px;">
-        <label style="cursor:pointer;">
-          <input type="checkbox" id="toggleB" checked style="transform:scale(1.1);margin-right:5px;">
-          B가격 표시
-        </label>
-      </div>
-
+      <label style="font-size:14px;cursor:pointer;">
+        <input type="checkbox" id="toggleB" checked style="transform:scale(1.1);margin-right:5px;">
+        B가격 표시
+      </label>
     `;
 
     chartEl.parentNode.insertBefore(toolbar, chartEl);
 
-    // ✅ 이벤트 연결
-    document.getElementById("toggleB").addEventListener("change", (e) => {
-      showBLines = e.target.checked;
-      updateBLines();
-    });
-
-    document.getElementById("backBtn").addEventListener("click", () => history.back());
+    // ✅ 이벤트 연결 (DOM 반영 후 50ms 대기)
+    setTimeout(() => {
+      const toggleB = document.getElementById("toggleB");
+      if (toggleB) {
+        toggleB.addEventListener("change", (e) => {
+          showBLines = e.target.checked;
+          updateBLines();
+        });
+      } else {
+        console.warn("⚠️ toggleB not found at render time");
+      }
+    }, 50);
 
     // ✅ 차트 렌더링
     updateBLines();
