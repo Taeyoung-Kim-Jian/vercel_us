@@ -177,15 +177,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           B가격 표시
         </label>
       </div>
-      <button id="backBtn" class="back-btn" style="
-        background:#2563eb;
-        color:white;
-        border:none;
-        border-radius:6px;
-        padding:6px 12px;
-        font-size:13px;
-        cursor:pointer;
-      ">← 뒤로가기</button>
+
     `;
 
     chartEl.parentNode.insertBefore(toolbar, chartEl);
