@@ -27,7 +27,18 @@ if (!window.SWINGINV.db) {
 } else {
   console.log("ℹ️ Supabase client already initialized.");
 }
+// ------------------------------------------
+// ⏳ 로딩 표시 / 에러 표시 함수
+// ------------------------------------------
+SWINGINV.showLoading = (el, msg = "⏳ 로딩 중...") => {
+  if (el)
+    el.innerHTML = `<div style="text-align:center;color:#666;padding:20px;">${msg}</div>`;
+};
 
+SWINGINV.showError = (el, msg = "❌ 오류 발생") => {
+  if (el)
+    el.innerHTML = `<div style="text-align:center;color:#b91c1c;padding:20px;">${msg}</div>`;
+};
 // ------------------------------------------
 // 🧭 종목명 클릭 시 detail.html로 이동
 // ------------------------------------------
