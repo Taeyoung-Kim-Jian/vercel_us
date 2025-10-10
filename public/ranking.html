@@ -7,40 +7,77 @@
   <link rel="stylesheet" href="./style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./common.js"></script>
+
   <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #f8fafc;
+      margin: 0;
+      padding: 0;
+    }
+
+    main {
+      max-width: 1000px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+      padding: 20px;
+    }
+
+    h2 {
+      margin-top: 0;
+      color: #1e293b;
+    }
+
     .tab-bar {
       text-align: center;
       margin-bottom: 20px;
     }
+
     .tab-bar button {
-      margin: 0 5px;
-      padding: 8px 14px;
+      margin: 0 6px;
+      padding: 8px 16px;
       border: none;
       border-radius: 6px;
-      background: #e5e7eb;
+      background: #e2e8f0;
       cursor: pointer;
+      font-weight: 500;
+      color: #334155;
+      transition: all 0.2s;
     }
+
     .tab-bar button.active {
       background: #2563eb;
-      color: white;
+      color: #fff;
     }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      background: white;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      margin-top: 15px;
+      font-size: 14px;
     }
-    th {
-      background: #2563eb;
-      color: white;
-      padding: 10px;
+
+    thead {
+      background-color: #2563eb;
+      color: #fff;
     }
-    td {
-      border-bottom: 1px solid #e5e7eb;
+
+    th, td {
       padding: 10px;
+      border-bottom: 1px solid #e2e8f0;
       text-align: center;
+    }
+
+    tbody tr:hover {
+      background-color: #f1f5f9;
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px 0;
+      color: #555;
     }
   </style>
 </head>
@@ -57,13 +94,10 @@
       });
   </script>
 
-  <main class="content">
-    <section class="page-header">
-      <h2>📊 관심종목 랭킹</h2>
-      <p>공개된 종목과 나의 관심종목을 함께 확인해보세요.</p>
-    </section>
+  <main>
+    <h2>📊 관심종목 랭킹</h2>
+    <p style="color:#555;">공개된 상위 관심종목과 나의 관심종목을 함께 확인하세요.</p>
 
-    <!-- ✅ 탭 -->
     <div class="tab-bar">
       <button class="tab active" data-tab="ranking">전체 랭킹</button>
       <button class="tab" data-tab="mywatch">나의 관심종목</button>
@@ -116,8 +150,7 @@
 
         if (error) return SWINGINV.showError(container, "로드 실패: " + error.message);
         if (!data?.length) return (container.innerHTML = "<p style='text-align:center;'>📭 데이터 없음</p>");
-
-        renderTable(data, "전체 랭킹");
+        renderTable(data);
       }
 
       // ✅ 나의 관심종목
@@ -139,12 +172,11 @@
         if (error) return SWINGINV.showError(container, "로드 실패: " + error.message);
         if (!data?.length)
           return (container.innerHTML = "<p style='text-align:center;'>📭 등록된 관심종목이 없습니다.</p>");
-
-        renderTable(data, "나의 관심종목");
+        renderTable(data);
       }
 
-      // ✅ 공통 테이블 렌더링 함수
-      function renderTable(data, title) {
+      // ✅ 공통 테이블 렌더링
+      function renderTable(data) {
         let html = `
           <table>
             <thead>
@@ -162,8 +194,8 @@
         `;
         data.forEach((row, i) => {
           const rate = parseFloat(row["수익률"]);
-          const rateColor = rate >= 0 ? "#d32f2f" : "#1976d2";
-          const rateSign = rate >= 0 ? "▲" : "▼";
+          const color = rate >= 0 ? "#d32f2f" : "#1976d2";
+          const sign = rate >= 0 ? "▲" : "▼";
           const nickname = row["닉네임"] || "익명";
 
           html += `
@@ -174,7 +206,7 @@
               <td>${SWINGINV.fmtDate(row["등록일"])}</td>
               <td>${SWINGINV.nf(row["등록종가"])}</td>
               <td>${SWINGINV.nf(row["현재가"])}</td>
-              <td style="font-weight:600;color:${rateColor};">${rateSign}${Math.abs(rate).toFixed(2)}%</td>
+              <td style="font-weight:600;color:${color};">${sign}${Math.abs(rate).toFixed(2)}%</td>
             </tr>`;
         });
 
