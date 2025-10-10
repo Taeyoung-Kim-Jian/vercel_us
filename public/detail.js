@@ -1,9 +1,8 @@
 /* ==========================================================
    📈 detail.js — ECharts + Supabase (페이징 + B가격 토글)
    ✅ (2025-10-10 안정판)
-   - 뒤로가기 버튼 중복 제거
-   - toggleB 이벤트 null 에러 해결
-   - 스크롤 정상화
+   - 뒤로가기 버튼 위치: 제목 오른쪽
+   - "데이터 불러오는 중" 자동 제거
    ========================================================== */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -62,6 +61,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       subEl.textContent = "📭 가격 데이터가 없습니다.";
       return;
     }
+
+    // ✅ 데이터 로드 완료 시 "데이터를 불러오는 중..." 문구 제거
+    subEl.textContent = "";
 
     /* --------------------------
        2️⃣ bt_points 데이터 페이징 로딩
