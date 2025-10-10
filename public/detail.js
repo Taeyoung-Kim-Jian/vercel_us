@@ -1,5 +1,5 @@
 /* ==========================================================
-   📈 detail.js — ECharts + Supabase + B가격 토글 완전판
+   📈 detail.js — ECharts + Supabase + B가격 토글 + 관심종목
    ========================================================== */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -117,7 +117,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       ],
     };
 
-    // ✅ B가격 라인 갱신 함수
+    // ✅ B가격 라인 표시 함수
     const updateBLines = () => {
       if (!showBLines || !bLines.length) {
         chart.setOption(baseOption, true);
@@ -149,13 +149,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       }, true);
     };
 
-    // ✅ UI — B가격 토글 버튼 추가
+    // ✅ UI — B가격 토글 추가
     const toolbar = document.createElement("div");
     toolbar.style.cssText = `
       display: flex;
       align-items: center;
       justify-content: flex-start;
-      gap: 6px;
+      gap: 12px;
       margin: 8px 0 6px 0;
       font-size: 13px;
     `;
@@ -174,7 +174,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       updateBLines();
     });
 
-    // ✅ 데이터 로드 완료 후 상태 초기화
+    // ✅ 데이터 로드 완료 후 메시지 제거
     subEl.textContent = "";
     updateBLines();
 
@@ -184,6 +184,92 @@ document.addEventListener("DOMContentLoaded", async () => {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => chart.resize(), 300);
     });
+
+    /* =====================================================
+       ⭐ 관심종목 등록 기능
+    ===================================================== */
+    const watchToggle = document.getElementById("watchlistToggle");
+    if (watchToggle) {
+      const user = SWINGINV.user;
+
+      // 🔹 로그인된 유저가 이미 등록했는지 확인
+      if (user) {
+        const { data: existing } = await db
+          .from("watchlist")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("종목코드", code)
+          .maybeSingle();
+
+        if (existing) watchToggle.checked = true;
+      }
+
+      // 🔹 체크박스 클릭 이벤트
+      watchToggle.addEventListener("change", async (e) => {
+        const checked = e.target.checked;
+        const user = SWINGINV.user;
+
+        if (!user) {
+          alert("로그인 후 이용할 수 있습니다.");
+          e.target.checked = false;
+          return;
+        }
+
+        if (checked) {
+          try {
+            const { data: latestPrice, error: priceErr } = await db
+              .from("prices")
+              .select("종가, 날짜")
+              .eq("종목코드", code)
+              .order("날짜", { ascending: false })
+              .limit(1)
+              .single();
+
+            if (priceErr || !latestPrice) {
+              alert("가격 정보를 불러올 수 없습니다.");
+              e.target.checked = false;
+              return;
+            }
+
+            const { data: profile } = await db
+              .from("profiles")
+              .select("nickname")
+              .eq("id", user.id)
+              .single();
+
+            const nickname = profile?.nickname || "익명";
+
+            const { error: insertErr } = await db.from("watchlist").insert([
+              {
+                user_id: user.id,
+                닉네임: nickname,
+                종목명: name,
+                종목코드: code,
+                등록일: new Date().toISOString().split("T")[0],
+                등록종가: parseFloat(latestPrice.종가),
+                공개여부: false,
+              },
+            ]);
+
+            if (insertErr) throw insertErr;
+            alert(`✅ ${name}이(가) 관심종목에 추가되었습니다!`);
+          } catch (err) {
+            console.error("❌ 관심종목 등록 오류:", err);
+            alert("등록 중 오류가 발생했습니다.");
+            e.target.checked = false;
+          }
+        } else {
+          const { error } = await db
+            .from("watchlist")
+            .delete()
+            .eq("user_id", user.id)
+            .eq("종목코드", code);
+
+          if (error) console.error(error);
+          else alert(`❎ ${name}이(가) 관심종목에서 제거되었습니다.`);
+        }
+      });
+    }
 
   } catch (err) {
     console.error("❌ 차트 로딩 오류:", err);
