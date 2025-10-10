@@ -241,23 +241,44 @@ button:hover {
   #chart { height: 300px; }
 }
 
-/* 차트 내 뒤로가기 버튼 */
+
+/* ✅ 차트 영역 */
+#chart {
+  position: relative !important;
+  width: 100%;
+  height: 550px;  /* ✅ 살짝 줄임 */
+  margin: 20px auto 80px auto;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  overflow: visible !important;
+  touch-action: pan-y !important;
+  pointer-events: auto !important;
+}
+#chart * {
+  touch-action: pan-y !important;
+  -ms-touch-action: pan-y !important;
+}
+
+/* ✅ 차트 안쪽 뒤로가기 버튼 */
 .chart-back {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 3;
-  background: rgba(37,99,235,0.92);
-  color: #fff;
+  top: 10px;
+  right: 10px;
+  background: #2563eb;
+  color: white;
   border: none;
-  border-radius: 8px;
-  padding: 6px 10px;
-  font-size: 12px;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 13px;
   cursor: pointer;
-  pointer-events: auto;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  transition: transform .15s ease, opacity .15s ease;
+  transition: 0.2s;
+  z-index: 20;
 }
+.chart-back:hover {
+  background: #1d4ed8;
+}
+
 
 .chart-back:hover { transform: translateY(-1px); }
 
