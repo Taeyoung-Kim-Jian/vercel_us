@@ -1,36 +1,37 @@
 /* ==========================================================
-   📅 SWING INVESTOR month.js (v1.1)
-   - Supabase에서 월별 성과 데이터 조회
-   - 컬럼명: 등록일 기반 (발생일 → 등록일 수정)
+   📅 SWING INVESTOR month.js (v1.2)
+   - Supabase monthly_performance_view 뷰에서 월별 성과 조회
+   - 월별 탭 자동 생성 및 테이블 출력
    ========================================================== */
 
 document.addEventListener("DOMContentLoaded", async () => {
   const tableBody = document.getElementById("month-table-body");
   const tabsContainer = document.getElementById("month-tabs");
 
-  // 로딩 표시
-  SWINGINV.showLoading(tableBody, "월별 데이터 불러오는 중...");
+  // ✅ 로딩 표시
+  SWINGINV.showLoading(tableBody, "월별 성과 데이터를 불러오는 중...");
 
   try {
-    // ✅ Supabase 연결
     const db = SWINGINV.db;
 
-    // ✅ 데이터 가져오기
+    // ✅ monthly_performance_view에서 데이터 조회
+    // ※ 컬럼 예시: 종목명, 등록일, 당시가격, 현재가격, 최고, 최저, 수익률
     const { data, error } = await db
-      .from("total_return")
-      .select("종목명, 등록일, 발생일종가, 현재가격, 최고, 최저, 수익률")
+      .from("monthly_performance_view")
+      .select("종목명, 등록일, 당시가격, 현재가격, 최고, 최저, 수익률")
       .order("등록일", { ascending: false });
 
     if (error || !data || data.length === 0) {
-      SWINGINV.showError(tableBody, "데이터가 없습니다.");
-      console.error(error);
+      SWINGINV.showError(tableBody, "월별 성과 데이터가 없습니다.");
+      console.error("❌ Supabase Error:", error);
       return;
     }
 
-    // ✅ 월별 그룹핑
+    // ✅ 월별 그룹화 (등록일 기준)
     const grouped = {};
     data.forEach((row) => {
       const d = new Date(row.등록일);
+      if (isNaN(d)) return;
       const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       if (!grouped[ym]) grouped[ym] = [];
       grouped[ym].push(row);
@@ -43,12 +44,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       .map(
         (m, i) =>
           `<button class="tab-btn ${i === 0 ? "active" : ""}" data-month="${m}">
-            ${m.replace("-", "년 ")}월
-          </button>`
+             ${m.replace("-", "년 ")}월
+           </button>`
       )
       .join("");
 
-    // ✅ 탭 클릭 이벤트
+    // ✅ 탭 클릭 시 데이터 표시
     tabsContainer.querySelectorAll(".tab-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         tabsContainer.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
@@ -57,16 +58,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     });
 
-    // ✅ 초기 렌더링 (최신 월)
+    // ✅ 기본 첫 번째(최신 월) 표시
     renderTable(grouped[months[0]]);
   } catch (err) {
-    console.error(err);
+    console.error("❌ JS Error:", err);
     SWINGINV.showError(tableBody, "데이터를 불러오지 못했습니다.");
   }
 
-  // --------------------------------------
+  // ------------------------------------------
   // 📊 테이블 렌더링 함수
-  // --------------------------------------
+  // ------------------------------------------
   function renderTable(rows) {
     if (!rows || rows.length === 0) {
       SWINGINV.showError(tableBody, "해당 월 데이터가 없습니다.");
@@ -82,7 +83,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           <tr>
             <td>${SWINGINV.esc(r.종목명)}</td>
             <td>${SWINGINV.fmtDate(r.등록일)}</td>
-            <td>${SWINGINV.nf(r.발생일종가)}</td>
+            <td>${SWINGINV.nf(r.당시가격)}</td>
             <td>${SWINGINV.nf(r.현재가격)}</td>
             <td style="color:${color};font-weight:500;">${sign}${수익률.toFixed(2)}%</td>
             <td>${SWINGINV.nf(r.최고)}</td>
