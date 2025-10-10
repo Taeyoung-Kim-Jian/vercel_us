@@ -30,13 +30,17 @@
       color: #1e293b;
     }
 
+    /* ✅ 탭 바 (수평 정렬 고정) */
     .tab-bar {
-      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px; /* 버튼 간격 */
       margin-bottom: 20px;
+      flex-wrap: wrap; /* 모바일에서 자동 줄바꿈 */
     }
 
     .tab-bar button {
-      margin: 0 6px;
       padding: 8px 16px;
       border: none;
       border-radius: 6px;
@@ -45,6 +49,7 @@
       font-weight: 500;
       color: #334155;
       transition: all 0.2s;
+      white-space: nowrap;
     }
 
     .tab-bar button.active {
@@ -94,6 +99,16 @@
       padding: 30px 0;
       color: #555;
     }
+
+    @media (max-width: 600px) {
+      .tab-bar {
+        gap: 6px;
+      }
+      .tab-bar button {
+        font-size: 13px;
+        padding: 6px 12px;
+      }
+    }
   </style>
 </head>
 
@@ -113,8 +128,9 @@
     <h2>📊 관심종목 랭킹</h2>
     <p style="color:#555;">공개된 상위 관심종목과 나의 관심종목을 함께 확인하세요.</p>
 
+    <!-- ✅ 탭 영역 (수평 정렬 유지) -->
     <div class="tab-bar">
-      <button class="tab active" data-tab="ranking">전체 랭킹</button>
+      <button class="tab active" data-tab="ranking">관심종목 랭킹</button>
       <button class="tab" data-tab="mywatch">나의 관심종목</button>
     </div>
 
