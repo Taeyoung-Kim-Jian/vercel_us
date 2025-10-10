@@ -277,3 +277,20 @@ footer {
   background: #f1f5f9;
   border-top: 1px solid #e5e7eb;
 }
+html, body {
+  height: auto !important;
+  overflow-y: auto !important;
+}
+
+main.content {
+  overflow-y: auto;
+  max-height: none;
+  padding-bottom: 100px;
+}
+
+#chart {
+  width: 100%;
+  height: 600px; /* ✅ 더 넉넉히 지정 */
+  overflow: visible;
+  margin-bottom: 50px;
+}
