@@ -4,187 +4,94 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>로그인 | SWING INVESTOR</title>
-  <link rel="stylesheet" href="./style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./common.js"></script>
 
   <style>
-    /* ==============================
-       🌐 SWING INVESTOR 로그인 페이지
-    ============================== */
     body {
-      font-family: "Noto Sans KR", "Segoe UI", sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      background: #f9fafb;
-      margin: 0;
+      font-family: "Noto Sans KR", sans-serif;
+      display: flex; align-items: center; justify-content: center;
+      background: #f9fafb; height: 100vh; margin: 0;
     }
-
-    .login-container {
-      width: 360px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-      padding: 30px 25px 40px;
-      text-align: center;
+    .login-box {
+      width: 360px; background: #fff; border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+      padding: 30px 25px; text-align: center;
     }
-
-    .login-container h2 {
-      font-size: 1.3rem;
-      font-weight: 700;
-      margin-bottom: 20px;
-      color: #111827;
-    }
-
-    input[type="email"] {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      font-size: 14px;
-      margin-bottom: 12px;
-    }
-
+    input { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; margin-bottom: 10px; }
     button {
-      width: 100%;
-      padding: 10px;
-      background: #2563eb;
-      color: white;
-      font-size: 14px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-bottom: 10px;
-      transition: background 0.2s;
+      width: 100%; padding: 10px; border: none; border-radius: 6px;
+      cursor: pointer; margin-bottom: 8px; font-size: 14px;
     }
-
-    button:hover {
-      background: #1e3a8a;
+    .email-btn { background: #2563eb; color: #fff; }
+    .google-btn, .github-btn, .discord-btn {
+      background: #fff; border: 1px solid #d1d5db; color: #111;
     }
-
-    .divider {
-      position: relative;
-      margin: 20px 0;
-      text-align: center;
+    .error-box {
+      display: none; color: #b91c1c; background: #fee2e2;
+      border-radius: 6px; padding: 8px; margin-top: 8px; font-size: 13px;
     }
-
-    .divider::before,
-    .divider::after {
-      content: "";
-      position: absolute;
-      top: 50%;
-      width: 40%;
-      height: 1px;
-      background: #e5e7eb;
-    }
-
-    .divider::before {
-      left: 0;
-    }
-
-    .divider::after {
-      right: 0;
-    }
-
-    .divider span {
-      background: #fff;
-      padding: 0 8px;
-      color: #6b7280;
-      font-size: 12px;
-    }
-
-    .google-btn {
-      background: #fff;
-      color: #374151;
-      border: 1px solid #d1d5db;
-    }
-
-    .google-btn:hover {
-      background: #f3f4f6;
-    }
-
-    .info {
-      font-size: 12px;
-      color: #6b7280;
-      margin-top: 10px;
-    }
-
-    .back-btn {
-      display: inline-block;
-      margin-top: 20px;
-      font-size: 13px;
-      color: #2563eb;
-      cursor: pointer;
-      text-decoration: none;
-    }
-
-    .back-btn:hover {
-      text-decoration: underline;
-    }
+    a { color: #2563eb; text-decoration: none; font-size: 13px; }
+    a:hover { text-decoration: underline; }
   </style>
 </head>
 
 <body>
-  <div class="login-container">
+  <div class="login-box">
     <h2>SWING INVESTOR 로그인</h2>
 
-    <input type="email" id="emailInput" placeholder="이메일 주소 입력" required />
-    <button id="emailLoginBtn">📩 이메일 로그인 링크 받기</button>
+    <input type="email" id="emailInput" placeholder="이메일 주소 입력" />
+    <button id="emailLoginBtn" class="email-btn">📩 이메일 로그인 링크 받기</button>
 
-    <div class="divider"><span>또는</span></div>
+    <div style="margin:15px 0;color:#6b7280;">또는</div>
 
-    <button id="googleLoginBtn" class="google-btn">🔑 Google 계정으로 로그인</button>
+    <button id="googleLoginBtn" class="google-btn">🔑 Google 로그인</button>
+    <button id="githubLoginBtn" class="github-btn">🐙 GitHub 로그인</button>
+    <button id="discordLoginBtn" class="discord-btn">💬 Discord 로그인</button>
 
-    <p class="info">로그인 후 닉네임을 설정하면 자동으로 돌아갑니다.</p>
-
-    <a href="index.html" class="back-btn">← 메인으로 돌아가기</a>
+    <div id="errorBox" class="error-box"></div>
+    <a href="index.html">← 메인으로 돌아가기</a>
   </div>
 
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const redirect = params.get("redirect") || "index.html";
+    const redirect = new URLSearchParams(window.location.search).get("redirect") || "index.html";
+    const { db } = SWINGINV;
 
-    document.addEventListener("DOMContentLoaded", async () => {
-      const emailInput = document.getElementById("emailInput");
-      const emailLoginBtn = document.getElementById("emailLoginBtn");
-      const googleLoginBtn = document.getElementById("googleLoginBtn");
+    const emailInput = document.getElementById("emailInput");
+    const errorBox = document.getElementById("errorBox");
 
-      // ✅ 로그인 세션이 이미 있으면 즉시 redirect
-      const { data: { session } } = await SWINGINV.db.auth.getSession();
-      if (session) {
-        location.href = redirect;
-        return;
-      }
+    const showError = (msg) => {
+      errorBox.textContent = msg;
+      errorBox.style.display = "block";
+      setTimeout(() => errorBox.style.display = "none", 4000);
+    };
 
-      // ✅ 이메일 로그인 (OTP Magic Link)
-      emailLoginBtn.addEventListener("click", async () => {
-        const email = emailInput.value.trim();
-        if (!email) return alert("이메일을 입력해주세요.");
+    // 이메일 로그인
+    document.getElementById("emailLoginBtn").onclick = async () => {
+      const email = emailInput.value.trim();
+      if (!email) return showError("이메일을 입력해주세요.");
 
-        const { error } = await SWINGINV.db.auth.signInWithOtp({ email });
-        if (error) alert("❌ 로그인 실패: " + error.message);
-        else alert("📩 이메일로 로그인 링크를 보냈습니다.\n메일함을 확인해주세요.");
+      const { error } = await db.auth.signInWithOtp({ email });
+      if (error) showError("❌ 로그인 실패: " + error.message);
+      else showError("📩 이메일로 로그인 링크를 보냈습니다. 메일함을 확인해주세요.");
+    };
+
+    // 소셜 로그인 함수
+    async function socialLogin(provider) {
+      const { error } = await db.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: `${window.location.origin}/${redirect}` },
       });
+      if (error) showError(provider + " 로그인 실패: " + error.message);
+    }
 
-      // ✅ Google 로그인
-      googleLoginBtn.addEventListener("click", async () => {
-        const { data, error } = await SWINGINV.db.auth.signInWithOAuth({
-          provider: "google",
-          options: { redirectTo: `${window.location.origin}/${redirect}` },
-        });
-        if (error) alert("Google 로그인 실패: " + error.message);
-      });
+    document.getElementById("googleLoginBtn").onclick = () => socialLogin("google");
+    document.getElementById("githubLoginBtn").onclick = () => socialLogin("github");
+    document.getElementById("discordLoginBtn").onclick = () => socialLogin("discord");
 
-      // ✅ 로그인 상태 변화 감지 후 redirect
-      SWINGINV.db.auth.onAuthStateChange((_event, session) => {
-        if (session) {
-          alert("✅ 로그인 성공! 페이지로 이동합니다.");
-          location.href = redirect;
-        }
-      });
+    // 로그인 상태 변화 감지
+    db.auth.onAuthStateChange((_event, session) => {
+      if (session) location.href = redirect;
     });
   </script>
 </body>
