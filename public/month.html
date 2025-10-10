@@ -3,79 +3,112 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>월별성과 | SWING INVESTOR</title>
+  <title>월별 성과 | SWING INVESTOR</title>
   <link rel="stylesheet" href="./style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./common.js"></script>
 
   <style>
-    /* ✅ 월 탭 스크롤 바 스타일 (네이버 스타일) */
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #f8fafc;
+      margin: 0;
+      padding: 0;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+      padding: 20px;
+    }
+
+    h2 {
+      margin-top: 0;
+      color: #1e293b;
+    }
+
+    /* ✅ 월 탭 바 */
     #month-tabs {
       display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
       gap: 10px;
-      overflow-x: auto;
-      white-space: nowrap;
-      padding: 12px 10px;
-      background: #fff;
-      border-bottom: 1px solid #e5e7eb;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
+      margin-bottom: 20px;
     }
-    #month-tabs::-webkit-scrollbar { display: none; }
 
-    /* 기본 탭 버튼 */
-    #month-tabs .tab-btn {
-      flex: 0 0 auto;
-      background: #f1f5f9;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      padding: 6px 12px;
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: #1e3a8a;
+    #month-tabs button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      background: #e2e8f0;
       cursor: pointer;
+      color: #334155;
+      font-weight: 500;
       transition: all 0.2s;
     }
 
-    /* hover 효과 */
-    #month-tabs .tab-btn:hover {
-      background: #1e3a8a;
+    #month-tabs button.active {
+      background: #2563eb;
       color: #fff;
     }
 
-    /* ✅ 클릭된 탭만 파란색 강조 */
-    #month-tabs .tab-btn.active {
-      background: #1e40af;
-      color: #fff;
-      border-color: #1e40af;
-      font-weight: 600;
-    }
-
-    /* 표 스타일 */
-    .table-wrap {
-      background: #fff;
-      border-radius: 10px;
-      margin: 16px;
-      padding: 16px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
     table {
       width: 100%;
       border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    thead {
+      background-color: #2563eb;
+      color: #fff;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: center;
+    }
+
+    tbody tr:hover {
+      background-color: #f9fafb;
+    }
+
+    /* ✅ 클릭 가능한 행 효과 */
+    .clickable-row {
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .clickable-row:hover {
+      background: #f1f5f9;
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px 0;
+      color: #555;
       font-size: 0.85rem;
     }
-    th, td {
-      text-align: center;
-      padding: 8px;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    th {
-      background: #f1f5f9;
-      color: #111827;
-      font-weight: 600;
-    }
-    tbody tr:hover {
-      background: #f9fafb;
+
+    @media (max-width: 600px) {
+      main {
+        padding: 12px;
+      }
+      table {
+        font-size: 12px;
+      }
+      #month-tabs {
+        gap: 6px;
+      }
+      #month-tabs button {
+        padding: 6px 10px;
+        font-size: 13px;
+      }
     }
   </style>
 </head>
@@ -92,29 +125,35 @@
       });
   </script>
 
-  <main class="content">
-    <h2 style="padding: 16px;">📅 월별 성과 분석</h2>
+  <main>
+    <h2>📅 월별 성과</h2>
+    <p style="color:#555;">월별로 측정된 주요 종목의 수익률을 확인하고 상세 차트로 이동하세요.</p>
 
-    <!-- ✅ 스크롤 가능한 월 탭 -->
+    <!-- ✅ 월 탭 -->
     <div id="month-tabs"></div>
 
-    <!-- ✅ 데이터 테이블 -->
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>종목명</th><th>포착날짜</th><th>당시가격</th><th>현재가</th>
-            <th>현재수익률</th><th>최고</th><th>최저</th>
-          </tr>
-        </thead>
-        <tbody id="month-table-body">
-          <tr><td colspan="7">데이터 불러오는 중...</td></tr>
-        </tbody>
-      </table>
-    </div>
+    <!-- ✅ 테이블 -->
+    <table>
+      <thead>
+        <tr>
+          <th>종목명</th>
+          <th>측정일</th>
+          <th>측정일 종가</th>
+          <th>현재가</th>
+          <th>측정일 대비 수익률</th>
+          <th>최고 수익률</th>
+          <th>최저 수익률</th>
+        </tr>
+      </thead>
+      <tbody id="month-table-body">
+        <tr><td colspan="7" style="text-align:center;">⏳ 데이터를 불러오는 중...</td></tr>
+      </tbody>
+    </table>
   </main>
 
   <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
+
+  <!-- ✅ 동작 스크립트 -->
   <script src="./month.js"></script>
 </body>
 </html>
