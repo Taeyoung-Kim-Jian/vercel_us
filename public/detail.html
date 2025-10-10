@@ -17,18 +17,38 @@
       .then(r => r.text())
       .then(html => {
         document.getElementById("header-container").innerHTML = html;
-        if (typeof SWINGINV_updateHeaderAuthUI === "function") SWINGINV_updateHeaderAuthUI();
+        if (typeof SWINGINV_updateHeaderAuthUI === "function")
+          SWINGINV_updateHeaderAuthUI();
       });
   </script>
 
   <main class="content">
-    <section class="page-header">
-      <h2 id="chart-title">📈 종목 상세</h2>
-      <p id="chart-sub">데이터를 불러오는 중...</p>
-      <button class="back-btn" onclick="history.back()">← 뒤로가기</button>
+    <!-- ✅ 제목 + 뒤로가기 버튼 정렬 -->
+    <section class="page-header"
+      style="display: flex; justify-content: space-between; align-items: center; max-width: 1000px; margin: 0 auto;">
+      
+      <div>
+        <h2 id="chart-title" style="margin-bottom: 6px;">📈 종목 상세</h2>
+        <p id="chart-sub" style="margin:0; color:#666; font-size:14px;">데이터를 불러오는 중...</p>
+      </div>
+
+      <!-- ✅ 제목 오른쪽 끝에 뒤로가기 버튼 -->
+      <button class="back-btn" onclick="history.back()" 
+        style="
+          background:#2563eb;
+          color:white;
+          border:none;
+          border-radius:6px;
+          padding:6px 12px;
+          font-size:13px;
+          cursor:pointer;
+          margin-left:20px;
+        ">
+        ← 뒤로가기
+      </button>
     </section>
 
-    <div id="chart" style="height:400px; max-width:1000px; margin:0 auto;"></div>
+    <div id="chart" style="height:500px; max-width:1000px; margin:30px auto;"></div>
 
     <div id="error-box" class="error-box" style="display:none;">
       <p>⚠️ 잘못된 접근입니다.<br>메인 페이지에서 종목을 선택해주세요.</p>
@@ -36,7 +56,10 @@
     </div>
   </main>
 
-  <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
+  <footer style="text-align:center; color:#666; padding:20px;">
+    © 2025 SWING INVESTOR | 데이터 제공: Supabase
+  </footer>
+
   <script src="./detail.js"></script>
 </body>
 </html>
