@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>로그인 | SWING INVESTOR</title>
+
+  <!-- Supabase SDK + 공통 스크립트 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./common.js"></script>
 
@@ -31,9 +33,7 @@
       margin-bottom: 20px;
       color: #111827;
     }
-    input[type="email"],
-    input[type="password"],
-    input[type="text"] {
+    input {
       width: 100%;
       padding: 10px;
       border: 1px solid #d1d5db;
@@ -53,9 +53,7 @@
       margin-bottom: 10px;
       transition: background 0.2s;
     }
-    button:hover {
-      background: #1e3a8a;
-    }
+    button:hover { background: #1e3a8a; }
     .divider {
       position: relative;
       margin: 20px 0;
@@ -70,12 +68,8 @@
       height: 1px;
       background: #e5e7eb;
     }
-    .divider::before {
-      left: 0;
-    }
-    .divider::after {
-      right: 0;
-    }
+    .divider::before { left: 0; }
+    .divider::after { right: 0; }
     .divider span {
       background: #fff;
       padding: 0 8px;
@@ -87,14 +81,7 @@
       color: #374151;
       border: 1px solid #d1d5db;
     }
-    .google-btn:hover {
-      background: #f3f4f6;
-    }
-    .info {
-      font-size: 12px;
-      color: #6b7280;
-      margin-top: 10px;
-    }
+    .google-btn:hover { background: #f3f4f6; }
     #error-box {
       display: none;
       background: #fee2e2;
@@ -130,17 +117,28 @@
     <!-- 구글 로그인 -->
     <button id="googleBtn" class="google-btn">🔑 Google 계정으로 로그인</button>
 
-    <p class="info">이메일 인증 후 비밀번호를 설정하세요.</p>
+    <p style="font-size:12px;color:#6b7280;">이메일 인증 후 비밀번호를 설정하세요.</p>
   </div>
 
   <script>
   document.addEventListener("DOMContentLoaded", async () => {
-    const db = SWINGINV.db;
     const errBox = document.getElementById("error-box");
     const showError = (msg) => { errBox.style.display="block"; errBox.textContent=msg; };
     const hideError = () => { errBox.style.display="none"; };
 
-    // ✅ 로그인 처리
+    // ✅ Supabase client 로드 대기 (최대 5초)
+    const wait = (ms) => new Promise(r => setTimeout(r, ms));
+    let db;
+    for (let i = 0; i < 20; i++) {
+      if (window.SWINGINV?.db) { db = SWINGINV.db; break; }
+      await wait(250);
+    }
+    if (!db) {
+      showError("❌ Supabase 초기화 실패 (common.js 로드 안됨)");
+      return;
+    }
+
+    // ✅ 로그인 버튼
     document.getElementById("loginBtn").onclick = async () => {
       hideError();
       const email = loginEmail.value.trim();
@@ -149,32 +147,31 @@
 
       const { error } = await db.auth.signInWithPassword({ email, password });
       if (error) return showError("로그인 실패: " + error.message);
+
       alert("✅ 로그인 성공!");
       location.href = "index.html";
     };
 
-    // ✅ 회원가입 처리
+    // ✅ 회원가입 버튼
     document.getElementById("signupBtn").onclick = async () => {
       hideError();
       const email = signupEmail.value.trim();
       const nickname = signupNickname.value.trim();
 
-      if (!email || !nickname) return showError("이메일과 닉네임을 모두 입력해주세요.");
+      if (!email || !nickname)
+        return showError("이메일과 닉네임을 모두 입력해주세요.");
       if (nickname.length < 2 || nickname.length > 12)
         return showError("닉네임은 2~12자여야 합니다.");
 
       try {
-        // 이메일 중복 확인
         const { data: emailDup } = await db.from("profiles").select("email").eq("email", email);
         if (emailDup && emailDup.length > 0)
           return showError("이미 등록된 이메일입니다.");
 
-        // 닉네임 중복 확인
         const { data: nickDup } = await db.from("profiles").select("nickname").eq("nickname", nickname);
         if (nickDup && nickDup.length > 0)
           return showError("이미 사용 중인 닉네임입니다.");
 
-        // 회원가입 요청 (인증 메일 발송)
         const { error } = await db.auth.signUp({
           email,
           password: Math.random().toString(36).slice(2) + "!temp",
