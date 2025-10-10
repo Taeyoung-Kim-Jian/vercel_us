@@ -40,12 +40,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    // 2️⃣ bt_points 테이블의 B가격 데이터 가져오기
+    // 2️⃣ bt_points 테이블의 B가격 데이터 가져오기 (⚙️ 컬럼명 수정)
     const { data: btPoints, error: btErr } = await db
       .from("bt_points")
-      .select("b가격, 발생일")
+      .select("b가격, 생성일")
       .eq("종목코드", code)
-      .order("발생일", { ascending: true });
+      .order("생성일", { ascending: true });
 
     if (btErr) throw btErr;
 
