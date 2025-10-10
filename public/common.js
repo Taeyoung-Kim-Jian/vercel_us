@@ -1,9 +1,5 @@
 /* ==========================================================
-   🌐 SWING INVESTOR common.js (v3.2 full)
-   - 로그인/닉네임 관리
-   - 헤더 자동 로그인 버튼 감지
-   - showLoading / showError 복원
-   - favicon 자동 주입
+   🌐 SWING INVESTOR common.js (닉네임 포함 통합버전)
    ========================================================== */
 
 console.log("🌐 SWING INVESTOR common.js loaded");
@@ -19,19 +15,14 @@ const { createClient } = window.supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ------------------------------------------
-// 🌍 전역 객체 초기화
-// ------------------------------------------
-window.SWINGINV = window.SWINGINV || {};
-SWINGINV.db = db;
-
-// ------------------------------------------
-// 🧩 유틸 함수들
+// 🧩 기본 유틸
 // ------------------------------------------
 function nf(num) {
   if (num == null || num === "") return "-";
   const n = parseFloat(num);
   return isNaN(n) ? "-" : n.toLocaleString();
 }
+
 function fmtPct(v) {
   if (v == null || isNaN(v)) return "-";
   const n = parseFloat(v);
@@ -39,6 +30,7 @@ function fmtPct(v) {
   const color = n >= 0 ? "#d32f2f" : "#1976d2";
   return `<span style="color:${color};font-weight:500;">${sign}${n.toFixed(2)}%</span>`;
 }
+
 function fmtDate(str) {
   if (!str) return "-";
   const d = new Date(str);
@@ -46,45 +38,52 @@ function fmtDate(str) {
     d.getDate()
   ).padStart(2, "0")}`;
 }
+
 function esc(str) {
   return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-// ✅ showLoading / showError 복원
-function showLoading(target, msg = "데이터 불러오는 중...") {
-  if (!target) return;
-  target.innerHTML = `<div style="text-align:center;color:#666;padding:20px;">⏳ ${msg}</div>`;
+function showLoading(t, m = "데이터 불러오는 중...") {
+  if (t) t.innerHTML = `<div style="text-align:center;color:#666;padding:20px;">⏳ ${m}</div>`;
 }
-function showError(target, msg = "데이터 로딩 실패") {
-  if (!target) return;
-  target.innerHTML = `<div style="text-align:center;color:#b91c1c;padding:20px;">❌ ${msg}</div>`;
+function showError(t, m = "데이터 로딩 실패") {
+  if (t) t.innerHTML = `<div style="text-align:center;color:#b91c1c;padding:20px;">❌ ${m}</div>`;
 }
 
 // ------------------------------------------
-// 🔐 로그인 세션 및 닉네임 처리
+// 🔐 로그인 세션 관리 + 닉네임 확인
 // ------------------------------------------
 (async () => {
   try {
     const { data: { session } } = await db.auth.getSession();
+    window.SWINGINV = window.SWINGINV || {};
     SWINGINV.user = session?.user || null;
 
     db.auth.onAuthStateChange(async (_event, session) => {
       SWINGINV.user = session?.user || null;
-      if (SWINGINV.user) await checkNickname();
-      updateHeaderAuthUI();
+      await SWINGINV_checkProfile();
+      SWINGINV_updateHeaderAuthUI();
     });
 
-    if (SWINGINV.user) await checkNickname();
-    updateHeaderAuthUI();
+    // 최초 세션 체크
+    await SWINGINV_checkProfile();
+
+    // 보호 페이지 접근 제한
+    const protectedPages = ["watch.html", "board.html"];
+    const current = location.pathname.split("/").pop();
+    if (protectedPages.includes(current) && !SWINGINV.user) {
+      alert("로그인이 필요한 서비스입니다.");
+      location.href = "login.html";
+    }
   } catch (err) {
-    console.error("❌ Auth 초기화 오류:", err.message);
+    console.error("❌ Auth 초기화 오류:", err);
   }
 })();
 
 // ------------------------------------------
-// 👤 닉네임 확인 / 등록
+// 👤 프로필 닉네임 확인 / 생성 / 요청
 // ------------------------------------------
-async function checkNickname() {
+async function SWINGINV_checkProfile() {
   if (!SWINGINV.user) return;
 
   const { data, error } = await db
@@ -94,37 +93,25 @@ async function checkNickname() {
     .single();
 
   if (error && error.code !== "PGRST116") {
-    console.error("닉네임 조회 실패:", error.message);
+    console.warn("닉네임 조회 오류:", error.message);
     return;
   }
 
   if (!data || !data.nickname) {
+    // 닉네임 입력 요청
     let nickname = "";
-    while (true) {
-      nickname = prompt("닉네임을 설정해주세요 (2~12자, 중복 불가):");
-      if (nickname === null) return;
-      nickname = nickname.trim();
-      if (nickname.length < 2 || nickname.length > 12) {
-        alert("⚠️ 닉네임은 2~12자 사이여야 합니다.");
-        continue;
-      }
-      const { data: dup } = await db.from("profiles").select("nickname").eq("nickname", nickname);
-      if (dup && dup.length > 0) {
-        alert("🚫 이미 사용 중인 닉네임입니다.");
-        continue;
-      }
-      const { error: upErr } = await db.from("profiles").upsert({
-        id: SWINGINV.user.id,
-        nickname,
-      });
-      if (upErr) {
-        alert("닉네임 저장 실패: " + upErr.message);
-        continue;
-      }
-      SWINGINV.user.nickname = nickname;
-      alert(`✅ '${nickname}' 닉네임이 등록되었습니다.`);
-      break;
+    while (!nickname || nickname.length < 2) {
+      nickname = prompt("닉네임을 설정해주세요 (2자 이상):");
+      if (nickname === null) return; // 취소 시 무시
     }
+
+    const { error: upErr } = await db.from("profiles").upsert({
+      id: SWINGINV.user.id,
+      nickname,
+    });
+
+    if (upErr) alert("닉네임 저장 실패: " + upErr.message);
+    else SWINGINV.user.nickname = nickname;
   } else {
     SWINGINV.user.nickname = data.nickname;
   }
@@ -136,52 +123,36 @@ async function checkNickname() {
 async function logoutUser() {
   await db.auth.signOut();
   SWINGINV.user = null;
-  updateHeaderAuthUI();
+  SWINGINV_updateHeaderAuthUI();
   alert("🚪 로그아웃 완료");
 }
 
 // ------------------------------------------
-// 🧭 헤더 로그인/로그아웃 UI 갱신
+// 🧭 헤더 로그인 상태 갱신
 // ------------------------------------------
-function updateHeaderAuthUI() {
-  const tryBind = () => {
-    const emailEl = document.getElementById("user-email");
-    const loginBtn = document.getElementById("loginBtn");
-    const logoutBtn = document.getElementById("logoutBtn");
-    if (!emailEl || !loginBtn || !logoutBtn) return false;
+function SWINGINV_updateHeaderAuthUI() {
+  const emailEl = document.getElementById("user-email");
+  const loginBtn = document.getElementById("loginBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (!emailEl || !loginBtn || !logoutBtn) return;
 
-    const u = SWINGINV.user;
-    if (u) {
-      const label = u.nickname ? u.nickname : u.email;
-      emailEl.textContent = `👤 ${label}`;
-      loginBtn.style.display = "none";
-      logoutBtn.style.display = "inline-block";
-    } else {
-      emailEl.textContent = "로그인 필요";
-      loginBtn.style.display = "inline-block";
-      logoutBtn.style.display = "none";
-    }
-
-    // ✅ 로그인 버튼 클릭 시 redirect
-    loginBtn.onclick = () => {
-      const current = location.pathname.split("/").pop();
-      location.href = `login.html?redirect=${encodeURIComponent(current)}`;
-    };
-    logoutBtn.onclick = logoutUser;
-    return true;
-  };
-
-  // 헤더가 늦게 로드되어도 자동 감지
-  if (!tryBind()) {
-    let retryCount = 0;
-    const timer = setInterval(() => {
-      if (tryBind() || retryCount++ > 30) clearInterval(timer);
-    }, 300);
+  const u = SWINGINV.user;
+  if (u) {
+    const label = u.nickname ? `${u.nickname}` : u.email;
+    emailEl.textContent = `👤 ${label}`;
+    loginBtn.style.display = "none";
+    logoutBtn.style.display = "inline-block";
+  } else {
+    emailEl.textContent = "로그아웃 중";
+    loginBtn.style.display = "inline-block";
+    logoutBtn.style.display = "none";
   }
+
+  logoutBtn.onclick = logoutUser;
 }
 
 // ------------------------------------------
-// 📋 메뉴 강조
+// 📋 네비게이션 메뉴 강조
 // ------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
   const current = location.pathname.split("/").pop();
@@ -189,24 +160,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const m = btn.getAttribute("onclick")?.match(/'(.*?)'/);
     if (m && current === m[1]) btn.classList.add("active");
   });
-  updateHeaderAuthUI();
+  SWINGINV_updateHeaderAuthUI();
 });
 
 // ------------------------------------------
-// 📌 favicon 자동 주입
-// ------------------------------------------
-(function ensureFavicon() {
-  if (!document.querySelector("link[rel='icon']")) {
-    const link = document.createElement("link");
-    link.rel = "icon";
-    link.href =
-      "data:image/x-icon;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD///8AAAAAAAD4+PgA7OzsAPDw8ADw8PAA8PDwAPDw8ADw8PAA8PDwAPDw8ADw8PAA8PDwAPDw8ADw8PAA8PDwA7OzsAPj4+AD///8AAP///wAA";
-    document.head.appendChild(link);
-  }
-})();
-
-// ------------------------------------------
-// 🌍 전역 내보내기
+// 🌍 전역 등록
 // ------------------------------------------
 window.SWINGINV = {
   ...window.SWINGINV,
@@ -218,6 +176,6 @@ window.SWINGINV = {
   showLoading,
   showError,
   logoutUser,
-  checkNickname,
-  updateHeaderAuthUI,
+  SWINGINV_checkProfile,
+  SWINGINV_updateHeaderAuthUI,
 };
