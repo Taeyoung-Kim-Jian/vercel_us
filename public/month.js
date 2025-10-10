@@ -1,7 +1,7 @@
 /* ==========================================================
-   📅 SWING INVESTOR month.js (v1.4)
+   📅 SWING INVESTOR month.js (v1.5)
+   - 월별 탭: 스크롤 가능 / 2025.1 형식
    - 데이터 소스: monthly_performance_view
-   - 컬럼: 월구분, 종목명, 측정일, 측정일종가, 현재가, 수익률, 최고/최저수익률
    ========================================================== */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -36,6 +36,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       SWINGINV.showError(tableBody, "데이터를 불러오지 못했습니다.");
       return;
     }
+
     if (!data || data.length === 0) {
       SWINGINV.showError(tableBody, "월별 성과 데이터가 없습니다.");
       return;
@@ -44,36 +45,39 @@ document.addEventListener("DOMContentLoaded", async () => {
     // ✅ 월별 그룹화
     const grouped = {};
     data.forEach((row) => {
-      const key = row.월구분; // ex) "2025-01"
+      const key = row.월구분; // ex: 2025-01
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(row);
     });
 
     const months = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
-    // ✅ 월별 탭 생성 (2025.1 형식)
+    // ✅ 월 탭 생성 (스크롤 가능 + 2025.1 형식)
     tabsContainer.innerHTML = months
       .map((m, i) => {
         const [year, month] = m.split("-");
-        const formatted = `${year}.${parseInt(month, 10)}`; // 👉 2025.1
+        const label = `${year}.${parseInt(month, 10)}`; // 2025.1
         return `
           <button class="tab-btn ${i === 0 ? "active" : ""}" data-month="${m}">
-            ${formatted}
+            ${label}
           </button>
         `;
       })
       .join("");
 
-    // ✅ 탭 클릭 이벤트
-    tabsContainer.querySelectorAll(".tab-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        tabsContainer.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-        renderTable(grouped[btn.dataset.month]);
-      });
+    // ✅ 클릭 시 월별 데이터 표시
+    tabsContainer.addEventListener("click", (e) => {
+      const btn = e.target.closest(".tab-btn");
+      if (!btn) return;
+
+      tabsContainer.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      const monthKey = btn.dataset.month;
+      renderTable(grouped[monthKey]);
     });
 
-    // ✅ 초기 렌더링
+    // ✅ 초기 첫 번째 월 렌더링
     renderTable(grouped[months[0]]);
   } catch (err) {
     console.error("❌ JS Error:", err);
