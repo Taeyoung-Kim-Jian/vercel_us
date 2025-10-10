@@ -94,7 +94,7 @@ document.addEventListener("click", (e) => {
 });
 
 // ------------------------------------------
-// 🔐 로그인 상태 갱신 함수
+// 🔐 로그인 상태 갱신 함수 (닉네임만 표시)
 // ------------------------------------------
 async function SWINGINV_updateHeaderAuthUI() {
   try {
@@ -106,28 +106,27 @@ async function SWINGINV_updateHeaderAuthUI() {
     const logoutBtn = document.getElementById("logoutBtn");
 
     if (session?.user) {
-       SWINGINV.user = session.user; // ✅ 로그인 사용자 정보를 전역에 저장
+      SWINGINV.user = session.user; // ✅ 로그인 사용자 정보를 전역에 저장
 
-      // ✅ 로그인 상태
+      // ✅ 로그인 상태 UI
       if (loginBtn) loginBtn.style.display = "none";
       if (logoutBtn) logoutBtn.style.display = "inline-block";
 
+      // ✅ 닉네임만 가져오기
       const { data: profile } = await db
         .from("profiles")
         .select("nickname")
         .eq("id", session.user.id)
         .single();
 
-      if (emailSpan) {
-        emailSpan.textContent = profile?.nickname
-          ? `${profile.nickname} (${session.user.email}) 로그인 중`
-          : `${session.user.email} 로그인 중`;
-      }
+      const nickname = profile?.nickname || "사용자";
+      if (emailSpan) emailSpan.textContent = `${nickname} 님`;
 
+      // ✅ 로그아웃 버튼 동작
       if (logoutBtn) {
         logoutBtn.onclick = async () => {
           await db.auth.signOut();
-           SWINGINV.user = null; // ✅ 로그아웃 시 전역 정보 초기화
+          SWINGINV.user = null; // ✅ 로그아웃 시 전역 정보 초기화
           alert("로그아웃되었습니다.");
           location.href = "login.html";
         };
