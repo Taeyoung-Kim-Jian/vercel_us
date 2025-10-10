@@ -17,25 +17,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const backBtn = document.createElement("button");
     backBtn.id = "backBtn";
     backBtn.textContent = "← 뒤로가기";
-    backBtn.style.cssText = `
-      position:absolute;
-      right:0;
-      top:50%;
-      transform:translateY(-50%);
-      background:#2563eb;
-      color:white;
-      border:none;
-      border-radius:6px;
-      padding:5px 10px;
-      font-size:13px;
-      cursor:pointer;
-      transition:0.2s;
-    `;
     backBtn.addEventListener("click", () => history.back());
     header.appendChild(backBtn);
   })();
 
-  /* ✅ 종목코드 없을 때 에러 처리 */
+  /* ✅ 종목코드 유효성 검사 */
   if (!code) {
     chartEl.style.display = "none";
     errorBox.style.display = "block";
@@ -171,7 +157,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
 
     /* -----------------------------
-       4️⃣ 관심종목 / B가격 토글
+       4️⃣ UI 이벤트
     ----------------------------- */
     const toggleB = document.getElementById("toggleB");
     const watchToggle = document.getElementById("watchToggle");
@@ -193,7 +179,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (existing) watchToggle.checked = true;
     }
 
-    /* ✅ 관심종목 등록/삭제 */
+    /* ✅ 관심종목 등록 / 삭제 */
     watchToggle.addEventListener("change", async (e) => {
       if (!SWINGINV.user) {
         alert("🔐 로그인 후 이용해주세요.");
@@ -214,7 +200,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           종목코드: code,
           등록일: new Date().toISOString(),
           등록종가: latestPrice,
-          공개여부: true, // ✅ 자동 공개 설정
+          공개여부: true,
         });
 
         if (error) {
