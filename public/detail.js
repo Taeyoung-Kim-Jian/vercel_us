@@ -1,5 +1,5 @@
 /* ==========================================================
-   📈 detail.js — ECharts + Supabase (B가격 + 관심종목 완성버전)
+   📈 detail.js — ECharts + Supabase + 뒤로가기 버튼 자동삽입 버전
    ========================================================== */
 document.addEventListener("DOMContentLoaded", async () => {
   const urlParams = new URLSearchParams(window.location.search);
@@ -10,6 +10,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   const subEl = document.getElementById("chart-sub");
   const errorBox = document.getElementById("error-box");
 
+  // ✅ 동적으로 뒤로가기 버튼 생성
+  const backBtn = document.createElement("button");
+  backBtn.id = "backBtn";
+  backBtn.textContent = "← 뒤로가기";
+  backBtn.addEventListener("click", () => history.back());
+  document.querySelector(".page-header").appendChild(backBtn);
+
   if (!code) {
     chartEl.style.display = "none";
     errorBox.style.display = "block";
@@ -19,7 +26,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   titleEl.textContent = `📈 ${name || "종목"} (${code})`;
   const chart = echarts.init(chartEl);
 
-  /* ✅ Supabase 로드 대기 */
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   let db;
   for (let i = 0; i < 25; i++) {
@@ -34,20 +40,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  /* ✅ 유저 세션 확인 */
   const { data: { session } } = await db.auth.getSession();
   const user = session?.user || null;
   if (user) SWINGINV.user = user;
 
   try {
-    /* -----------------------------
-       1️⃣ 가격 데이터 로드 (paging)
-    ----------------------------- */
+    // ----------------------------- 가격 데이터 로드 -----------------------------
     let allPrices = [];
     const pageSize = 1000;
-    let from = 0;
-    let to = pageSize - 1;
-    let done = false;
+    let from = 0, to = pageSize - 1, done = false;
 
     while (!done) {
       const { data, error } = await db
@@ -72,9 +73,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    /* -----------------------------
-       2️⃣ B가격 데이터 로드
-    ----------------------------- */
+    // ----------------------------- B가격 -----------------------------
     const { data: btData } = await db
       .from("bt_points")
       .select("b가격, 생성일")
@@ -85,9 +84,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const closePrices = allPrices.map((d) => parseFloat(d.종가));
     const bLines = Array.from(new Set(btData?.map((b) => parseFloat(b.b가격)) || []));
 
-    /* -----------------------------
-       3️⃣ 차트 기본 옵션
-    ----------------------------- */
+    // ----------------------------- 차트 -----------------------------
     let showBLines = true;
     const baseOption = {
       tooltip: {
@@ -120,7 +117,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             label: { formatter: `B ${b.toLocaleString()}`, color: "#e11d48" },
           }))
         : [];
-
       chart.setOption({
         ...baseOption,
         series: [
@@ -134,41 +130,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     };
 
-    /* -----------------------------
-       4️⃣ 상단 툴바 UI
-    ----------------------------- */
-    const toolbar = document.createElement("div");
-    toolbar.style.display = "flex";
-    toolbar.style.justifyContent = "space-between";
-    toolbar.style.alignItems = "center";
-    toolbar.style.margin = "10px 0";
-    toolbar.style.flexWrap = "wrap";
-    toolbar.innerHTML = `
-      <div style="display:flex;align-items:center;gap:12px;">
-        <label style="cursor:pointer;font-size:14px;">
-          <input type="checkbox" id="toggleB" checked style="transform:scale(1.1);margin-right:5px;">
-          B가격 표시
-        </label>
-        <label id="watchLabel" style="cursor:pointer;font-size:14px;">
-          <input type="checkbox" id="watchToggle" style="transform:scale(1.1);margin-right:5px;">
-          ⭐ 관심종목 등록
-        </label>
-      </div>
-      <button id="backBtn" class="back-btn" style="
-        background:#2563eb;color:white;border:none;border-radius:6px;
-        padding:6px 12px;font-size:13px;cursor:pointer;">← 뒤로가기</button>
-    `;
-    chartEl.parentNode.insertBefore(toolbar, chartEl);
+    // ----------------------------- 관심종목 -----------------------------
+    const toggleB = document.getElementById("toggleB");
+    const watchToggle = document.getElementById("watchToggle");
 
-    document.getElementById("toggleB").addEventListener("change", (e) => {
+    toggleB.addEventListener("change", (e) => {
       showBLines = e.target.checked;
       updateBLines();
     });
-    document.getElementById("backBtn").addEventListener("click", () => history.back());
 
-    const watchToggle = document.getElementById("watchToggle");
-
-    /* ✅ 5️⃣ 로그인 시, 이미 등록된 종목 자동 체크 */
     if (user) {
       const { data: existing } = await db
         .from("watchlist")
@@ -177,12 +147,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         .eq("종목코드", code)
         .maybeSingle();
 
-      if (existing) {
-        watchToggle.checked = true;
-      }
+      if (existing) watchToggle.checked = true;
     }
 
-    /* ✅ 6️⃣ 관심종목 등록 / 삭제 */
     watchToggle.addEventListener("change", async (e) => {
       if (!SWINGINV.user) {
         alert("🔐 로그인 후 이용해주세요.");
@@ -221,15 +188,19 @@ document.addEventListener("DOMContentLoaded", async () => {
             .eq("user_id", SWINGINV.user.id)
             .eq("종목코드", code);
           alert("🗑️ 삭제되었습니다.");
-        } else {
-          e.target.checked = true;
-        }
+        } else e.target.checked = true;
       }
     });
 
     updateBLines();
     window.addEventListener("resize", () => chart.resize());
-    subEl.textContent = ""; // ✅ “데이터를 불러오는 중...” 제거
+    subEl.textContent = "";
+
+    // ✅ 스크롤 정상화
+    document.body.style.overflow = "auto";
+    document.body.style.height = "auto";
+    document.documentElement.style.overflow = "auto";
+    document.documentElement.style.height = "auto";
   } catch (err) {
     console.error("❌ 차트 로딩 오류:", err);
     subEl.textContent = "⚠️ 차트를 불러오지 못했습니다.";
