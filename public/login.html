@@ -61,21 +61,28 @@
   </div>
 
   <script>
+    // ✅ Supabase 초기화
     const SUPABASE_URL = "https://sssmldmhcfuodutvvcqf.supabase.co";
     const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY"; // ← 여기에 anon key 입력
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // 페이지 로드시 로그인 상태 확인
-    checkLogin();
-
-    async function checkLogin() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        showUser(user);
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: {
+        persistSession: true,        // 세션 지속 저장
+        autoRefreshToken: true,      // 자동 토큰 갱신
+        detectSessionInUrl: true     // OAuth 리다이렉션 지원
       }
-    }
+    });
 
-    // 회원가입
+    // ✅ 페이지 로드 시 로그인 상태 확인
+    document.addEventListener("DOMContentLoaded", async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        showUser(session.user);
+      } else {
+        console.log("로그인된 사용자가 없습니다.");
+      }
+    });
+
+    // ✅ 회원가입
     document.getElementById("signupBtn").onclick = async () => {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
@@ -86,26 +93,34 @@
         password,
         options: {
           data: { nickname },
-          redirectTo: 'https://vercel-project-1.onrender.com/set-password.html'
+          emailRedirectTo: "https://vercel-project-1.onrender.com/set-password.html"
         }
       });
 
-      if (error) alert("회원가입 실패: " + error.message);
-      else alert("인증 메일을 확인해주세요!");
+      if (error) {
+        alert("회원가입 실패: " + error.message);
+        console.error(error);
+      } else {
+        alert("✅ 회원가입 성공! 이메일을 확인해주세요.");
+        console.log("회원가입 완료:", data);
+      }
     };
 
-    // 로그인
+    // ✅ 로그인
     document.getElementById("loginBtn").onclick = async () => {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
 
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) return alert("로그인 실패: " + error.message);
+      if (error) {
+        alert("로그인 실패: " + error.message);
+        return;
+      }
 
       showUser(data.user);
     };
 
-    // 로그아웃
+    // ✅ 로그아웃
     document.getElementById("logoutBtn").onclick = async () => {
       await supabase.auth.signOut();
       document.getElementById("userInfo").innerText = "";
@@ -113,21 +128,26 @@
       alert("로그아웃되었습니다.");
     };
 
-    // 사용자 정보 표시
+    // ✅ 사용자 정보 표시
     async function showUser(user) {
       document.getElementById("logoutBtn").style.display = "block";
+      document.getElementById("userInfo").innerText = "로그인 중...";
 
-      // auth.users의 id로 profiles에서 닉네임 가져오기
+      // profiles 테이블에서 닉네임 조회
       const { data: profile, error } = await supabase
         .from("profiles")
         .select("nickname")
         .eq("id", user.id)
         .single();
 
-      if (profile && profile.nickname) {
-        document.getElementById("userInfo").innerText = `환영합니다, ${profile.nickname}님!`;
-      } else {
+      if (error) {
+        console.warn("프로필 조회 실패:", error.message);
         document.getElementById("userInfo").innerText = `${user.email}로 로그인 중`;
+      } else {
+        document.getElementById("userInfo").innerText =
+          profile?.nickname
+            ? `환영합니다, ${profile.nickname}님!`
+            : `${user.email}로 로그인 중`;
       }
     }
   </script>
