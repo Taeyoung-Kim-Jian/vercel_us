@@ -8,6 +8,77 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5"></script>
   <script src="./common.js"></script>
+
+  <style>
+    .page-header {
+      position: relative;
+      text-align: center;
+      margin: 25px 0;
+    }
+
+    .page-header h2 {
+      font-size: 1.2rem;
+      margin: 0;
+      color: #1e293b;
+    }
+
+    .back-btn {
+      position: absolute;
+      top: 0;
+      right: 0;
+      font-size: 0.8rem;
+      padding: 4px 8px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .back-btn:hover {
+      background: #1d4ed8;
+    }
+
+    #chart {
+      width: 100%;
+      height: 600px;
+      max-width: 1000px;
+      margin: 0 auto 100px auto;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    #chart-sub {
+      color: #555;
+      font-size: 0.9rem;
+    }
+
+    #watchlist-box {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 13px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #watchlistToggle {
+      transform: scale(1.1);
+      margin-right: 5px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 16px;
+      font-size: 0.8rem;
+      color: #777;
+      background: #f1f5f9;
+      border-top: 1px solid #e5e7eb;
+    }
+  </style>
 </head>
 
 <body>
@@ -23,39 +94,24 @@
       });
   </script>
 
-  <main class="content">
+  <main class="content" style="padding: 20px;">
     <!-- 🔹 상단 제목 + 뒤로가기 버튼 -->
-    <section class="page-header" style="position: relative;">
-      <h2 id="chart-title" style="text-align:center;">📈 종목 상세</h2>
-      <button class="back-btn"
-        onclick="history.back()"
-        style="
-          position:absolute;
-          top:0;
-          right:0;
-          font-size:0.8rem;
-          padding:4px 8px;
-          background:#2563eb;
-          color:white;
-          border:none;
-          border-radius:6px;
-          cursor:pointer;
-        ">
-        ←
-      </button>
-      <p id="chart-sub" style="text-align:center; color:#555;">데이터를 불러오는 중...</p>
+    <section class="page-header">
+      <h2 id="chart-title">📈 종목 상세</h2>
+      <button class="back-btn" onclick="history.back()">←</button>
+      <p id="chart-sub">데이터를 불러오는 중...</p>
     </section>
 
+    <!-- 🔹 관심종목 등록 체크박스 -->
+    <div id="watchlist-box">
+      <label style="cursor:pointer;">
+        <input type="checkbox" id="watchlistToggle">
+        관심종목 등록
+      </label>
+    </div>
+
     <!-- 🔹 차트 영역 -->
-    <div id="chart" style="
-      width:100%;
-      height:600px;
-      max-width:1000px;
-      margin:0 auto 100px auto;
-      background:#fff;
-      border-radius:10px;
-      box-shadow:0 2px 6px rgba(0,0,0,0.05);
-    "></div>
+    <div id="chart"></div>
 
     <!-- 🔹 에러 박스 -->
     <div id="error-box" class="error-box" style="display:none;">
@@ -66,6 +122,7 @@
 
   <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
 
+  <!-- ✅ 상세 로직 -->
   <script src="./detail.js"></script>
 </body>
 </html>
