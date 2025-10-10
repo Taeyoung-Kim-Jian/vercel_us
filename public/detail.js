@@ -1,27 +1,17 @@
 /* ==========================================================
-   📈 detail.js — ECharts + Supabase 통합 안정버전
+   📈 detail.js — ECharts + Supabase (버튼 오버레이 & 스크롤 보정)
    ========================================================== */
 document.addEventListener("DOMContentLoaded", async () => {
   const urlParams = new URLSearchParams(window.location.search);
   const code = urlParams.get("code");
   const name = urlParams.get("name");
-  const chartEl = document.getElementById("chart");
-  const titleEl = document.getElementById("chart-title");
-  const subEl = document.getElementById("chart-sub");
+
+  const chartEl  = document.getElementById("chart");
+  const titleEl  = document.getElementById("chart-title");
+  const subEl    = document.getElementById("chart-sub");
   const errorBox = document.getElementById("error-box");
 
-  /* ✅ 뒤로가기 버튼을 JS에서 추가 */
-  (() => {
-    const header = document.querySelector(".page-header");
-    if (!header) return;
-    const backBtn = document.createElement("button");
-    backBtn.id = "backBtn";
-    backBtn.textContent = "← 뒤로가기";
-    backBtn.addEventListener("click", () => history.back());
-    header.appendChild(backBtn);
-  })();
-
-  /* ✅ 종목코드 유효성 검사 */
+  /* ✅ 종목코드 검사 */
   if (!code) {
     chartEl.style.display = "none";
     errorBox.style.display = "block";
@@ -29,26 +19,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   titleEl.textContent = `📈 ${name || "종목"} (${code})`;
-  const chart = echarts.init(chartEl);
 
-  /* ✅ 모바일 스크롤 방해 방지 */
-  try {
-    chart.getDom().style.touchAction = "pan-y";
-    const canvases = chartEl.querySelectorAll("canvas");
-    canvases.forEach((c) => {
-      c.style.touchAction = "pan-y";
-      c.style.pointerEvents = "auto";
-    });
-  } catch (e) {}
+  /* ✅ 차트 내부(오른쪽 위)에 '뒤로가기' 버튼 동적 삽입 */
+  (function mountBackBtnInsideChart() {
+    const btn = document.createElement("button");
+    btn.className   = "chart-back";
+    btn.type        = "button";
+    btn.textContent = "← 뒤로가기";
+    btn.addEventListener("click", () => history.back());
+    chartEl.appendChild(btn);
+  })();
 
   /* ✅ Supabase 로드 대기 */
-  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const wait = (ms) => new Promise(r => setTimeout(r, ms));
   let db;
   for (let i = 0; i < 25; i++) {
-    if (window.SWINGINV?.db) {
-      db = SWINGINV.db;
-      break;
-    }
+    if (window.SWINGINV?.db) { db = SWINGINV.db; break; }
     await wait(200);
   }
   if (!db) {
@@ -61,15 +47,26 @@ document.addEventListener("DOMContentLoaded", async () => {
   const user = session?.user || null;
   if (user) SWINGINV.user = user;
 
+  /* ✅ ECharts 초기화 */
+  const chart = echarts.init(chartEl);
+
+  // 🔧 모바일 스크롤 방해 방지 (차트/캔버스 모두 허용)
+  try {
+    chart.getDom().style.touchAction = "pan-y";
+    const canvases = chartEl.querySelectorAll("canvas");
+    canvases.forEach(c => {
+      c.style.touchAction  = "pan-y";
+      c.style.pointerEvents = "auto";
+    });
+  } catch(e) {}
+
   try {
     /* -----------------------------
-       1️⃣ 가격 데이터 로드 (페이징)
+       1) 가격 데이터 로드 (페이징)
     ----------------------------- */
     let allPrices = [];
     const pageSize = 1000;
-    let from = 0;
-    let to = pageSize - 1;
-    let done = false;
+    let from = 0, to = pageSize - 1, done = false;
 
     while (!done) {
       const { data, error } = await db
@@ -80,22 +77,24 @@ document.addEventListener("DOMContentLoaded", async () => {
         .range(from, to);
 
       if (error) throw error;
-      if (!data?.length) done = true;
-      else {
+
+      if (!data?.length) {
+        done = true;
+      } else {
         allPrices = allPrices.concat(data);
         if (data.length < pageSize) done = true;
         from += pageSize;
-        to += pageSize;
+        to   += pageSize;
       }
     }
 
-    if (allPrices.length === 0) {
+    if (!allPrices.length) {
       subEl.textContent = "📭 가격 데이터가 없습니다.";
       return;
     }
 
     /* -----------------------------
-       2️⃣ B가격 데이터 로드
+       2) B가격 데이터 로드
     ----------------------------- */
     const { data: btData } = await db
       .from("bt_points")
@@ -103,14 +102,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       .eq("종목코드", code)
       .order("생성일", { ascending: true });
 
-    const dates = allPrices.map((d) => d.날짜);
-    const closePrices = allPrices.map((d) => parseFloat(d.종가));
-    const bLines = Array.from(new Set(btData?.map((b) => parseFloat(b.b가격)) || []));
+    const dates       = allPrices.map(d => d.날짜);
+    const closePrices = allPrices.map(d => parseFloat(d.종가));
+    const bLines      = Array.from(new Set(btData?.map(b => parseFloat(b.b가격)) || []));
 
     /* -----------------------------
-       3️⃣ 차트 옵션
+       3) 차트 옵션 + 렌더
     ----------------------------- */
     let showBLines = true;
+
     const baseOption = {
       tooltip: {
         trigger: "axis",
@@ -121,22 +121,20 @@ document.addEventListener("DOMContentLoaded", async () => {
       },
       xAxis: { type: "category", data: dates, boundaryGap: false },
       yAxis: { type: "value", scale: true },
-      grid: { left: 60, right: 20, top: 40, bottom: 60 },
-      series: [
-        {
-          name: "종가",
-          type: "line",
-          data: closePrices,
-          smooth: true,
-          lineStyle: { width: 2, color: "#2563eb" },
-          areaStyle: { color: "rgba(37,99,235,0.08)" },
-        },
-      ],
+      grid:  { left: 60, right: 20, top: 40, bottom: 60 },
+      series: [{
+        name: "종가",
+        type: "line",
+        data: closePrices,
+        smooth: true,
+        lineStyle: { width: 2, color: "#2563eb" },
+        areaStyle: { color: "rgba(37,99,235,0.08)" },
+      }],
     };
 
     const updateBLines = () => {
       const markLines = showBLines
-        ? bLines.map((b) => ({
+        ? bLines.map(b => ({
             yAxis: b,
             lineStyle: { color: "#e11d48", type: "dashed" },
             label: { formatter: `B ${b.toLocaleString()}`, color: "#e11d48" },
@@ -145,21 +143,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       chart.setOption({
         ...baseOption,
-        series: [
-          {
-            ...baseOption.series[0],
-            markLine: markLines.length
-              ? { symbol: "none", label: { show: true }, data: markLines }
-              : undefined,
-          },
-        ],
+        series: [{
+          ...baseOption.series[0],
+          markLine: markLines.length
+            ? { symbol: "none", label: { show: true }, data: markLines }
+            : undefined,
+        }],
       });
     };
 
     /* -----------------------------
-       4️⃣ UI 이벤트
+       4) UI 이벤트 (툴바)
     ----------------------------- */
-    const toggleB = document.getElementById("toggleB");
+    const toggleB     = document.getElementById("toggleB");
     const watchToggle = document.getElementById("watchToggle");
 
     toggleB.addEventListener("change", (e) => {
@@ -167,7 +163,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       updateBLines();
     });
 
-    /* ✅ 로그인 시 이미 등록된 관심종목 체크 */
+    // 이미 관심종목인지 체크
     if (user) {
       const { data: existing } = await db
         .from("watchlist")
@@ -175,11 +171,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         .eq("user_id", user.id)
         .eq("종목코드", code)
         .maybeSingle();
-
       if (existing) watchToggle.checked = true;
     }
 
-    /* ✅ 관심종목 등록 / 삭제 */
+    // 관심종목 등록/삭제
     watchToggle.addEventListener("change", async (e) => {
       if (!SWINGINV.user) {
         alert("🔐 로그인 후 이용해주세요.");
@@ -200,7 +195,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           종목코드: code,
           등록일: new Date().toISOString(),
           등록종가: latestPrice,
-          공개여부: true,
+          공개여부: true, // 자동 공개
         });
 
         if (error) {
@@ -212,12 +207,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
       } else {
         if (confirm("🗑️ 관심종목에서 삭제하시겠습니까?")) {
-          await db
+          const { error } = await db
             .from("watchlist")
             .delete()
             .eq("user_id", SWINGINV.user.id)
             .eq("종목코드", code);
-          alert("🗑️ 삭제되었습니다.");
+          if (error) {
+            console.error(error);
+            alert("삭제 실패: " + error.message);
+            e.target.checked = true;
+          } else {
+            alert("🗑️ 삭제되었습니다.");
+          }
         } else {
           e.target.checked = true;
         }
@@ -225,12 +226,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     /* -----------------------------
-       5️⃣ 차트 렌더 + 스크롤 복원
+       5) 차트 렌더 + 스크롤 보정
     ----------------------------- */
     updateBLines();
     window.addEventListener("resize", () => chart.resize());
     subEl.textContent = "";
 
+    // 페이지 스크롤 강제 복구(혹시 외부 CSS가 막아도)
     document.body.style.overflow = "auto";
     document.documentElement.style.overflow = "auto";
   } catch (err) {
