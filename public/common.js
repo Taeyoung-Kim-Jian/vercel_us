@@ -106,6 +106,8 @@ async function SWINGINV_updateHeaderAuthUI() {
     const logoutBtn = document.getElementById("logoutBtn");
 
     if (session?.user) {
+       SWINGINV.user = session.user; // ✅ 로그인 사용자 정보를 전역에 저장
+
       // ✅ 로그인 상태
       if (loginBtn) loginBtn.style.display = "none";
       if (logoutBtn) logoutBtn.style.display = "inline-block";
