@@ -23,32 +23,45 @@
   </script>
 
   <main class="content">
-    <!-- ✅ 제목 + 뒤로가기 버튼 정렬 -->
+    <!-- ✅ 중앙 제목 + 오른쪽 버튼 -->
     <section class="page-header"
-      style="display: flex; justify-content: space-between; align-items: center; max-width: 1000px; margin: 0 auto;">
-      
+      style="
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        max-width: 1000px;
+        margin: 0 auto;
+        text-align: center;
+        padding: 10px 0;
+      ">
+
+      <!-- 중앙 제목 -->
       <div>
-        <h2 id="chart-title" style="margin-bottom: 6px;">📈 종목 상세</h2>
+        <h2 id="chart-title" style="margin-bottom: 4px;">📈 종목 상세</h2>
         <p id="chart-sub" style="margin:0; color:#666; font-size:14px;">데이터를 불러오는 중...</p>
       </div>
 
-      <!-- ✅ 제목 오른쪽 끝에 뒤로가기 버튼 -->
+      <!-- 오른쪽 끝 뒤로가기 -->
       <button class="back-btn" onclick="history.back()" 
         style="
+          position: absolute;
+          right: 10px;
+          top: 50%;
+          transform: translateY(-50%);
           background:#2563eb;
           color:white;
           border:none;
-          border-radius:6px;
-          padding:6px 12px;
-          font-size:13px;
+          border-radius:4px;
+          padding:4px 8px;
+          font-size:12px;
           cursor:pointer;
-          margin-left:20px;
         ">
-        ← 뒤로가기
+        ← 뒤로
       </button>
     </section>
 
-    <div id="chart" style="height:500px; max-width:1000px; margin:30px auto;"></div>
+    <div id="chart" style="height:500px; max-width:1000px; margin:20px auto;"></div>
 
     <div id="error-box" class="error-box" style="display:none;">
       <p>⚠️ 잘못된 접근입니다.<br>메인 페이지에서 종목을 선택해주세요.</p>
