@@ -1,10 +1,12 @@
 <!-- ✅ SWING INVESTOR 공통 헤더 -->
 <header id="site-header">
   <div class="header-top">
+    <!-- 🔹 로고 -->
     <h1 class="logo" onclick="location.href='index.html'">
       <span class="logo-text">SWING INVESTOR</span>
     </h1>
 
+    <!-- 🔹 로그인 영역 -->
     <div class="auth-area">
       <span id="user-email">로그아웃 중</span>
       <button id="loginBtn" class="btn-login" onclick="location.href='login.html'">로그인</button>
@@ -12,6 +14,7 @@
     </div>
   </div>
 
+  <!-- 🔹 네비게이션 메뉴 -->
   <nav class="gnb">
     <button onclick="location.href='index.html'">홈</button>
     <button onclick="location.href='proper.html'">스윙 종목</button>
@@ -33,43 +36,63 @@
     z-index: 100;
     font-family: "Noto Sans KR", "Segoe UI", Arial, sans-serif;
   }
+
+  /* 상단 로고 + 로그인 영역 */
   .header-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 44px;
-    padding: 0 16px;
+    padding: 8px 16px;
     max-width: 1200px;
     margin: 0 auto;
+    flex-wrap: wrap; /* ✅ 모바일에서 줄바꿈 허용 */
   }
+
   .logo {
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 700;
     color: #1f2937;
     cursor: pointer;
+    flex-shrink: 0;
   }
+
+  /* 로그인/로그아웃 영역 */
   .auth-area {
     display: flex;
     align-items: center;
     gap: 6px;
     font-size: 12px;
     color: #4b5563;
+    margin-top: 4px; /* ✅ 위/아래 간격 */
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
+
+  /* 로그인 버튼 */
   .btn-login {
     color: #2563eb;
     border: 1px solid #2563eb;
     background: #f8fafc;
     border-radius: 4px;
     padding: 3px 8px;
+    font-size: 12px;
   }
-  .btn-login:hover { background: #eff6ff; }
+
+  .btn-login:hover {
+    background: #eff6ff;
+  }
+
+  /* 로그아웃 버튼 */
   .btn-logout {
     color: #6b7280;
     border: 1px solid #d1d5db;
     background: #f9fafb;
     border-radius: 4px;
     padding: 3px 8px;
+    font-size: 12px;
   }
+
+  /* 메뉴 영역 */
   .gnb {
     display: flex;
     justify-content: center;
@@ -79,7 +102,11 @@
     white-space: nowrap;
     scrollbar-width: none;
   }
-  .gnb::-webkit-scrollbar { display: none; }
+
+  .gnb::-webkit-scrollbar {
+    display: none;
+  }
+
   .gnb button {
     flex-shrink: 0;
     padding: 9px 12px;
@@ -90,14 +117,36 @@
     cursor: pointer;
     transition: all 0.15s ease-in-out;
   }
+
   .gnb button:hover {
     color: #2563eb;
     background: #f1f5ff;
   }
+
+  /* ✅ 반응형 (모바일 대응) */
   @media (max-width: 768px) {
-    .header-top { flex-direction: column; align-items: flex-start; }
-    .auth-area { align-self: flex-end; font-size: 11px; }
-    .gnb button { font-size: 12px; padding: 8px 10px; }
+    .header-top {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      padding: 6px 12px;
+    }
+
+    .auth-area {
+      justify-content: flex-end;
+      width: 100%;
+      font-size: 11px;
+      margin-top: 2px;
+    }
+
+    .logo {
+      font-size: 0.95rem;
+    }
+
+    .gnb button {
+      font-size: 12px;
+      padding: 8px 10px;
+    }
   }
 </style>
 
