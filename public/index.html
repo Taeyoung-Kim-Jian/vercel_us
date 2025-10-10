@@ -7,7 +7,101 @@
   <link rel="stylesheet" href="./style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./common.js"></script>
+
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #f9fafb;
+      margin: 0;
+      padding: 0;
+    }
+
+    main.content {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    section.cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      padding: 20px;
+      text-align: center;
+      font-weight: 600;
+      color: #1e3a8a;
+      transition: transform 0.15s ease;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+    }
+
+    .table-wrap {
+      margin-top: 40px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      padding: 20px;
+    }
+
+    .table-wrap h3 {
+      font-size: 1.1rem;
+      color: #111827;
+      margin-bottom: 15px;
+      border-left: 4px solid #2563eb;
+      padding-left: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead {
+      background: #f1f5f9;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: center;
+    }
+
+    tbody tr:hover {
+      background: #f9fafb;
+    }
+
+    button {
+      display: block;
+      margin: 15px auto 0;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #1e3a8a;
+    }
+
+    footer {
+      text-align: center;
+      color: #6b7280;
+      margin: 50px 0 30px;
+    }
+  </style>
 </head>
+
 <body>
   <!-- ✅ 공통 헤더 -->
   <div id="header-container"></div>
@@ -16,7 +110,8 @@
       .then(r => r.text())
       .then(html => {
         document.getElementById("header-container").innerHTML = html;
-        if (typeof SWINGINV_updateHeaderAuthUI === "function") SWINGINV_updateHeaderAuthUI();
+        if (typeof SWINGINV_updateHeaderAuthUI === "function")
+          SWINGINV_updateHeaderAuthUI();
       });
   </script>
 
@@ -35,11 +130,15 @@
       <table>
         <thead>
           <tr>
-            <th>종목명</th><th>시작가격</th><th>현재가격</th><th>수익률</th>
+            <th>순위</th>
+            <th>종목명</th>
+            <th>시작가격</th>
+            <th>현재가격</th>
+            <th>수익률</th>
           </tr>
         </thead>
         <tbody id="total-table-body">
-          <tr><td colspan="4">데이터를 불러오는 중...</td></tr>
+          <tr><td colspan="5">⏳ 데이터를 불러오는 중...</td></tr>
         </tbody>
       </table>
       <button id="loadMoreTotalBtn">더보기</button>
@@ -51,11 +150,15 @@
       <table>
         <thead>
           <tr>
-            <th>종목명</th><th>적정매수가</th><th>현재가</th><th>괴리율</th>
+            <th>순위</th>
+            <th>종목명</th>
+            <th>적정매수가</th>
+            <th>현재가</th>
+            <th>괴리율</th>
           </tr>
         </thead>
         <tbody id="swing-table-body">
-          <tr><td colspan="4">데이터를 불러오는 중...</td></tr>
+          <tr><td colspan="5">⏳ 데이터를 불러오는 중...</td></tr>
         </tbody>
       </table>
       <button id="loadMoreSwingBtn">더보기</button>
