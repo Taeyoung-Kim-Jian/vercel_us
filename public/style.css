@@ -294,3 +294,9 @@ main.content {
   overflow: visible;
   margin-bottom: 50px;
 }
+/* ✅ ECharts 스크롤 방해 방지 */
+#chart {
+  touch-action: pan-y !important;   /* 모바일 터치 스크롤 가능 */
+  pointer-events: auto !important;  /* 클릭, 스크롤 모두 허용 */
+}
+
