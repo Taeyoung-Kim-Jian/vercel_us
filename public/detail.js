@@ -1,4 +1,4 @@
-// detail.js — scroll / zoom 완전 정상 + 관심종목 & B가격 포함
+// 📈 detail.js — ECharts 완전 안정 버전 (줌/스크롤 유지 + B가격 토글 최적화)
 document.addEventListener("DOMContentLoaded", async () => {
   const params = new URLSearchParams(window.location.search);
   const code = params.get("code");
@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const errBox = document.getElementById("error-box");
   const chartEl = document.getElementById("chart");
 
+  // 🔙 뒤로가기
   document.getElementById("backBtn").addEventListener("click", () => history.back());
 
   titleEl.textContent = `📈 ${name} (${code || "?"})`;
@@ -32,7 +33,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (user) SWINGINV.user = user;
 
   try {
-    // 📊 가격 데이터
+    // 📊 가격 데이터 로드
     const { data, error } = await db
       .from("prices")
       .select("날짜, 종가")
@@ -48,16 +49,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     const dates = data.map(d => d.날짜);
     const closes = data.map(d => parseFloat(d.종가));
 
-    // 📍 B가격 로드
+    // 📍 B가격 데이터
     const { data: btData } = await db
       .from("bt_points")
       .select("b가격")
       .eq("종목코드", code);
     const bLines = Array.from(new Set(btData?.map(b => parseFloat(b.b가격)) || []));
 
-    // 📈 차트 옵션
-    let showBLines = true;
+    // 📈 차트 기본 설정
     const chart = echarts.init(chartEl);
+    let showBLines = true;
+
     const baseOption = {
       tooltip: { trigger: "axis" },
       xAxis: { type: "category", data: dates, boundaryGap: false },
@@ -69,6 +71,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       ],
       series: [
         {
+          id: "main-series", // ✅ 부분 업데이트 타겟
           name: "종가",
           type: "line",
           data: closes,
@@ -80,6 +83,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       ],
     };
 
+    chart.setOption(baseOption);
+
+    // ✅ B가격 라인 업데이트 함수 (줌 상태 유지)
     const updateChart = () => {
       const marks = showBLines
         ? bLines.map(v => ({
@@ -88,20 +94,24 @@ document.addEventListener("DOMContentLoaded", async () => {
             label: { formatter: `B ${v.toLocaleString()}` },
           }))
         : [];
-      chart.setOption({
-        ...baseOption,
-        series: [
-          {
-            ...baseOption.series[0],
-            markLine: marks.length
-              ? { symbol: "none", label: { show: true }, data: marks }
-              : undefined,
-          },
-        ],
-      });
+
+      chart.setOption(
+        {
+          series: [
+            {
+              id: "main-series",
+              markLine: marks.length
+                ? { symbol: "none", label: { show: true }, data: marks }
+                : { data: [] },
+            },
+          ],
+        },
+        false, // ✅ 전체 덮어쓰기 X (merge)
+        true   // ✅ lazy update (성능 개선)
+      );
     };
 
-    // ✅ B가격 표시 토글
+    // ✅ B가격 토글
     document.getElementById("toggleB").addEventListener("change", e => {
       showBLines = e.target.checked;
       updateChart();
@@ -131,6 +141,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const nickname = (
           await db.from("profiles").select("nickname").eq("id", SWINGINV.user.id).single()
         ).data?.nickname;
+
         const { error } = await db.from("watchlist").insert({
           user_id: SWINGINV.user.id,
           닉네임: nickname || "익명",
@@ -140,6 +151,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           등록종가: latestPrice,
           공개여부: true,
         });
+
         if (error) alert("❌ 등록 실패: " + error.message);
         else alert("⭐ 관심종목으로 등록되었습니다!");
       } else {
@@ -155,7 +167,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
-    // ✅ 차트 렌더
+    // ✅ 차트 초기 렌더
     updateChart();
     window.addEventListener("resize", () => chart.resize());
     subEl.textContent = `${dates[0]} ~ ${dates.at(-1)} (${data.length}일치 데이터)`;
