@@ -79,5 +79,28 @@ function updateHeaderUI() {
     }, 300);
   }
 }
+// ------------------------------------------
+// ⏳ 로딩 및 에러 표시 유틸 복원 (v2.5 호환)
+// ------------------------------------------
+function showLoading(target, msg = "데이터 불러오는 중...") {
+  if (target)
+    target.innerHTML = `<div style="text-align:center;color:#666;padding:20px;">⏳ ${msg}</div>`;
+}
+function showError(target, msg = "데이터 로딩 실패") {
+  if (target)
+    target.innerHTML = `<div style="text-align:center;color:#b91c1c;padding:20px;">❌ ${msg}</div>`;
+}
+
+// 기존 전역 객체 확장
+window.SWINGINV = {
+  ...window.SWINGINV,
+  db,
+  logoutUser,
+  checkNickname,
+  updateHeaderUI,
+  showLoading,
+  showError,
+};
+
 
 window.SWINGINV = { db, logoutUser, checkNickname, updateHeaderUI };
