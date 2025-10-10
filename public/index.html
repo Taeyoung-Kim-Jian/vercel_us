@@ -3,212 +3,92 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SWING INVESTOR Dashboard</title>
-  <link rel="stylesheet" href="./style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./common.js"></script>
+  <title>SWING INVESTOR 대시보드</title>
+
+  <!-- Supabase SDK + 공통 스크립트 -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="common.js"></script>
+  <script src="auth.js"></script>
 
   <style>
-    /* ✅ 메인 콘텐츠 중앙 정렬 (ranking.html과 동일) */
-    main.content {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-
-    /* ✅ 카드 영역 - 네이버 스타일 */
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 18px;
-      margin: 30px 0 40px;
-    }
-
-    .card {
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 18px 20px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-      transition: all 0.25s ease;
-    }
-
-    .card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      background: #fafafa;
-    }
-
-    /* ✅ Top5 카드 전용 */
-    #top5-card {
-      display: flex;
-      flex-direction: column;
-    }
-
-    #top5-card h4 {
-      font-size: 15px;
-      font-weight: 700;
-      margin-bottom: 10px;
-      color: #111827;
-    }
-
-    #top5-card ul {
-      list-style: none;
-      padding: 0;
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f5f5;
       margin: 0;
+      padding: 0;
     }
-
-    #top5-card li {
+    header {
+      background: #007bff;
+      color: white;
+      padding: 16px;
+      font-size: 18px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px solid #f3f4f6;
-      font-size: 14px;
     }
-
-    #top5-card li:last-child { border-bottom: none; }
-
-    .top5-rank {
-      font-weight: 600;
-      color: #2563eb;
-      width: 35px;
-    }
-
-    .top5-name {
-      flex-grow: 1;
-      color: #111827;
-    }
-
-    .top5-return {
-      font-weight: 600;
-    }
-
-    .top5-return.up { color: #dc2626; }
-    .top5-return.down { color: #2563eb; }
-
-    /* ✅ 테이블 스타일 - ranking.html 통일 버전 */
-    .table-wrap {
-      background: #fff;
+    main {
+      max-width: 800px;
+      margin: 40px auto;
+      background: white;
       border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-      margin-top: 40px;
-      padding: 20px;
-    }
-
-    .table-wrap h3 {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #111827;
-      margin-bottom: 15px;
-      border-left: 4px solid #2563eb;
-      padding-left: 8px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-      color: #1f2937;
-    }
-
-    thead {
-      background: #f8fafc;
-      font-weight: 600;
-      border-bottom: 2px solid #e5e7eb;
-    }
-
-    th, td {
-      padding: 10px 12px;
-      border-bottom: 1px solid #e5e7eb;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 30px;
       text-align: center;
     }
-
-    tbody tr:hover {
-      background: #f9fafb;
-      transition: background 0.2s;
-    }
-
-    /* ✅ 버튼 스타일 */
     button {
-      display: block;
-      margin: 15px auto 0;
-      background: #2563eb;
-      color: #fff;
+      background: #dc3545;
       border: none;
+      padding: 10px 20px;
+      color: white;
       border-radius: 6px;
-      padding: 8px 14px;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 15px;
     }
-
-    button:hover { background: #1e3a8a; }
-
-    /* ✅ 푸터 */
-    footer {
-      text-align: center;
-      color: #6b7280;
-      margin: 50px 0 30px;
-    }
+    button:hover { background: #b02a37; }
   </style>
 </head>
 
 <body>
-  <!-- ✅ 공통 헤더 -->
-  <div id="header-container"></div>
-  <script>
-    fetch("./header.html")
-      .then(r => r.text())
-      .then(html => {
-        document.getElementById("header-container").innerHTML = html;
-        if (typeof SWINGINV_updateHeaderAuthUI === "function")
-          SWINGINV_updateHeaderAuthUI();
-      });
-  </script>
+  <header>
+    <span>📈 SWING INVESTOR 대시보드</span>
+    <button id="logoutBtn">로그아웃</button>
+  </header>
 
-  <main class="content">
-    <!-- 🏆 수익률 Top 5 -->
-    <section class="cards">
-      <div id="top5-card" class="card">📈 데이터 불러오는 중...</div>
-      <div class="card">📊 수익률 2</div>
-      <div class="card">📈 수익률 3</div>
-      <div class="card">📉 수익률 4</div>
-    </section>
-
-    <!-- 🧾 전체 수익률 -->
-    <div class="table-wrap">
-      <h3>📈 전체 수익률</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>종목명</th><th>시작가격</th><th>현재가격</th><th>수익률</th>
-          </tr>
-        </thead>
-        <tbody id="total-table-body">
-          <tr><td colspan="4">데이터를 불러오는 중...</td></tr>
-        </tbody>
-      </table>
-      <button id="loadMoreTotalBtn">더보기</button>
-    </div>
-
-    <!-- 💰 스윙 적정가격 -->
-    <div class="table-wrap">
-      <h3>💰 스윙 적정가격</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>종목명</th><th>적정매수가</th><th>현재가</th><th>괴리율</th>
-          </tr>
-        </thead>
-        <tbody id="swing-table-body">
-          <tr><td colspan="4">데이터를 불러오는 중...</td></tr>
-        </tbody>
-      </table>
-      <button id="loadMoreSwingBtn">더보기</button>
-    </div>
+  <main>
+    <h2 id="welcome"></h2>
+    <p>이 페이지는 로그인 세션이 유지되는지 테스트하는 페이지입니다.</p>
+    <p>로그인 상태가 유지된다면, 아래에 이메일 또는 닉네임이 표시됩니다.</p>
   </main>
 
-  <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
-  <script src="./main.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      // ✅ 세션 복원 시도
+      const { data: { session } } = await SWINGINV.db.auth.getSession();
+
+      if (session?.user) {
+        const userEmail = session.user.email;
+        const { data: profile } = await SWINGINV.db
+          .from("profiles")
+          .select("nickname")
+          .eq("id", session.user.id)
+          .single();
+
+        const nickname = profile?.nickname ?? "";
+        document.getElementById("welcome").innerHTML =
+          nickname
+            ? `환영합니다, <b>${nickname}</b>님 (${userEmail})`
+            : `로그인됨: ${userEmail}`;
+      } else {
+        // ❌ 세션 없음 → 로그인 페이지로 이동
+        alert("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
+        location.href = "login.html";
+      }
+
+      // ✅ 로그아웃 버튼
+      document.getElementById("logoutBtn").onclick = async () => {
+        await SWINGINV.logoutUser();
+      };
+    });
+  </script>
 </body>
 </html>
