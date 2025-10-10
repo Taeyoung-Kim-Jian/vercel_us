@@ -1,5 +1,5 @@
 /* ==========================================================
-   📅 SWING INVESTOR month.js (v1.3)
+   📅 SWING INVESTOR month.js (v1.4)
    - 데이터 소스: monthly_performance_view
    - 컬럼: 월구분, 종목명, 측정일, 측정일종가, 현재가, 수익률, 최고/최저수익률
    ========================================================== */
@@ -44,21 +44,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     // ✅ 월별 그룹화
     const grouped = {};
     data.forEach((row) => {
-      const key = row.월구분;
+      const key = row.월구분; // ex) "2025-01"
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(row);
     });
 
     const months = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
-    // ✅ 월별 탭 생성
+    // ✅ 월별 탭 생성 (2025.1 형식)
     tabsContainer.innerHTML = months
-      .map(
-        (m, i) =>
-          `<button class="tab-btn ${i === 0 ? "active" : ""}" data-month="${m}">
-             ${m.replace("-", "년 ")}월
-           </button>`
-      )
+      .map((m, i) => {
+        const [year, month] = m.split("-");
+        const formatted = `${year}.${parseInt(month, 10)}`; // 👉 2025.1
+        return `
+          <button class="tab-btn ${i === 0 ? "active" : ""}" data-month="${m}">
+            ${formatted}
+          </button>
+        `;
+      })
       .join("");
 
     // ✅ 탭 클릭 이벤트
