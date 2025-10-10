@@ -1,14 +1,19 @@
 /* ==========================================================
-   📅 SWING INVESTOR month.js (v1.6)
-   - 월별 스크롤 탭 + 클릭 강조
+   📅 SWING INVESTOR month.js (v2.0)
+   - 월별 탭 + 클릭 정렬 기능 추가
    - 데이터 소스: monthly_performance_view
    ========================================================== */
 
 document.addEventListener("DOMContentLoaded", async () => {
   const tableBody = document.getElementById("month-table-body");
   const tabsContainer = document.getElementById("month-tabs");
+  const tableHead = document.querySelector("thead");
 
   SWINGINV.showLoading(tableBody, "월별 성과 데이터를 불러오는 중...");
+
+  let grouped = {};
+  let currentMonth = null;
+  let currentSort = { key: null, asc: true }; // 현재 정렬 상태
 
   try {
     const db = SWINGINV.db;
@@ -43,7 +48,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // ✅ 월별 그룹화
-    const grouped = {};
+    grouped = {};
     data.forEach((row) => {
       const key = row.월구분; // ex) 2025-01
       if (!grouped[key]) grouped[key] = [];
@@ -52,7 +57,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const months = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
-    // ✅ 월 탭 생성 (2025.1 형식)
+    // ✅ 월 탭 생성
     tabsContainer.innerHTML = months
       .map((m, i) => {
         const [year, month] = m.split("-");
@@ -65,7 +70,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       })
       .join("");
 
-    // ✅ 클릭 이벤트
+    // ✅ 탭 클릭 이벤트
     tabsContainer.addEventListener("click", (e) => {
       const btn = e.target.closest(".tab-btn");
       if (!btn) return;
@@ -73,12 +78,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       tabsContainer.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
 
-      const monthKey = btn.dataset.month;
-      renderTable(grouped[monthKey]);
+      currentMonth = btn.dataset.month;
+      renderTable(grouped[currentMonth]);
     });
 
-    // ✅ 초기 첫 번째 월 표시
-    renderTable(grouped[months[0]]);
+    // ✅ 초기 첫 월 렌더링
+    currentMonth = months[0];
+    renderTable(grouped[currentMonth]);
   } catch (err) {
     console.error("❌ JS Error:", err);
     SWINGINV.showError(tableBody, "데이터 로딩 실패");
@@ -91,6 +97,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!rows || rows.length === 0) {
       SWINGINV.showError(tableBody, "해당 월 데이터가 없습니다.");
       return;
+    }
+
+    // ✅ 정렬 적용
+    if (currentSort.key) {
+      rows = [...rows].sort((a, b) => {
+        let valA = a[currentSort.key];
+        let valB = b[currentSort.key];
+
+        // 문자열 비교
+        if (typeof valA === "string") {
+          valA = valA.toLowerCase();
+          valB = valB.toLowerCase();
+        }
+
+        if (valA > valB) return currentSort.asc ? 1 : -1;
+        if (valA < valB) return currentSort.asc ? -1 : 1;
+        return 0;
+      });
     }
 
     tableBody.innerHTML = rows
@@ -115,4 +139,33 @@ document.addEventListener("DOMContentLoaded", async () => {
       })
       .join("");
   }
+
+  // ------------------------------------------
+  // 🔼🔽 헤더 클릭 정렬 기능
+  // ------------------------------------------
+  tableHead.addEventListener("click", (e) => {
+    const th = e.target.closest("th");
+    if (!th) return;
+
+    const index = Array.from(th.parentNode.children).indexOf(th);
+    const keyMap = ["종목명", "측정일", "측정일종가", "현재가", "측정일대비수익률", "최고수익률", "최저수익률"];
+    const key = keyMap[index];
+    if (!key) return;
+
+    // 정렬 상태 토글
+    if (currentSort.key === key) {
+      currentSort.asc = !currentSort.asc;
+    } else {
+      currentSort.key = key;
+      currentSort.asc = true;
+    }
+
+    // 헤더 강조 업데이트
+    tableHead.querySelectorAll("th").forEach((el) => (el.style.color = "#111827"));
+    th.style.color = "#1e40af";
+    th.textContent = th.textContent.replace(/ ↑| ↓/g, "");
+    th.textContent += currentSort.asc ? " ↑" : " ↓";
+
+    renderTable(grouped[currentMonth]);
+  });
 });
