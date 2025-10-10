@@ -1,3 +1,4 @@
+/* auth.js */
 console.log("🔐 SWING INVESTOR auth.js loaded");
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -5,46 +6,57 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   let db;
   for (let i = 0; i < 20; i++) {
-    if (window.SWINGINV?.db) { db = SWINGINV.db; break; }
+    if (window.SWINGINV?.db) {
+      db = SWINGINV.db;
+      break;
+    }
     await wait(250);
   }
-  if (!db) { alert("❌ Supabase 초기화 실패 (common.js가 먼저 로드되어야 함)"); return; }
+  if (!db) {
+    console.error("❌ Supabase 초기화 실패 (auth.js)");
+    return;
+  }
 
-  // ✅ 현재 로그인 세션 확인
+  // 세션 초기화
   const { data: { session } } = await db.auth.getSession();
   SWINGINV.user = session?.user || null;
 
-  // ✅ 상태변화 감시
   db.auth.onAuthStateChange((_event, session) => {
     SWINGINV.user = session?.user || null;
     console.log("Auth state changed:", SWINGINV.user?.email);
   });
 
-  // ✅ 로그아웃 함수
+  // 로그아웃 함수
   SWINGINV.logoutUser = async () => {
     await db.auth.signOut();
-    alert("🚪 로그아웃 완료");
+    alert("🚪 로그아웃 되었습니다");
     location.reload();
   };
 
-  // ✅ 중복 확인 함수 추가
+  // 중복 체크 함수 (이메일 + 닉네임)
   SWINGINV.checkDuplicate = async (email, nickname) => {
-    let exists = { email: false, nickname: false };
+    const exists = { email: false, nickname: false };
 
-    // 이메일 중복 확인
-    const { data: users } = await db
+    // 이메일 중복 검사
+    const { data: emailDup, error: e1 } = await db
       .from("profiles")
-      .select("email")
+      .select("id")
       .eq("email", email);
-    if (users && users.length > 0) exists.email = true;
+    if (!e1 && emailDup && emailDup.length > 0) {
+      exists.email = true;
+    }
 
-    // 닉네임 중복 확인
-    const { data: nicks } = await db
+    // 닉네임 중복 검사
+    const { data: nickDup, error: e2 } = await db
       .from("profiles")
-      .select("nickname")
+      .select("id")
       .eq("nickname", nickname);
-    if (nicks && nicks.length > 0) exists.nickname = true;
+    if (!e2 && nickDup && nickDup.length > 0) {
+      exists.nickname = true;
+    }
 
     return exists;
   };
+
+  console.log("✅ auth.js initialized");
 });
