@@ -1,8 +1,5 @@
 /* ==========================================================
-   📈 detail.js — ECharts + Supabase (페이징 + B가격 토글)
-   ✅ (2025-10-10 안정판)
-   - 뒤로가기 버튼 위치: 제목 오른쪽
-   - "데이터 불러오는 중" 자동 제거
+   📈 detail.js — ECharts + Supabase (스크롤 정상 버전)
    ========================================================== */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -23,21 +20,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   titleEl.textContent = `📈 ${name || "종목"} (${code})`;
 
-  // ✅ ECharts 초기화
+  const db = SWINGINV.db;
   const chart = echarts.init(chartEl);
 
-  // ✅ Supabase 연결
-  const db = SWINGINV.db;
-
   try {
-    /* --------------------------
-       1️⃣ prices 데이터 페이징 로딩
-    --------------------------- */
+    // 1️⃣ prices 데이터 페이징 로딩
     let allPrices = [];
     const pageSize = 1000;
-    let from = 0;
-    let to = pageSize - 1;
-    let done = false;
+    let from = 0, to = pageSize - 1, done = false;
 
     while (!done) {
       const { data, error } = await db
@@ -48,7 +38,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         .range(from, to);
 
       if (error) throw error;
-      if (!data || data.length === 0) done = true;
+      if (!data?.length) done = true;
       else {
         allPrices = allPrices.concat(data);
         if (data.length < pageSize) done = true;
@@ -57,21 +47,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
 
-    if (allPrices.length === 0) {
+    if (!allPrices.length) {
       subEl.textContent = "📭 가격 데이터가 없습니다.";
       return;
     }
 
-    // ✅ 데이터 로드 완료 시 "데이터를 불러오는 중..." 문구 제거
-    subEl.textContent = "";
-
-    /* --------------------------
-       2️⃣ bt_points 데이터 페이징 로딩
-    --------------------------- */
+    // 2️⃣ bt_points 데이터 로딩
     let allBt = [];
-    from = 0;
-    to = pageSize - 1;
-    done = false;
+    from = 0; to = pageSize - 1; done = false;
 
     while (!done) {
       const { data, error } = await db
@@ -82,7 +65,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         .range(from, to);
 
       if (error) throw error;
-      if (!data || data.length === 0) done = true;
+      if (!data?.length) done = true;
       else {
         allBt = allBt.concat(data);
         if (data.length < pageSize) done = true;
@@ -94,9 +77,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     // ✅ 데이터 정리
     const dates = allPrices.map((d) => d.날짜);
     const closePrices = allPrices.map((d) => parseFloat(d.종가));
-    const bLines = Array.from(new Set(allBt?.map((b) => parseFloat(b.b가격)) || []));
+    const bLines = Array.from(new Set(allBt.map((b) => parseFloat(b.b가격))));
 
-    // ✅ 기본 차트 옵션
+    // ✅ 차트 옵션
     let showBLines = true;
     const baseOption = {
       tooltip: {
@@ -106,6 +89,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           return `${item.axisValue}<br/>가격: <b>${item.data.toLocaleString()}</b>`;
         },
       },
+      grid: { left: 60, right: 20, top: 40, bottom: 60 },
       xAxis: {
         type: "category",
         data: dates,
@@ -117,7 +101,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         scale: true,
         axisLabel: { color: "#555" },
       },
-      grid: { left: 60, right: 20, top: 40, bottom: 60 },
       series: [
         {
           name: "종가",
@@ -128,83 +111,8 @@ document.addEventListener("DOMContentLoaded", async () => {
           areaStyle: { color: "rgba(37,99,235,0.08)" },
         },
       ],
+      dataZoom: [
+        { type: "inside", zoomOnMouseWheel: true, moveOnMouseMove: true },
+        { type: "slider", bottom: 10 }
+      ],
     };
-
-    // ✅ B가격 라인 표시/숨기기
-    const updateBLines = () => {
-      if (!showBLines || bLines.length === 0) {
-        chart.setOption(baseOption, true);
-        return;
-      }
-
-      const markLines = bLines.map((b) => ({
-        yAxis: b,
-        lineStyle: { color: "#e11d48", type: "dashed" },
-        label: {
-          formatter: `B ${b.toLocaleString()}`,
-          color: "#e11d48",
-          position: "end",
-        },
-      }));
-
-      chart.setOption(
-        {
-          ...baseOption,
-          series: [
-            {
-              ...baseOption.series[0],
-              markLine: {
-                symbol: "none",
-                label: { show: true },
-                data: markLines,
-              },
-            },
-          ],
-        },
-        true
-      );
-    };
-
-    /* --------------------------
-       ✅ UI 구성 (툴바)
-    --------------------------- */
-
-    const toolbar = document.createElement("div");
-    toolbar.style.display = "flex";
-    toolbar.style.justifyContent = "flex-end";
-    toolbar.style.alignItems = "center";
-    toolbar.style.margin = "10px auto";
-    toolbar.style.maxWidth = "1000px";
-
-    toolbar.innerHTML = `
-      <label style="font-size:14px;cursor:pointer;">
-        <input type="checkbox" id="toggleB" checked style="transform:scale(1.1);margin-right:5px;">
-        B가격 표시
-      </label>
-    `;
-
-    chartEl.parentNode.insertBefore(toolbar, chartEl);
-
-    // ✅ 이벤트 연결 (DOM 반영 후 50ms 대기)
-    setTimeout(() => {
-      const toggleB = document.getElementById("toggleB");
-      if (toggleB) {
-        toggleB.addEventListener("change", (e) => {
-          showBLines = e.target.checked;
-          updateBLines();
-        });
-      } else {
-        console.warn("⚠️ toggleB not found at render time");
-      }
-    }, 50);
-
-    // ✅ 차트 렌더링
-    updateBLines();
-
-    // ✅ 반응형 리사이즈
-    window.addEventListener("resize", () => chart.resize());
-  } catch (err) {
-    console.error("❌ 차트 로딩 오류:", err);
-    subEl.textContent = "⚠️ 차트를 불러오지 못했습니다.";
-  }
-});
