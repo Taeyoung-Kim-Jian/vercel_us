@@ -1,6 +1,6 @@
 /* ==========================================================
-   📅 SWING INVESTOR month.js (v2.0)
-   - 월별 탭 + 클릭 정렬 기능 추가
+   📅 SWING INVESTOR month.js (v2.2)
+   - 월별 탭 + 정렬 + 클릭 시 detail.html 이동
    - 데이터 소스: monthly_performance_view
    ========================================================== */
 
@@ -105,7 +105,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         let valA = a[currentSort.key];
         let valB = b[currentSort.key];
 
-        // 문자열 비교
         if (typeof valA === "string") {
           valA = valA.toLowerCase();
           valB = valB.toLowerCase();
@@ -117,6 +116,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
 
+    // ✅ 각 행 클릭 시 detail.html로 이동하도록 추가
     tableBody.innerHTML = rows
       .map((r) => {
         const cur = parseFloat(r.측정일대비수익률 || 0);
@@ -126,7 +126,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         const curSign = cur >= 0 ? "▲" : "▼";
 
         return `
-          <tr>
+          <tr class="clickable-row"
+              data-name="${r.종목명}"
+              data-code="${r.종목코드}">
             <td>${SWINGINV.esc(r.종목명)}</td>
             <td>${SWINGINV.fmtDate(r.측정일)}</td>
             <td>${SWINGINV.nf(r.측정일종가)}</td>
@@ -138,6 +140,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         `;
       })
       .join("");
+
+    // ✅ 클릭 이벤트 연결
+    document.querySelectorAll(".clickable-row").forEach((row) => {
+      row.addEventListener("click", () => {
+        const name = row.dataset.name;
+        const code = row.dataset.code;
+        // ✅ detail.html로 이동
+        location.href = `detail.html?name=${encodeURIComponent(name)}&code=${code}`;
+      });
+    });
   }
 
   // ------------------------------------------
