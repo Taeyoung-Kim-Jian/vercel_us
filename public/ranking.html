@@ -74,6 +74,21 @@
       background-color: #f1f5f9;
     }
 
+    .del-btn {
+      background: #ef4444;
+      border: none;
+      color: #fff;
+      padding: 5px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.2s;
+    }
+
+    .del-btn:hover {
+      background: #dc2626;
+    }
+
     footer {
       text-align: center;
       padding: 30px 0;
@@ -150,7 +165,7 @@
 
         if (error) return SWINGINV.showError(container, "로드 실패: " + error.message);
         if (!data?.length) return (container.innerHTML = "<p style='text-align:center;'>📭 데이터 없음</p>");
-        renderTable(data);
+        renderTable(data, false); // 삭제 버튼 없음
       }
 
       // ✅ 나의 관심종목
@@ -165,18 +180,18 @@
 
         const { data, error } = await db
           .from("watchlist_with_return")
-          .select("닉네임, 종목명, 등록일, 등록종가, 현재가, 수익률")
+          .select("id, 닉네임, 종목명, 종목코드, 등록일, 등록종가, 현재가, 수익률")
           .eq("user_id", user.id)
           .order("등록일", { ascending: false });
 
         if (error) return SWINGINV.showError(container, "로드 실패: " + error.message);
         if (!data?.length)
           return (container.innerHTML = "<p style='text-align:center;'>📭 등록된 관심종목이 없습니다.</p>");
-        renderTable(data);
+        renderTable(data, true); // 삭제 버튼 활성화
       }
 
-      // ✅ 공통 테이블 렌더링
-      function renderTable(data) {
+      // ✅ 공통 테이블 렌더링 (삭제버튼 옵션)
+      function renderTable(data, enableDelete = false) {
         let html = `
           <table>
             <thead>
@@ -188,6 +203,7 @@
                 <th>등록종가</th>
                 <th>현재가</th>
                 <th>수익률</th>
+                ${enableDelete ? "<th>관리</th>" : ""}
               </tr>
             </thead>
             <tbody>
@@ -199,7 +215,7 @@
           const nickname = row["닉네임"] || "익명";
 
           html += `
-            <tr>
+            <tr data-id="${row.id || ""}">
               <td>${i + 1}</td>
               <td>${SWINGINV.esc(nickname)}</td>
               <td style="text-align:left;">${SWINGINV.esc(row["종목명"])}</td>
@@ -207,11 +223,42 @@
               <td>${SWINGINV.nf(row["등록종가"])}</td>
               <td>${SWINGINV.nf(row["현재가"])}</td>
               <td style="font-weight:600;color:${color};">${sign}${Math.abs(rate).toFixed(2)}%</td>
+              ${enableDelete
+                ? `<td><button class="del-btn" data-code="${row['종목코드']}">삭제</button></td>`
+                : ""}
             </tr>`;
         });
 
         html += "</tbody></table>";
         container.innerHTML = html;
+
+        if (enableDelete) attachDeleteHandlers();
+      }
+
+      // ✅ 삭제 버튼 클릭 핸들러
+      function attachDeleteHandlers() {
+        document.querySelectorAll(".del-btn").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const code = btn.dataset.code;
+            const user = SWINGINV.user;
+            if (!user) return alert("로그인 후 이용해주세요.");
+            if (!confirm("🗑️ 관심종목을 삭제하시겠습니까?")) return;
+
+            const { error } = await db
+              .from("watchlist")
+              .delete()
+              .eq("user_id", user.id)
+              .eq("종목코드", code);
+
+            if (error) {
+              console.error(error);
+              alert("삭제 실패: " + error.message);
+            } else {
+              alert("✅ 관심종목이 삭제되었습니다.");
+              loadMyWatchlist(); // 새로고침
+            }
+          });
+        });
       }
 
       // ✅ 기본 탭 로드
