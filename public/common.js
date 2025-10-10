@@ -1,15 +1,11 @@
 /* ==========================================================
-   🌐 SWING INVESTOR common.js (v3.6)
-   - Supabase 초기화 및 인증 상태 관리
-   - 로그인/로그아웃/닉네임 관리
-   - 전역 유틸 함수 포함
+   🌐 SWING INVESTOR common.js (v3.0)
+   - 로그인/닉네임 관리
+   - 헤더 감지 및 자동 토글
    ========================================================== */
 
 console.log("🌐 SWING INVESTOR common.js loaded");
 
-// ------------------------------------------
-// 🔗 Supabase 연결
-// ------------------------------------------
 const SUPABASE_URL = "https://sssmldmhcfuodutvvcqf.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1b2R1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4";
@@ -17,153 +13,94 @@ const SUPABASE_ANON_KEY =
 const { createClient } = window.supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ------------------------------------------
-// 🧩 전역 객체 생성
-// ------------------------------------------
-window.SWINGINV = window.SWINGINV || {};
-SWINGINV.db = db;
-
-// ------------------------------------------
-// 🧩 유틸 함수들
-// ------------------------------------------
-SWINGINV.nf = function (num) {
-  if (num == null || num === "") return "-";
-  const n = parseFloat(num);
-  return isNaN(n) ? "-" : n.toLocaleString();
-};
-
-SWINGINV.fmtDate = function (str) {
-  if (!str) return "-";
-  const d = new Date(str);
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(
-    d.getDate()
-  ).padStart(2, "0")}`;
-};
-
-SWINGINV.showLoading = function (target, msg = "⏳ 데이터 불러오는 중...") {
-  if (target)
-    target.innerHTML = `<div style="text-align:center;color:#666;padding:20px;">${msg}</div>`;
-};
-
-SWINGINV.showError = function (target, msg = "❌ 데이터 로딩 실패") {
-  if (target)
-    target.innerHTML = `<div style="text-align:center;color:#b91c1c;padding:20px;">${msg}</div>`;
-};
-
-// ------------------------------------------
-// 🔐 로그인 세션 관리
-// ------------------------------------------
+// 로그인 세션 감시
 (async () => {
-  try {
-    const { data: { session } } = await db.auth.getSession();
+  const { data: { session } } = await db.auth.getSession();
+  window.SWINGINV = window.SWINGINV || {};
+  SWINGINV.user = session?.user || null;
+
+  db.auth.onAuthStateChange(async (_event, session) => {
     SWINGINV.user = session?.user || null;
+    if (SWINGINV.user) await checkNickname();
+    updateHeaderUI();
+  });
 
-    // 로그인 상태 변경 감시
-    db.auth.onAuthStateChange(async (_event, session) => {
-      SWINGINV.user = session?.user || null;
-      if (SWINGINV.user) await SWINGINV_checkNickname();
-      SWINGINV_updateHeaderAuthUI();
-    });
-
-    if (SWINGINV.user) await SWINGINV_checkNickname();
-    SWINGINV_updateHeaderAuthUI();
-  } catch (err) {
-    console.error("❌ 인증 초기화 오류:", err.message);
-  }
+  if (SWINGINV.user) await checkNickname();
+  updateHeaderUI();
 })();
 
-// ------------------------------------------
-// 👤 닉네임 확인 및 등록
-// ------------------------------------------
-async function SWINGINV_checkNickname() {
+// 닉네임 확인
+async function checkNickname() {
   if (!SWINGINV.user) return;
-  try {
-    const { data, error } = await db
-      .from("profiles")
-      .select("nickname")
-      .eq("id", SWINGINV.user.id)
-      .single();
-
-    if (error && error.code !== "PGRST116") {
-      console.warn("닉네임 조회 실패:", error.message);
-      return;
-    }
-
-    if (!data || !data.nickname) {
-      SWINGINV.user.nickname = "";
-    } else {
-      SWINGINV.user.nickname = data.nickname;
-    }
-  } catch (e) {
-    console.error("닉네임 확인 중 오류:", e.message);
-  }
+  const { data, error } = await db.from("profiles").select("nickname").eq("id", SWINGINV.user.id).single();
+  if (!data || !data.nickname) return;
+  SWINGINV.user.nickname = data.nickname;
 }
 
-// ------------------------------------------
-// 🚪 로그아웃
-// ------------------------------------------
+// 로그아웃
 async function logoutUser() {
-  try {
-    await db.auth.signOut();
-    SWINGINV.user = null;
-    SWINGINV_updateHeaderAuthUI();
-    alert("🚪 로그아웃 완료");
-  } catch (err) {
-    alert("로그아웃 실패: " + err.message);
-  }
+  await db.auth.signOut();
+  SWINGINV.user = null;
+  updateHeaderUI();
+  location.href = "index.html";
 }
 
-// ------------------------------------------
-// 🧭 헤더 로그인/로그아웃 UI 갱신
-// ------------------------------------------
-function SWINGINV_updateHeaderAuthUI() {
-  const emailEl = document.getElementById("user-email");
-  const loginBtn = document.getElementById("loginBtn");
-  const logoutBtn = document.getElementById("logoutBtn");
+// 헤더 갱신
+function updateHeaderUI() {
+  const tryBind = () => {
+    const emailEl = document.getElementById("user-email");
+    const loginBtn = document.getElementById("loginBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    if (!emailEl || !loginBtn || !logoutBtn) return false;
 
-  if (!emailEl || !loginBtn || !logoutBtn) return;
+    const u = SWINGINV.user;
+    if (u) {
+      emailEl.textContent = `👤 ${u.nickname || u.email}`;
+      loginBtn.style.display = "none";
+      logoutBtn.style.display = "inline-block";
+    } else {
+      emailEl.textContent = "로그인 필요";
+      loginBtn.style.display = "inline-block";
+      logoutBtn.style.display = "none";
+    }
 
-  const user = SWINGINV.user;
-  if (user) {
-    const label = user.nickname ? user.nickname : user.email;
-    emailEl.textContent = `👤 ${label}`;
-    loginBtn.style.display = "none";
-    logoutBtn.style.display = "inline-block";
-  } else {
-    emailEl.textContent = "로그인되지 않음";
-    loginBtn.style.display = "inline-block";
-    logoutBtn.style.display = "none";
+    loginBtn.onclick = () => {
+      const current = location.pathname.split("/").pop();
+      location.href = `login.html?redirect=${encodeURIComponent(current)}`;
+    };
+    logoutBtn.onclick = logoutUser;
+    return true;
+  };
+
+  if (!tryBind()) {
+    let tries = 0;
+    const timer = setInterval(() => {
+      if (tryBind() || tries++ > 30) clearInterval(timer);
+    }, 300);
   }
-
-  loginBtn.onclick = () => (location.href = "login.html");
-  logoutBtn.onclick = logoutUser;
+}
+// ------------------------------------------
+// ⏳ 로딩 및 에러 표시 유틸 복원 (v2.5 호환)
+// ------------------------------------------
+function showLoading(target, msg = "데이터 불러오는 중...") {
+  if (target)
+    target.innerHTML = `<div style="text-align:center;color:#666;padding:20px;">⏳ ${msg}</div>`;
+}
+function showError(target, msg = "데이터 로딩 실패") {
+  if (target)
+    target.innerHTML = `<div style="text-align:center;color:#b91c1c;padding:20px;">❌ ${msg}</div>`;
 }
 
-// ------------------------------------------
-// 📋 메뉴 강조 (현재 페이지)
-–------------------------------------------
-document.addEventListener("DOMContentLoaded", () => {
-  const current = location.pathname.split("/").pop();
-  document.querySelectorAll(".gnb button").forEach((btn) => {
-    const m = btn.getAttribute("onclick")?.match(/'(.*?)'/);
-    if (m && current === m[1]) btn.classList.add("active");
-  });
-  SWINGINV_updateHeaderAuthUI();
-});
-
-// ------------------------------------------
-// 🌍 전역 내보내기
-// ------------------------------------------
+// 기존 전역 객체 확장
 window.SWINGINV = {
   ...window.SWINGINV,
   db,
-  nf: SWINGINV.nf,
-  fmtDate: SWINGINV.fmtDate,
-  showLoading: SWINGINV.showLoading,
-  showError: SWINGINV.showError,
   logoutUser,
-  SWINGINV_checkNickname,
-  SWINGINV_updateHeaderAuthUI,
+  checkNickname,
+  updateHeaderUI,
+  showLoading,
+  showError,
 };
 
-console.log("✅ SWINGINV common.js initialized successfully.");
+
+window.SWINGINV = { db, logoutUser, checkNickname, updateHeaderUI };
