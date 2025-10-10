@@ -127,6 +127,7 @@ async function SWINGINV_updateHeaderAuthUI() {
       if (logoutBtn) {
         logoutBtn.onclick = async () => {
           await db.auth.signOut();
+           SWINGINV.user = null; // ✅ 로그아웃 시 전역 정보 초기화
           alert("로그아웃되었습니다.");
           location.href = "login.html";
         };
