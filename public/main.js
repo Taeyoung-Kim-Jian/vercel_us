@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let swingData = [];
 
   try {
-    /* ✅ 1️⃣ 전체 수익률 (기존 테이블에서 그대로 가져옴) */
+    /* ✅ 1️⃣ 전체 수익률 */
     const { data: totalDataRaw, error: totalErr } = await SWINGINV.db
       .from("total_return")
       .select("종목명, 종목코드, 시작가격, 현재가격, 수익률")
@@ -62,9 +62,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           <td class="clickable-name" data-code="${r.종목코드}" data-name="${r.종목명}">
             ${SWINGINV.esc(r.종목명)}
           </td>
-          <td style="text-align:ceter">${SWINGINV.nf(r.시작가격)}</td>
-          <td style="text-align:ceter">${SWINGINV.nf(r.현재가격)}</td>
-          <td style="text-align:ceter">${SWINGINV.fmtPct(r.수익률)}</td>
+          <td style="text-align:right">${SWINGINV.nf(r.시작가격)}</td>
+          <td style="text-align:right">${SWINGINV.nf(r.현재가격)}</td>
+          <td style="text-align:right">${SWINGINV.fmtPct(r.수익률)}</td>
         </tr>
       `
         )
@@ -78,9 +78,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
 
     renderTotalPage();
-    loadMoreTotalBtn.addEventListener("click", renderTotalPage);
 
-    /* ✅ 2️⃣ 스윙 적정가격 (뷰 기반: swing_proper_view) */
+    // ✅ 더보기 클릭 시 total.html로 이동
+    loadMoreTotalBtn.addEventListener("click", () => {
+      window.location.href = "total.html";
+    });
+
+    /* ✅ 2️⃣ 스윙 적정가격 */
     const { data: swingView, error: swingErr } = await SWINGINV.db
       .from("swing_proper_view")
       .select("*")
@@ -101,9 +105,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           <td class="clickable-name" data-code="${r.종목코드}" data-name="${r.종목명}">
             ${SWINGINV.esc(r.종목명)}
           </td>
-          <td style="text-align:ceter">${SWINGINV.nf(r.적정매수가)}</td>
-          <td style="text-align:ceter">${SWINGINV.nf(r.현재가)}</td>
-          <td style="text-align:ceter">${SWINGINV.fmtPct(r.괴리율)}</td>
+          <td style="text-align:right">${SWINGINV.nf(r.적정매수가)}</td>
+          <td style="text-align:right">${SWINGINV.nf(r.현재가)}</td>
+          <td style="text-align:right">${SWINGINV.fmtPct(r.괴리율)}</td>
         </tr>
       `
         )
@@ -117,7 +121,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
 
     renderSwingPage();
-    loadMoreSwingBtn.addEventListener("click", renderSwingPage);
+
+    // ✅ 더보기 클릭 시 proper.html로 이동
+    loadMoreSwingBtn.addEventListener("click", () => {
+      window.location.href = "proper.html";
+    });
   } catch (err) {
     console.error("❌ 데이터 로딩 오류:", err);
     SWINGINV.showError(totalBody, "전체 수익률 데이터를 불러오지 못했습니다.");
