@@ -5,13 +5,22 @@
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("📡 main.js loaded");
 
-  // ✅ common.js 에서 이미 초기화된 Supabase 클라이언트를 재사용
-  const db = window.db || window.supabaseClient;
+  // ✅ 공통 Supabase 클라이언트 재사용
+  const db =
+    (window.SWINGINV && window.SWINGINV.db) ||
+    window.db ||
+    (window.supabaseClient ? window.supabaseClient : null);
+
   if (!db) {
-    console.error("❌ Supabase client not found. Check common.js initialization.");
+    console.error("❌ Supabase client not found after waiting.");
     return;
   }
 
+  console.log("✅ Supabase client found and ready in main.js");
+
+  // -----------------------------------------------------------
+  // 기본 셀렉터
+  // -----------------------------------------------------------
   const cards = document.querySelectorAll(".card");
   const totalBody = document.getElementById("total-table-body");
   const swingBody = document.getElementById("swing-table-body");
@@ -19,10 +28,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const showLoading = (el, msg = "📊 불러오는 중...") =>
     (el.innerHTML = `<div style="text-align:center;padding:20px;">${msg}</div>`);
 
+  // -----------------------------------------------------------
   // 📌 공통 Top5 렌더링 함수
+  // -----------------------------------------------------------
   const renderTop5 = (card, title, rows, field = "수익률") => {
     if (!rows?.length) {
-      card.innerHTML = `<div style="text-align:center;padding:20px;">데이터 없음</div>`;
+      card.innerHTML = `<h4>${title}</h4><div style="text-align:center;padding:20px;">데이터 없음</div>`;
       return;
     }
 
@@ -46,9 +57,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     card.innerHTML = `<h4>${title}</h4><ul>${html}</ul>`;
   };
 
-  // ===========================================================
+  // -----------------------------------------------------------
   // 🏆 1️⃣ 전체 수익률 TOP5 — total_return
-  // ===========================================================
+  // -----------------------------------------------------------
   async function loadTotalTop5() {
     const card = cards[0];
     showLoading(card);
@@ -66,9 +77,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderTop5(card, "🏆 전체 수익률 TOP5", data);
   }
 
-  // ===========================================================
+  // -----------------------------------------------------------
   // ⭐ 2️⃣ 관심종목 랭킹 TOP5 — watchlist_with_return
-  // ===========================================================
+  // -----------------------------------------------------------
   async function loadWatchlistTop5() {
     const card = cards[1];
     showLoading(card);
@@ -87,9 +98,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderTop5(card, "⭐ 관심종목 TOP5", data);
   }
 
-  // ===========================================================
+  // -----------------------------------------------------------
   // 📆 3️⃣ 이번 달 수익률 TOP5 — monthly_performance_view
-  // ===========================================================
+  // -----------------------------------------------------------
   async function loadMonthTop5() {
     const card = cards[2];
     showLoading(card);
@@ -113,12 +124,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderTop5(card, `📆 ${monthLabel} 수익률 TOP5`, data, "측정일대비수익률");
   }
 
-  // ===========================================================
-  // 🌍 4️⃣ 전체기간 수익률 TOP5 — monthly_performance_view (전체)
-  // ===========================================================
+  // -----------------------------------------------------------
+  // 🌍 4️⃣ 전체기간 수익률 TOP5 — monthly_performance_view 전체
+  // -----------------------------------------------------------
   async function loadMonthAllTop5() {
     const card = cards[3];
     showLoading(card);
+
     const { data, error } = await db
       .from("monthly_performance_view")
       .select("종목명, 측정일대비수익률")
@@ -133,11 +145,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderTop5(card, "🌍 전체 수익률 TOP5", data, "측정일대비수익률");
   }
 
-  // ===========================================================
-  // 📊 하단 테이블 — total_return & swing_proper_view
-  // ===========================================================
+  // -----------------------------------------------------------
+  // 📊 하단 테이블 (total_return + swing_proper_view)
+  // -----------------------------------------------------------
   async function loadTables() {
-    // 전체 수익률 테이블
+    // 전체 수익률
     const { data: total, error: e1 } = await db
       .from("total_return")
       .select("종목명, 시작가격, 현재가격, 수익률")
@@ -161,7 +173,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             )
             .join("");
 
-    // 스윙 적정가 테이블
+    // 스윙 적정가
     const { data: swing, error: e2 } = await db
       .from("swing_proper_view")
       .select("종목명, 적정매수가, 현재가, 괴리율")
@@ -186,9 +198,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             .join("");
   }
 
-  // ===========================================================
+  // -----------------------------------------------------------
   // 🚀 실행
-  // ===========================================================
+  // -----------------------------------------------------------
   await Promise.all([
     loadTotalTop5(),
     loadWatchlistTop5(),
