@@ -1,6 +1,7 @@
 /* ==========================================================
-   🌐 SWING INVESTOR — common.js (v3.5 안정판)
-   - Supabase + Header 연동 + 공통 유틸 복원
+   🌐 SWING INVESTOR — common.js (v3.6 Session Sync Edition)
+   - Supabase + Header 연동 완전 동기화
+   - Render / Vercel / Supabase 완전 호환
    ========================================================== */
 
 console.log("🌐 SWING INVESTOR common.js loaded");
@@ -20,25 +21,25 @@ const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 console.log("✅ Supabase client initialized.");
 
 // ------------------------------------------------------------
-// ✅ 2. 전역 네임스페이스 생성
+// ✅ 2. 전역 네임스페이스 정의
 // ------------------------------------------------------------
 window.SWINGINV = {
   db,
   user: null,
 
-  // ✅ 숫자 포맷
+  // 숫자 포맷
   nf(val) {
     if (val == null || val === "") return "-";
     return Number(val).toLocaleString();
   },
 
-  // ✅ 날짜 포맷
+  // 날짜 포맷
   fmtDate(dateStr) {
     if (!dateStr) return "-";
     return new Date(dateStr).toISOString().slice(0, 10);
   },
 
-  // ✅ 퍼센트 표시
+  // 퍼센트 포맷
   fmtPct(num) {
     if (num == null) return "-";
     const n = parseFloat(num);
@@ -47,7 +48,7 @@ window.SWINGINV = {
     return `<span style="color:${color};font-weight:600;">${sign}${Math.abs(n).toFixed(2)}%</span>`;
   },
 
-  // ✅ HTML 이스케이프
+  // HTML 이스케이프
   esc(str) {
     return (str || "").replace(/[&<>"']/g, (m) => {
       const map = {
@@ -61,13 +62,13 @@ window.SWINGINV = {
     });
   },
 
-  // ✅ 로딩 표시 (복원)
+  // ✅ 로딩 메시지
   showLoading(el, msg = "⏳ 불러오는 중...") {
     if (!el) return;
     el.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:10px;">${msg}</td></tr>`;
   },
 
-  // ✅ 에러 표시 (복원)
+  // ✅ 에러 메시지
   showError(el, msg = "❌ 오류가 발생했습니다.") {
     if (!el) return;
     el.innerHTML = `<tr><td colspan="10" style="text-align:center;color:red;padding:10px;">${msg}</td></tr>`;
@@ -75,7 +76,7 @@ window.SWINGINV = {
 };
 
 // ------------------------------------------------------------
-// ✅ 3. 현재 로그인 상태 확인
+// ✅ 3. 로그인 상태 초기 확인
 // ------------------------------------------------------------
 (async () => {
   try {
@@ -87,7 +88,7 @@ window.SWINGINV = {
       if (data?.user) console.log("👤 Logged in:", data.user.email);
     }
 
-    // header.html UI 갱신
+    // header 갱신
     if (typeof window.SWINGINV_updateHeaderAuthUI === "function") {
       window.SWINGINV_updateHeaderAuthUI();
     }
@@ -97,7 +98,7 @@ window.SWINGINV = {
 })();
 
 // ------------------------------------------------------------
-// ✅ 4. 로그인/로그아웃 실시간 감지
+// ✅ 4. 로그인/로그아웃/세션 복원 실시간 감지 (Session Sync)
 // ------------------------------------------------------------
 db.auth.onAuthStateChange(async (event, session) => {
   console.log("🔄 Auth state changed:", event);
@@ -108,16 +109,19 @@ db.auth.onAuthStateChange(async (event, session) => {
   } else if (event === "SIGNED_OUT") {
     window.SWINGINV.user = null;
     console.log("👋 로그아웃 감지");
+  } else if (event === "INITIAL_SESSION") {
+    window.SWINGINV.user = session?.user || null;
+    console.log("♻️ 세션 복원됨:", session?.user?.email);
   }
 
-  // Header 업데이트
+  // ✅ 헤더 즉시 갱신 (모든 상태 이벤트에서)
   if (typeof window.SWINGINV_updateHeaderAuthUI === "function") {
-    window.SWINGINV_updateHeaderAuthUI();
+    await window.SWINGINV_updateHeaderAuthUI();
   }
 });
 
 // ------------------------------------------------------------
-// ✅ 5. 로그아웃 버튼 이벤트 처리
+// ✅ 5. 로그아웃 버튼 클릭 이벤트
 // ------------------------------------------------------------
 document.addEventListener("click", async (e) => {
   if (e.target.id === "logoutBtn") {
@@ -133,7 +137,7 @@ document.addEventListener("click", async (e) => {
 });
 
 // ------------------------------------------------------------
-// ✅ 6. window.db 호환성 alias
+// ✅ 6. 호환성 alias
 // ------------------------------------------------------------
 if (window.SWINGINV?.db) {
   window.db = window.SWINGINV.db;
