@@ -1,9 +1,9 @@
 /* ==========================================================
-   🌐 SWING INVESTOR — common.js (v3.2 Stable)
-   - Supabase 클라이언트 및 공통 유틸 초기화
+   🌐 SWING INVESTOR — common_auth.js (v4.3 Unified Stable)
+   - Supabase 초기화 + 로그인 / 회원가입 / 로그아웃 / 유틸 통합
    ========================================================== */
 
-console.log("🌐 SWING INVESTOR common.js loaded");
+console.log("🌐 SWING INVESTOR common_auth.js loaded");
 
 // ------------------------------------------------------------
 // ✅ 1. Supabase 초기화
@@ -13,7 +13,7 @@ const SUPABASE_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1b2R1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4";
 
 if (!window.supabase) {
-  console.error("❌ Supabase SDK not loaded. Please include it before this script.");
+  console.error("❌ Supabase SDK not loaded.");
 }
 
 const { createClient } = window.supabase;
@@ -27,7 +27,9 @@ window.SWINGINV = {
   db,
   user: null,
 
-  // 공통 유틸 (표시 함수)
+  // ---------------------------
+  // 공통 유틸
+  // ---------------------------
   showLoading(el, msg = "⏳ 불러오는 중...") {
     if (!el) return;
     el.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:10px;">${msg}</td></tr>`;
@@ -65,38 +67,82 @@ window.SWINGINV = {
 };
 
 // ------------------------------------------------------------
-// ✅ 3. 인증 상태 관리 (최초 실행 시)
+// ✅ 3. 로그인/회원가입/로그아웃 통합
 // ------------------------------------------------------------
 (async () => {
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  // Supabase 초기 세션 확인
   try {
     const { data, error } = await db.auth.getUser();
-    if (error) {
-      console.warn("⚠️ No active session:", error.message);
-    } else {
-      window.SWINGINV.user = data?.user || null;
-      if (data?.user) console.log("👤 Logged in:", data.user.email);
-    }
-
-    // header.html UI 갱신
-    if (typeof window.SWINGINV_updateHeaderAuthUI === "function") {
-      window.SWINGINV_updateHeaderAuthUI();
+    if (!error && data?.user) {
+      SWINGINV.user = data.user;
+      console.log("👤 Logged in:", data.user.email);
     }
   } catch (err) {
-    console.error("❌ Auth check failed:", err);
+    console.error("❌ Auth init check failed:", err);
   }
+
+  // 전역 함수 정의
+  SWINGINV.loginUser = async (email, password, errEl) => {
+    if (!email || !password) {
+      if (errEl) errEl.textContent = "⚠️ 이메일과 비밀번호를 입력해주세요.";
+      return;
+    }
+    const { error } = await db.auth.signInWithPassword({ email, password });
+    if (error) {
+      console.error("❌ 로그인 실패:", error);
+      if (errEl) errEl.textContent = "❌ 이메일 또는 비밀번호가 올바르지 않습니다.";
+      return;
+    }
+    console.log("✅ 로그인 성공");
+    location.href = "index.html";
+  };
+
+  SWINGINV.signUpUser = async (email, password, nickname, errEl) => {
+    if (!email || !password || !nickname) {
+      if (errEl) errEl.textContent = "⚠️ 모든 항목을 입력해주세요.";
+      return;
+    }
+    const { error } = await db.auth.signUp({
+      email,
+      password,
+      options: { data: { nickname } },
+    });
+    if (error) {
+      console.error("❌ 회원가입 실패:", error);
+      if (errEl) errEl.textContent = "❌ 회원가입 실패: " + error.message;
+      return;
+    }
+    console.log("✅ 회원가입 성공");
+    location.href = "index.html"; // ✅ 회원가입 후 바로 index.html 이동
+  };
+
+  SWINGINV.logoutUser = async () => {
+    try {
+      await db.auth.signOut();
+    } catch (e) {
+      console.error("❌ 로그아웃 실패:", e);
+    }
+    location.href = "index.html";
+  };
+
+  SWINGINV.checkDuplicate = async (nickname) => {
+    const { data, error } = await db.from("profiles").select("id").eq("nickname", nickname);
+    return !error && data?.length > 0;
+  };
 })();
 
 // ------------------------------------------------------------
-// ✅ 4. 로그인/로그아웃 상태 자동 감지
+// ✅ 4. 인증 상태 자동 감지
 // ------------------------------------------------------------
 db.auth.onAuthStateChange(async (event, session) => {
   console.log("🔄 Auth state changed:", event);
-
   if (event === "SIGNED_IN") {
-    window.SWINGINV.user = session?.user || null;
+    SWINGINV.user = session?.user || null;
     console.log("👤 로그인 감지:", session?.user?.email);
   } else if (event === "SIGNED_OUT") {
-    window.SWINGINV.user = null;
+    SWINGINV.user = null;
     console.log("👋 로그아웃 감지");
   }
 
@@ -106,18 +152,11 @@ db.auth.onAuthStateChange(async (event, session) => {
 });
 
 // ------------------------------------------------------------
-// ✅ 5. 로그아웃 버튼 동작
+// ✅ 5. 로그아웃 버튼 자동 연결
 // ------------------------------------------------------------
 document.addEventListener("click", async (e) => {
   if (e.target.id === "logoutBtn") {
-    try {
-      await db.auth.signOut();
-      alert("👋 로그아웃되었습니다.");
-      location.reload();
-    } catch (err) {
-      console.error("❌ 로그아웃 실패:", err);
-      alert("로그아웃 중 오류 발생.");
-    }
+    await SWINGINV.logoutUser();
   }
 });
 
@@ -129,7 +168,4 @@ if (window.SWINGINV?.db) {
   console.log("✅ window.db alias created (for backward compatibility)");
 }
 
-// ------------------------------------------------------------
-// ✅ 7. 준비 완료
-// ------------------------------------------------------------
-console.log("✅ SWINGINV common.js fully initialized.");
+console.log("✅ SWINGINV common_auth.js fully initialized.");
