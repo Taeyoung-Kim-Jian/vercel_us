@@ -1,4 +1,4 @@
-<!-- ✅ SWING INVESTOR 통합 헤더 (v3.5 — inline script 완전버전) -->
+<!-- ✅ SWING INVESTOR 통합 헤더 (v3.6 — Session Safe) -->
 <header id="site-header">
   <div class="header-top">
     <!-- 🔹 로고 -->
@@ -158,14 +158,17 @@
   }
 </style>
 
-<!-- ✅ 로그인 상태 자동 갱신 스크립트 -->
+<!-- ✅ 로그인 상태 자동 갱신 (Session-Safe) -->
 <script>
-  console.log("🧭 Header script inline initialized");
+  console.log("🧭 Header script initialized (Session-Safe)");
 
-  // ✅ 헤더 UI 업데이트 함수 (common.js v3.5 호환)
+  // ✅ 로그인 상태 표시 함수
   window.SWINGINV_updateHeaderAuthUI = async function () {
     try {
-      const { data: { user } } = await SWINGINV.db.auth.getUser();
+      // 세션 우선 조회 (getUser() 대신)
+      const { data: sessionData } = await SWINGINV.db.auth.getSession();
+      const user = sessionData?.session?.user || null;
+
       const emailSpan = document.getElementById("user-email");
       const loginBtn = document.getElementById("loginBtn");
       const logoutBtn = document.getElementById("logoutBtn");
@@ -176,18 +179,20 @@
         emailSpan.style.color = "#2563eb";
         loginBtn.style.display = "none";
         logoutBtn.style.display = "inline-flex";
+        console.log("✅ Header updated → 로그인 표시:", nickname);
       } else {
         emailSpan.textContent = "로그아웃 중";
         emailSpan.style.color = "#374151";
         loginBtn.style.display = "inline-flex";
         logoutBtn.style.display = "none";
+        console.log("✅ Header updated → 로그아웃 표시");
       }
     } catch (err) {
       console.error("❌ Header UI update failed:", err);
     }
   };
 
-  // ✅ Supabase 초기화 대기 후 실행
+  // ✅ Supabase 초기화 완료 대기
   async function waitForSwingInv() {
     return new Promise((resolve) => {
       const check = () => {
@@ -198,9 +203,10 @@
     });
   }
 
+  // ✅ 페이지 로드 후 실행
   document.addEventListener("DOMContentLoaded", async () => {
     await waitForSwingInv();
-    console.log("✅ Header ready — Supabase 연결 완료");
+    console.log("✅ Header ready — Supabase 연결 확인됨");
     SWINGINV_updateHeaderAuthUI();
   });
 </script>
