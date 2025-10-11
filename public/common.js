@@ -1,6 +1,6 @@
 /* ==========================================================
-   🌐 SWING INVESTOR — common_auth.js (v4.3 Unified Stable)
-   - Supabase 초기화 + 로그인 / 회원가입 / 로그아웃 / 유틸 통합
+   🌐 SWING INVESTOR — common.js (v4.4 Stable Session-Safe)
+   - Supabase 초기화 + 로그인/회원가입/로그아웃/헤더 UI 통합
    ========================================================== */
 
 console.log("🌐 SWING INVESTOR common_auth.js loaded");
@@ -12,9 +12,7 @@ const SUPABASE_URL = "https://sssmldmhcfuodutvvcqf.supabase.co";
 const SUPABASE_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1b2R1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4";
 
-if (!window.supabase) {
-  console.error("❌ Supabase SDK not loaded.");
-}
+if (!window.supabase) console.error("❌ Supabase SDK not loaded.");
 
 const { createClient } = window.supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -26,19 +24,6 @@ console.log("✅ Supabase client initialized.");
 window.SWINGINV = {
   db,
   user: null,
-
-  // ---------------------------
-  // 공통 유틸
-  // ---------------------------
-  showLoading(el, msg = "⏳ 불러오는 중...") {
-    if (!el) return;
-    el.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:10px;">${msg}</td></tr>`;
-  },
-
-  showError(el, msg = "❌ 오류가 발생했습니다.") {
-    if (!el) return;
-    el.innerHTML = `<tr><td colspan="10" style="text-align:center;color:red;padding:10px;">${msg}</td></tr>`;
-  },
 
   nf(val) {
     if (val == null || val === "") return "-";
@@ -64,27 +49,9 @@ window.SWINGINV = {
       return map[m];
     });
   },
-};
 
-// ------------------------------------------------------------
-// ✅ 3. 로그인/회원가입/로그아웃 통합
-// ------------------------------------------------------------
-(async () => {
-  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-
-  // Supabase 초기 세션 확인
-  try {
-    const { data, error } = await db.auth.getUser();
-    if (!error && data?.user) {
-      SWINGINV.user = data.user;
-      console.log("👤 Logged in:", data.user.email);
-    }
-  } catch (err) {
-    console.error("❌ Auth init check failed:", err);
-  }
-
-  // 전역 함수 정의
-  SWINGINV.loginUser = async (email, password, errEl) => {
+  // ✅ 로그인
+  async loginUser(email, password, errEl) {
     if (!email || !password) {
       if (errEl) errEl.textContent = "⚠️ 이메일과 비밀번호를 입력해주세요.";
       return;
@@ -97,9 +64,10 @@ window.SWINGINV = {
     }
     console.log("✅ 로그인 성공");
     location.href = "index.html";
-  };
+  },
 
-  SWINGINV.signUpUser = async (email, password, nickname, errEl) => {
+  // ✅ 회원가입
+  async signUpUser(email, password, nickname, errEl) {
     if (!email || !password || !nickname) {
       if (errEl) errEl.textContent = "⚠️ 모든 항목을 입력해주세요.";
       return;
@@ -115,26 +83,37 @@ window.SWINGINV = {
       return;
     }
     console.log("✅ 회원가입 성공");
-    location.href = "index.html"; // ✅ 회원가입 후 바로 index.html 이동
-  };
+    location.href = "index.html";
+  },
 
-  SWINGINV.logoutUser = async () => {
+  // ✅ 로그아웃
+  async logoutUser() {
     try {
       await db.auth.signOut();
+      console.log("👋 로그아웃 성공");
     } catch (e) {
       console.error("❌ 로그아웃 실패:", e);
     }
-    location.href = "index.html";
-  };
+  },
+};
 
-  SWINGINV.checkDuplicate = async (nickname) => {
-    const { data, error } = await db.from("profiles").select("id").eq("nickname", nickname);
-    return !error && data?.length > 0;
-  };
+// ------------------------------------------------------------
+// ✅ 3. 인증 상태 초기 확인
+// ------------------------------------------------------------
+(async () => {
+  try {
+    const { data, error } = await db.auth.getUser();
+    if (!error && data?.user) {
+      SWINGINV.user = data.user;
+      console.log("👤 Logged in:", data.user.email);
+    }
+  } catch (err) {
+    console.error("❌ Auth init check failed:", err);
+  }
 })();
 
 // ------------------------------------------------------------
-// ✅ 4. 인증 상태 자동 감지
+// ✅ 4. 로그인/로그아웃 이벤트 감지
 // ------------------------------------------------------------
 db.auth.onAuthStateChange(async (event, session) => {
   console.log("🔄 Auth state changed:", event);
@@ -145,23 +124,63 @@ db.auth.onAuthStateChange(async (event, session) => {
     SWINGINV.user = null;
     console.log("👋 로그아웃 감지");
   }
-
-  if (typeof window.SWINGINV_updateHeaderAuthUI === "function") {
-    window.SWINGINV_updateHeaderAuthUI();
-  }
+  window.SWINGINV_updateHeaderAuthUI?.();
 });
 
 // ------------------------------------------------------------
-// ✅ 5. 로그아웃 버튼 자동 연결
+// ✅ 5. 헤더 로그인/로그아웃 UI 자동 갱신 (안전 버전)
 // ------------------------------------------------------------
-document.addEventListener("click", async (e) => {
-  if (e.target.id === "logoutBtn") {
-    await SWINGINV.logoutUser();
+window.SWINGINV_updateHeaderAuthUI = async () => {
+  const tryGet = (id) => document.getElementById(id);
+  let emailSpan = tryGet("user-email");
+  let loginBtn = tryGet("loginBtn");
+  let logoutBtn = tryGet("logoutBtn");
+
+  if (!emailSpan || !loginBtn || !logoutBtn) {
+    console.warn("⏳ Header not ready, retrying in 300ms...");
+    setTimeout(window.SWINGINV_updateHeaderAuthUI, 300);
+    return;
   }
+
+  try {
+    const { data: sessionData } = await SWINGINV.db.auth.getSession();
+    const user = sessionData?.session?.user || null;
+
+    if (user) {
+      const nickname = user.user_metadata?.nickname || user.email.split("@")[0];
+      emailSpan.textContent = `${nickname} 님`;
+      emailSpan.style.color = "#2563eb";
+      loginBtn.style.display = "none";
+      logoutBtn.style.display = "inline-flex";
+
+      logoutBtn.onclick = async () => {
+        await SWINGINV.logoutUser();
+        location.href = "index.html"; // 로그아웃 후 메인으로 이동
+        window.SWINGINV_updateHeaderAuthUI();
+      };
+
+      console.log("✅ Header updated → 로그인 표시:", nickname);
+    } else {
+      emailSpan.textContent = "로그아웃 중";
+      emailSpan.style.color = "#374151";
+      loginBtn.style.display = "inline-flex";
+      logoutBtn.style.display = "none";
+      console.log("✅ Header updated → 로그아웃 표시");
+    }
+  } catch (err) {
+    console.error("❌ Header UI update failed:", err);
+  }
+};
+
+// ------------------------------------------------------------
+// ✅ 6. 페이지 로드 후 헤더 자동 갱신
+// ------------------------------------------------------------
+document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(window.SWINGINV_updateHeaderAuthUI, 500);
 });
 
 // ------------------------------------------------------------
-// ✅ 6. window.db 호환성 alias 추가
+// ✅ 7. window.db 호환성 alias 추가
 // ------------------------------------------------------------
 if (window.SWINGINV?.db) {
   window.db = window.SWINGINV.db;
@@ -169,43 +188,3 @@ if (window.SWINGINV?.db) {
 }
 
 console.log("✅ SWINGINV common_auth.js fully initialized.");
-
-// ✅ 헤더 로그인/로그아웃 상태 자동 업데이트
-window.SWINGINV_updateHeaderAuthUI = async () => {
-  const user = window.SWINGINV?.user;
-  const nicknameEl = document.getElementById("user-nickname");
-  const loginBtn = document.getElementById("loginBtn");
-  const logoutBtn = document.getElementById("logoutBtn");
-
-  if (!loginBtn || !logoutBtn) return; // 헤더가 아직 안 불러졌을 경우 무시
-
-  if (user) {
-    // 🔹 로그인 상태
-    let nickname = user.user_metadata?.nickname || user.email?.split("@")[0] || "사용자";
-
-    nicknameEl.textContent = nickname;
-    nicknameEl.style.display = "inline";
-    loginBtn.style.display = "none";
-    logoutBtn.style.display = "inline-block";
-
-    logoutBtn.onclick = async () => {
-      await SWINGINV.logoutUser();
-      window.SWINGINV_updateHeaderAuthUI(); // 즉시 반영
-    };
-  } else {
-    // 🔹 로그아웃 상태
-    nicknameEl.style.display = "none";
-    loginBtn.style.display = "inline-block";
-    logoutBtn.style.display = "none";
-
-    loginBtn.onclick = () => (location.href = "login.html");
-  }
-};
-
-// ✅ 페이지 로드 시 자동 갱신
-document.addEventListener("DOMContentLoaded", () => {
-  if (typeof window.SWINGINV_updateHeaderAuthUI === "function") {
-    setTimeout(window.SWINGINV_updateHeaderAuthUI, 400);
-  }
-});
-
