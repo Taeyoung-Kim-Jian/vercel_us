@@ -1,13 +1,15 @@
 /* =========================================================
-   📊 main.js — index.html (4개 카드 + 2개 테이블)
+   ⚡ main.js — SWING INVESTOR Dashboard (v4.6 Ultra Optimized)
+   - Promise.all 로 모든 쿼리 병렬 실행
+   - select("*") 제거 → 경량 데이터만 요청
    ========================================================= */
 
 document.addEventListener("DOMContentLoaded", async () => {
-  console.log("📡 main.js loaded");
+  console.log("🚀 main.js v4.6 loaded");
 
   const totalBody = document.getElementById("total-table-body");
   const swingBody = document.getElementById("swing-table-body");
-  const cards = document.querySelectorAll(".card"); // 1~4번 카드
+  const cards = document.querySelectorAll(".card");
   const loadMoreTotalBtn = document.getElementById("loadMoreTotalBtn");
   const loadMoreSwingBtn = document.getElementById("loadMoreSwingBtn");
 
@@ -20,7 +22,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let totalData = [];
   let swingData = [];
 
-  // ✅ 카드 렌더링 공통 함수
+  // ✅ 공통 Top5 렌더 함수
   const renderTop5 = (card, title, data, field = "수익률") => {
     if (!data?.length) {
       card.innerHTML = `<h4>${title}</h4><div style="text-align:center;padding:20px;">데이터 없음</div>`;
@@ -30,50 +32,84 @@ document.addEventListener("DOMContentLoaded", async () => {
     card.innerHTML = `
       <h4>${title}</h4>
       <ul class="top5-list">
-        ${data
-          .slice(0, 5)
-          .map((r, i) => {
-            const value =
-              parseFloat(r[field] ?? r.측정일대비수익률 ?? 0) || 0;
-            const color = value >= 0 ? "#dc2626" : "#2563eb";
-            const sign = value >= 0 ? "▲" : "▼";
-            return `
-              <li>
-                <span class="rank">${i + 1}.</span>
-                <span class="clickable-name" data-code="${r.종목코드 || ""}" data-name="${r.종목명 || ""}">
-                  ${SWINGINV.esc(r.종목명)}
-                </span>
-                <span class="rate" style="color:${color}">
-                  ${sign}${Math.abs(value).toFixed(2)}%
-                </span>
-              </li>
-            `;
-          })
-          .join("")}
-      </ul>
-    `;
+        ${data.slice(0, 5).map((r, i) => {
+          const value = parseFloat(r[field] ?? r.측정일대비수익률 ?? 0) || 0;
+          const color = value >= 0 ? "#dc2626" : "#2563eb";
+          const sign = value >= 0 ? "▲" : "▼";
+          return `
+            <li>
+              <span class="rank">${i + 1}.</span>
+              <span class="clickable-name" data-code="${r.종목코드 || ""}" data-name="${r.종목명 || ""}">
+                ${SWINGINV.esc(r.종목명)}
+              </span>
+              <span class="rate" style="color:${color}">
+                ${sign}${Math.abs(value).toFixed(2)}%
+              </span>
+            </li>`;
+        }).join("")}
+      </ul>`;
   };
 
   try {
-    /* ✅ 1️⃣ 전체 수익률 Top5 */
-    const { data: totalDataRaw, error: totalErr } = await SWINGINV.db
-      .from("total_return")
-      .select("종목명, 종목코드, 시작가격, 현재가격, 수익률")
-      .order("수익률", { ascending: false });
+    // ✅ 4개 쿼리를 병렬 실행
+    const [
+      totalRes,
+      watchRes,
+      monthAllRes,
+      swingRes
+    ] = await Promise.all([
+      SWINGINV.db.from("total_return")
+        .select("종목명, 종목코드, 시작가격, 현재가격, 수익률")
+        .order("수익률", { ascending: false }),
 
-    if (totalErr) throw totalErr;
-    totalData = totalDataRaw || [];
+      SWINGINV.db.from("watchlist_with_return")
+        .select("종목명, 종목코드, 수익률")
+        .eq("공개여부", true)
+        .order("수익률", { ascending: false })
+        .limit(5),
+
+      SWINGINV.db.from("monthly_performance_view")
+        .select("종목명, 종목코드, 측정일대비수익률, 월구분")
+        .order("측정일대비수익률", { ascending: false })
+        .limit(5),
+
+      SWINGINV.db.from("swing_proper_view")
+        .select("종목명, 종목코드, 적정매수가, 현재가, 괴리율")
+        .order("괴리율", { ascending: true })
+    ]);
+
+    // ✅ 데이터 추출
+    totalData = totalRes.data || [];
+    const watchData = watchRes.data || [];
+    const monthAll = monthAllRes.data || [];
+    swingData = swingRes.data || [];
+
+    // ✅ 1️⃣ 전체 수익률 Top5
     renderTop5(cards[0], "📈 전체 수익률 Top5", totalData, "수익률");
 
-    // ✅ 전체 수익률 테이블
+    // ✅ 2️⃣ 관심종목 Top5
+    renderTop5(cards[1], "⭐ 관심종목 수익률 Top5", watchData, "수익률");
+
+    // ✅ 3️⃣ 기준가 수익률 Top5
+    const sorted = [...monthAll].sort(
+      (a, b) => (parseFloat(b.측정일대비수익률) || 0) - (parseFloat(a.측정일대비수익률) || 0)
+    );
+    renderTop5(cards[2], "🌍 기준가 수익률 Top5", sorted, "측정일대비수익률");
+
+    // ✅ 4️⃣ 이번 달 수익률 Top5
+    const now = new Date();
+    const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+    const monthLabel = `${now.getMonth() + 1}월`;
+    const monthNow = monthAll.filter((r) => r.월구분 === ym);
+    renderTop5(cards[3], `📆 ${monthLabel} 수익률 Top5`, monthNow, "측정일대비수익률");
+
+    // ✅ 전체 수익률 테이블 렌더
     const renderTotalPage = () => {
       const start = totalPage * PAGE_SIZE;
       const end = start + PAGE_SIZE;
       const pageData = totalData.slice(start, end);
-
-      const rows = pageData
-        .map(
-          (r) => `
+      const rows = pageData.map(
+        (r) => `
           <tr>
             <td class="clickable-name" data-code="${r.종목코드}" data-name="${r.종목명}">
               ${SWINGINV.esc(r.종목명)}
@@ -82,8 +118,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             <td>${SWINGINV.nf(r.현재가격)}</td>
             <td>${SWINGINV.fmtPct(r.수익률)}</td>
           </tr>`
-        )
-        .join("");
+      ).join("");
 
       if (totalPage === 0) totalBody.innerHTML = rows;
       else totalBody.insertAdjacentHTML("beforeend", rows);
@@ -93,86 +128,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
 
     renderTotalPage();
-
     loadMoreTotalBtn.addEventListener("click", () => {
-      window.location.href = "total.html";
+      location.href = "total.html";
     });
 
-    /* ✅ 2️⃣ 관심종목 Top5 */
-    const { data: watchlist, error: watchErr } = await SWINGINV.db
-      .from("watchlist_with_return")
-      .select("종목명, 종목코드, 수익률")
-      .eq("공개여부", true)
-      .order("수익률", { ascending: false })
-      .limit(5);
-
-    if (watchErr) throw watchErr;
-    renderTop5(cards[1], "⭐ 관심종목 수익률 Top5", watchlist, "수익률");
-
-/* ✅ 3️⃣ 전체 기준가 수익률 Top5 */
-const toNumber = (v) => {
-  if (v === null || v === undefined) return 0;
-  const n = parseFloat(String(v).replace(/,/g, ""));
-  return isNaN(n) ? 0 : n;
-};
-
-const { data: monthAll, error: monthAllErr } = await SWINGINV.db
-  .from("monthly_performance_view")
-  .select("종목명, 종목코드, 측정일대비수익률")
-  .order("측정일대비수익률", { ascending: false })
-  .limit(5);
-
-if (monthAllErr) {
-  console.error("❌ monthly_performance_view(all):", monthAllErr);
-  renderTop5(cards[2], "🌍 기준가 수익률 Top5", []);
-} else {
-  // ✅ 수익률을 숫자로 안전하게 변환 후 다시 정렬
-  const sorted = [...monthAll].sort(
-    (a, b) => toNumber(b.측정일대비수익률) - toNumber(a.측정일대비수익률)
-  );
-  renderTop5(cards[2], "🌍 기준가 수익률 Top5", sorted, "측정일대비수익률");
-}
-
-
-    /* ✅ 4️⃣ 이번 달 수익률 Top5 */
-    const now = new Date();
-    const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
-      2,
-      "0"
-    )}-01`; // ✅ date 타입 호환 ("YYYY-MM-01")
-    const monthLabel = `${now.getMonth() + 1}월`;
-
-    const { data: monthNow, error: monthErr } = await SWINGINV.db
-      .from("monthly_performance_view")
-      .select("종목명, 종목코드, 측정일대비수익률, 월구분")
-      .eq("월구분", ym)
-      .order("측정일대비수익률", { ascending: false })
-      .limit(5);
-
-    if (monthErr) {
-      console.error("❌ monthly_performance_view:", monthErr);
-      renderTop5(cards[3], `📆 ${monthLabel} 수익률 Top5`, []);
-    } else {
-      renderTop5(cards[3], `📆 ${monthLabel} 수익률 Top5`, monthNow, "측정일대비수익률");
-    }
-
-    /* ✅ 5️⃣ 스윙 적정가격 테이블 */
-    const { data: swingView, error: swingErr } = await SWINGINV.db
-      .from("swing_proper_view")
-      .select("*")
-      .order("괴리율", { ascending: true });
-
-    if (swingErr) throw swingErr;
-    swingData = swingView || [];
-
+    // ✅ 스윙 적정가 테이블 렌더
     const renderSwingPage = () => {
       const start = swingPage * PAGE_SIZE;
       const end = start + PAGE_SIZE;
       const pageData = swingData.slice(start, end);
-
-      const rows = pageData
-        .map(
-          (r) => `
+      const rows = pageData.map(
+        (r) => `
           <tr>
             <td class="clickable-name" data-code="${r.종목코드}" data-name="${r.종목명}">
               ${SWINGINV.esc(r.종목명)}
@@ -181,8 +147,7 @@ if (monthAllErr) {
             <td>${SWINGINV.nf(r.현재가)}</td>
             <td>${SWINGINV.fmtPct(r.괴리율)}</td>
           </tr>`
-        )
-        .join("");
+      ).join("");
 
       if (swingPage === 0) swingBody.innerHTML = rows;
       else swingBody.insertAdjacentHTML("beforeend", rows);
@@ -192,10 +157,10 @@ if (monthAllErr) {
     };
 
     renderSwingPage();
-
     loadMoreSwingBtn.addEventListener("click", () => {
-      window.location.href = "proper.html";
+      location.href = "proper.html";
     });
+
   } catch (err) {
     console.error("❌ 데이터 로딩 오류:", err);
     SWINGINV.showError(totalBody, "전체 수익률 데이터를 불러오지 못했습니다.");
