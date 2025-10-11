@@ -3,34 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>스윙 종목 | SWING INVESTOR</title>
-
-  <!-- ✅ 통합 스타일 및 라이브러리 -->
-  <link rel="stylesheet" href="./style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./common.js"></script>
-</head>
-
-<body>
-  <!-- ✅ 공통 헤더 -->
-  <div id="header-container"></div>
-  <script>
-    fetch("./header.html")
-      .then(r => r.text())
-      .then(html => {
-        document.getElementById("header-container").innerHTML = html;
-        if (typeof SWINGINV_updateHeaderAuthUI === "function")
-          SWINGINV_updateHeaderAuthUI();
-      });
-  </script>
-
-  <main class="content">
-    <h2>💰 스윙 종목 리스트</h2>
-    <p style="color:#555;">현재 적정 매수가 대비 괴리율이 낮은 종목들을 확인하세요.</p><!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>전체 성과 | SWING INVESTOR</title>
   <link rel="stylesheet" href="./style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -77,33 +49,5 @@
   <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
 
   <script src="./total.js"></script>
-</body>
-</html>
-
-
-    <!-- ✅ 스크롤 가능한 글로벌 테이블 -->
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>종목명</th>
-            <th>적정 매수가</th>
-            <th>현재가</th>
-            <th>괴리율</th>
-          </tr>
-        </thead>
-        <tbody id="swing-table-body">
-          <tr>
-            <td colspan="4" style="text-align:center;">⏳ 데이터를 불러오는 중...</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </main>
-
-  <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
-
-  <!-- ✅ 스크립트 -->
-  <script src="./proper.js"></script>
 </body>
 </html>
