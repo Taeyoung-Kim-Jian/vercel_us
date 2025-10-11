@@ -22,6 +22,7 @@
       height: 100vh;
       margin: 0;
     }
+
     .container {
       background: white;
       border-radius: 12px;
@@ -30,6 +31,7 @@
       width: 360px;
       text-align: center;
     }
+
     input {
       width: 100%;
       margin: 8px 0;
@@ -37,6 +39,7 @@
       border: 1px solid #ccc;
       border-radius: 6px;
     }
+
     button {
       width: 100%;
       margin-top: 10px;
@@ -48,22 +51,37 @@
       cursor: pointer;
       font-size: 15px;
     }
+
     button:hover { background: #0056b3; }
+
+    /* 🔹 파란색 효과 제거된 전환 버튼 */
     .link-btn {
-      background: none;
+      background: transparent !important;
       border: none;
       color: #2563eb;
       margin-top: 12px;
       text-decoration: underline;
       cursor: pointer;
       font-size: 14px;
+      box-shadow: none;
+      outline: none;
+      padding: 0;
     }
+
+    .link-btn:hover {
+      text-decoration: none;
+      background: none !important;
+      color: #1d4ed8;
+    }
+
     #logoutBtn {
       background: #dc3545;
     }
+
     #logoutBtn:hover {
       background: #a71d2a;
     }
+
     .nickname {
       margin-top: 20px;
       font-weight: bold;
@@ -112,6 +130,7 @@
       loginForm.style.display = "none";
       signupForm.style.display = "block";
     };
+
     document.getElementById("goLogin").onclick = () => {
       signupForm.style.display = "none";
       loginForm.style.display = "block";
@@ -123,7 +142,7 @@
       const password = document.getElementById("loginPassword").value.trim();
       if (!email || !password) return alert("이메일과 비밀번호를 입력하세요.");
       await SWINGINV.loginUser(email, password);
-      location.href = "index.html"; // 바로 이동
+      location.href = "index.html"; // 로그인 후 자동 이동
     };
 
     // ✅ 회원가입 처리
@@ -133,7 +152,6 @@
       const nickname = document.getElementById("signupNickname").value.trim();
       if (!email || !password || !nickname) return alert("모든 항목을 입력하세요.");
       await SWINGINV.signUpUser(email, password, nickname);
-      // 회원가입 완료 후 바로 로그인 페이지로 이동
       signupForm.style.display = "none";
       loginForm.style.display = "block";
     };
@@ -141,7 +159,7 @@
     // ✅ 로그아웃
     logoutBtn.onclick = async () => {
       await SWINGINV.logoutUser();
-      location.href = "index.html";
+      location.href = "index.html"; // 로그아웃 후 자동 이동
     };
 
     // ✅ 로그인 상태 감지
