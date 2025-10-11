@@ -26,9 +26,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         (r) => `
           <tr class="clickable-row" data-code="${r.종목코드}" data-name="${r.종목명}">
             <td>${SWINGINV.esc(r.종목명)}</td>
-            <td style="text-align:right;">${SWINGINV.nf(r.적정매수가)}</td>
-            <td style="text-align:right;">${SWINGINV.nf(r.현재가)}</td>
-            <td style="text-align:right;">${SWINGINV.fmtPct(r.괴리율)}</td>
+            <td style="text-align:center;">${SWINGINV.nf(r.적정매수가)}</td>
+            <td style="text-align:center;">${SWINGINV.nf(r.현재가)}</td>
+            <td style="text-align:center;">${SWINGINV.fmtPct(r.괴리율)}</td>
           </tr>
         `
       )
