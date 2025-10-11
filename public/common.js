@@ -169,3 +169,43 @@ if (window.SWINGINV?.db) {
 }
 
 console.log("✅ SWINGINV common_auth.js fully initialized.");
+
+// ✅ 헤더 로그인/로그아웃 상태 자동 업데이트
+window.SWINGINV_updateHeaderAuthUI = async () => {
+  const user = window.SWINGINV?.user;
+  const nicknameEl = document.getElementById("user-nickname");
+  const loginBtn = document.getElementById("loginBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+
+  if (!loginBtn || !logoutBtn) return; // 헤더가 아직 안 불러졌을 경우 무시
+
+  if (user) {
+    // 🔹 로그인 상태
+    let nickname = user.user_metadata?.nickname || user.email?.split("@")[0] || "사용자";
+
+    nicknameEl.textContent = nickname;
+    nicknameEl.style.display = "inline";
+    loginBtn.style.display = "none";
+    logoutBtn.style.display = "inline-block";
+
+    logoutBtn.onclick = async () => {
+      await SWINGINV.logoutUser();
+      window.SWINGINV_updateHeaderAuthUI(); // 즉시 반영
+    };
+  } else {
+    // 🔹 로그아웃 상태
+    nicknameEl.style.display = "none";
+    loginBtn.style.display = "inline-block";
+    logoutBtn.style.display = "none";
+
+    loginBtn.onclick = () => (location.href = "login.html");
+  }
+};
+
+// ✅ 페이지 로드 시 자동 갱신
+document.addEventListener("DOMContentLoaded", () => {
+  if (typeof window.SWINGINV_updateHeaderAuthUI === "function") {
+    setTimeout(window.SWINGINV_updateHeaderAuthUI, 400);
+  }
+});
+
