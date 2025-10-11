@@ -157,7 +157,6 @@
     }
   }
 </style>
-
 <!-- ✅ 로그인 상태 자동 갱신 (Session-Safe) -->
 <script>
   console.log("🧭 Header script initialized (Session-Safe)");
@@ -165,7 +164,6 @@
   // ✅ 로그인 상태 표시 함수
   window.SWINGINV_updateHeaderAuthUI = async function () {
     try {
-      // 세션 우선 조회 (getUser() 대신)
       const { data: sessionData } = await SWINGINV.db.auth.getSession();
       const user = sessionData?.session?.user || null;
 
@@ -179,6 +177,13 @@
         emailSpan.style.color = "#2563eb";
         loginBtn.style.display = "none";
         logoutBtn.style.display = "inline-flex";
+
+        // ✅ 로그아웃 버튼 동작 연결 (핵심 추가)
+        logoutBtn.onclick = async () => {
+          await SWINGINV.logoutUser();
+          SWINGINV_updateHeaderAuthUI(); // 바로 반영
+        };
+
         console.log("✅ Header updated → 로그인 표시:", nickname);
       } else {
         emailSpan.textContent = "로그아웃 중";
