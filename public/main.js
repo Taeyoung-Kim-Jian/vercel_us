@@ -109,15 +109,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (watchErr) throw watchErr;
     renderTop5(cards[1], "⭐ 관심종목 수익률 Top5", watchlist, "수익률");
 
-    /* ✅ 3️⃣ 전체 기준가 수익률 Top5 */
-    const { data: monthAll, error: monthAllErr } = await SWINGINV.db
-      .from("monthly_performance_view")
-      .select("종목명, 종목코드, 측정일대비수익률")
-      .order("측정일대비수익률", { ascending: false })
-      .limit(5);
+/* ✅ 3️⃣ 전체 기준가 수익률 Top5 */
+const { data: monthAll, error: monthAllErr } = await SWINGINV.db
+  .from("monthly_performance_view")
+  .select("종목명, 종목코드, 측정일대비수익률")
+  .order("측정일대비수익률", { ascending: false })
+  .limit(5);
 
-    if (monthAllErr) throw monthAllErr;
-    renderTop5(cards[2], "🌍 기준가 수익률 Top5", monthAll, "측정일대비수익률");
+if (monthAllErr) {
+  console.error("❌ monthly_performance_view(all):", monthAllErr);
+  renderTop5(cards[2], "🌍 기준가 수익률 Top5", []);
+} else {
+  renderTop5(cards[2], "🌍 기준가 수익률 Top5", monthAll, "측정일대비수익률");
+}
 
     /* ✅ 4️⃣ 이번 달 수익률 Top5 */
     const now = new Date();
