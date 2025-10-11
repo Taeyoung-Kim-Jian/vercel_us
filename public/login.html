@@ -32,6 +32,10 @@
       text-align: center;
     }
 
+    h2 {
+      margin-bottom: 10px;
+    }
+
     input {
       width: 100%;
       margin: 8px 0;
@@ -54,23 +58,19 @@
 
     button:hover { background: #0056b3; }
 
-    /* 🔹 파란색 효과 제거된 전환 버튼 */
     .link-btn {
-      background: transparent !important;
+      background: none !important;
       border: none;
       color: #2563eb;
       margin-top: 12px;
       text-decoration: underline;
       cursor: pointer;
       font-size: 14px;
-      box-shadow: none;
-      outline: none;
       padding: 0;
     }
 
     .link-btn:hover {
       text-decoration: none;
-      background: none !important;
       color: #1d4ed8;
     }
 
@@ -83,9 +83,24 @@
     }
 
     .nickname {
-      margin-top: 20px;
+      margin-top: 15px;
       font-weight: bold;
       color: #333;
+    }
+
+    /* ✅ 에러 메시지 */
+    .error {
+      color: #dc2626;
+      font-size: 13px;
+      margin-top: 8px;
+      height: 18px; /* 공간 유지 */
+    }
+
+    .success {
+      color: #16a34a;
+      font-size: 13px;
+      margin-top: 8px;
+      height: 18px;
     }
   </style>
 </head>
@@ -100,6 +115,7 @@
       <input type="email" id="loginEmail" placeholder="이메일" />
       <input type="password" id="loginPassword" placeholder="비밀번호" />
       <button id="loginBtn">로그인</button>
+      <p class="error" id="loginError"></p>
       <button class="link-btn" id="goSignup">회원가입으로 이동</button>
     </div>
 
@@ -110,6 +126,7 @@
       <input type="password" id="signupPassword" placeholder="비밀번호" />
       <input type="text" id="signupNickname" placeholder="닉네임" />
       <button id="signupBtn">회원가입</button>
+      <p class="error" id="signupError"></p>
       <button class="link-btn" id="goLogin">로그인으로 돌아가기</button>
     </div>
 
@@ -124,47 +141,79 @@
     const signupForm = document.getElementById("signupForm");
     const logoutBtn = document.getElementById("logoutBtn");
     const userInfo = document.getElementById("userInfo");
+    const loginError = document.getElementById("loginError");
+    const signupError = document.getElementById("signupError");
 
     // 🔄 폼 전환
     document.getElementById("goSignup").onclick = () => {
       loginForm.style.display = "none";
       signupForm.style.display = "block";
+      loginError.textContent = "";
     };
 
     document.getElementById("goLogin").onclick = () => {
       signupForm.style.display = "none";
       loginForm.style.display = "block";
+      signupError.textContent = "";
     };
 
     // ✅ 로그인 처리
     document.getElementById("loginBtn").onclick = async () => {
+      loginError.textContent = "";
       const email = document.getElementById("loginEmail").value.trim();
       const password = document.getElementById("loginPassword").value.trim();
-      if (!email || !password) return alert("이메일과 비밀번호를 입력하세요.");
-      await SWINGINV.loginUser(email, password);
-      location.href = "index.html"; // 로그인 후 자동 이동
+
+      if (!email || !password) {
+        loginError.textContent = "⚠️ 이메일과 비밀번호를 입력해주세요.";
+        return;
+      }
+
+      const { error } = await SWINGINV.db.auth.signInWithPassword({ email, password });
+      if (error) {
+        loginError.textContent = "❌ 이메일 또는 비밀번호가 올바르지 않습니다.";
+        return;
+      }
+      location.href = "index.html"; // ✅ 로그인 성공 시 바로 이동
     };
 
     // ✅ 회원가입 처리
     document.getElementById("signupBtn").onclick = async () => {
+      signupError.textContent = "";
       const email = document.getElementById("signupEmail").value.trim();
       const password = document.getElementById("signupPassword").value.trim();
       const nickname = document.getElementById("signupNickname").value.trim();
-      if (!email || !password || !nickname) return alert("모든 항목을 입력하세요.");
-      await SWINGINV.signUpUser(email, password, nickname);
+
+      if (!email || !password || !nickname) {
+        signupError.textContent = "⚠️ 모든 항목을 입력해주세요.";
+        return;
+      }
+
+      const { error } = await SWINGINV.db.auth.signUp({
+        email,
+        password,
+        options: { data: { nickname } }
+      });
+
+      if (error) {
+        signupError.textContent = "❌ 회원가입 실패: " + error.message;
+        return;
+      }
+
+      signupError.textContent = "";
       signupForm.style.display = "none";
       loginForm.style.display = "block";
     };
 
     // ✅ 로그아웃
     logoutBtn.onclick = async () => {
-      await SWINGINV.logoutUser();
-      location.href = "index.html"; // 로그아웃 후 자동 이동
+      await SWINGINV.db.auth.signOut();
+      location.href = "index.html"; // ✅ 로그아웃 후 자동 이동
     };
 
     // ✅ 로그인 상태 감지
     document.addEventListener("DOMContentLoaded", async () => {
       const { data: { session } } = await SWINGINV.db.auth.getSession();
+
       if (session?.user) {
         loginForm.style.display = "none";
         signupForm.style.display = "none";
