@@ -1,3 +1,6 @@
+/* =========================================================
+   📈 total.js — total_return 테이블 전체 조회 + 차트 이동 지원
+   ========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
   const SUPABASE_URL = "https://sssmldmhcfuodutvvcqf.supabase.co";
   const SUPABASE_ANON_KEY =
@@ -8,52 +11,67 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const tbody = document.getElementById("total-list-body");
 
-  tbody.innerHTML = `<tr><td colspan="7">⏳ 전체 데이터를 불러오는 중...</td></tr>`;
+  // 초기 로딩 표시
+  tbody.innerHTML = `
+    <tr><td colspan="7" style="text-align:center;">⏳ 전체 데이터를 불러오는 중...</td></tr>
+  `;
 
   try {
-    // total_return 전체 데이터 조회
+    // ✅ Supabase total_return 조회
     const { data, error } = await db
       .from("total_return")
       .select("*")
       .order("수익률", { ascending: false });
 
     if (error) throw error;
+
+    // ✅ 데이터가 없을 경우 처리
     if (!data || data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7">데이터가 없습니다.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">📭 데이터가 없습니다.</td></tr>`;
       return;
     }
 
-    tbody.innerHTML = "";
-    data.forEach((r, i) => {
-      const rate = parseFloat(r.수익률 ?? 0);
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${i + 1}</td>
-        <td>${r.종목명 || "-"}</td>
-        <td>${r.종목코드 || "-"}</td>
-        <td style="text-align:right;">${r.시작가격?.toLocaleString() || "-"}</td>
-        <td style="text-align:right;">${r.현재가격?.toLocaleString() || "-"}</td>
-        <td style="color:${rate >= 0 ? "#d32f2f" : "#1976d2"}; text-align:right;">
-          ${rate >= 0 ? "▲" : "▼"}${rate.toFixed(2)}%
-        </td>
-        <td style="text-align:right;">${r.기간 ?? "-"}</td>
-      `;
-      tbody.appendChild(tr);
+    // ✅ 테이블 렌더링
+    tbody.innerHTML = data
+      .map((r, i) => {
+        const rate = parseFloat(r.수익률 ?? 0);
+        const rateColor = rate >= 0 ? "#d32f2f" : "#1976d2";
+        const rateSign = rate >= 0 ? "▲" : "▼";
+
+        return `
+          <tr class="clickable-row" 
+              data-code="${r.종목코드}" 
+              data-name="${r.종목명}">
+            <td>${i + 1}</td>
+            <td class="clickable-name">${r.종목명 || "-"}</td>
+            <td>${r.종목코드 || "-"}</td>
+            <td style="text-align:right;">${r.시작가격?.toLocaleString() || "-"}</td>
+            <td style="text-align:right;">${r.현재가격?.toLocaleString() || "-"}</td>
+            <td style="text-align:right; color:${rateColor}; font-weight:500;">
+              ${rateSign}${Math.abs(rate).toFixed(2)}%
+            </td>
+            <td style="text-align:right;">${r.기간 ?? "-"}</td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    // ✅ 차트 페이지(detail.html) 이동 이벤트
+    document.querySelectorAll(".clickable-row").forEach((row) => {
+      row.addEventListener("click", () => {
+        const code = row.dataset.code;
+        const name = row.dataset.name;
+        if (!code || !name) return;
+        // detail 페이지로 이동
+        location.href = `detail.html?code=${encodeURIComponent(code)}&name=${encodeURIComponent(name)}`;
+      });
     });
   } catch (err) {
-    console.error(err);
-    tbody.innerHTML = `<tr><td colspan="7">❌ 불러오기 실패: ${err.message}</td></tr>`;
+    console.error("❌ 데이터 로드 오류:", err);
+    tbody.innerHTML = `
+      <tr><td colspan="7" style="text-align:center; color:red;">
+        ❌ 불러오기 실패: ${err.message}
+      </td></tr>
+    `;
   }
 });
-// ===============================
-  // 차트 실행
-  // ===============================
-const tdName = document.createElement("td");
-tdName.textContent = r.종목명 || "-";
-tdName.classList.add("clickable-name");
-tdName.addEventListener("click", () => {
-  // 종목 코드 또는 이름이 없으면 이동 금지
-  if (!r.종목코드 || !r.종목명) return;
-
-  // URL 파라미터로 전달
-  location.href = `detail.html?code=${encodeURIComponent(r.종목코드)}&name=${encodeURIComponent(r.종목명)}`;
