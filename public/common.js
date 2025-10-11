@@ -1,6 +1,6 @@
 /* ==========================================================
-   🌐 SWING INVESTOR — common.js (v4.4 Stable Session-Safe)
-   - Supabase 초기화 + 로그인/회원가입/로그아웃/헤더 UI 통합
+   🌐 SWING INVESTOR — common.js (v4.5 Stable Full)
+   - Supabase 초기화 + 로그인/회원가입/로그아웃/헤더 UI + 유틸 완전 통합
    ========================================================== */
 
 console.log("🌐 SWING INVESTOR common_auth.js loaded");
@@ -24,6 +24,19 @@ console.log("✅ Supabase client initialized.");
 window.SWINGINV = {
   db,
   user: null,
+
+  // ---------------------------
+  // 🔹 공통 유틸
+  // ---------------------------
+  showLoading(el, msg = "⏳ 불러오는 중...") {
+    if (!el) return;
+    el.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:10px;">${msg}</td></tr>`;
+  },
+
+  showError(el, msg = "❌ 오류가 발생했습니다.") {
+    if (!el) return;
+    el.innerHTML = `<tr><td colspan="10" style="text-align:center;color:red;padding:10px;">${msg}</td></tr>`;
+  },
 
   nf(val) {
     if (val == null || val === "") return "-";
@@ -50,7 +63,9 @@ window.SWINGINV = {
     });
   },
 
-  // ✅ 로그인
+  // ---------------------------
+  // 🔹 인증 관련 함수
+  // ---------------------------
   async loginUser(email, password, errEl) {
     if (!email || !password) {
       if (errEl) errEl.textContent = "⚠️ 이메일과 비밀번호를 입력해주세요.";
@@ -66,7 +81,6 @@ window.SWINGINV = {
     location.href = "index.html";
   },
 
-  // ✅ 회원가입
   async signUpUser(email, password, nickname, errEl) {
     if (!email || !password || !nickname) {
       if (errEl) errEl.textContent = "⚠️ 모든 항목을 입력해주세요.";
@@ -86,11 +100,11 @@ window.SWINGINV = {
     location.href = "index.html";
   },
 
-  // ✅ 로그아웃
   async logoutUser() {
     try {
       await db.auth.signOut();
       console.log("👋 로그아웃 성공");
+      location.href = "index.html";
     } catch (e) {
       console.error("❌ 로그아웃 실패:", e);
     }
@@ -98,7 +112,7 @@ window.SWINGINV = {
 };
 
 // ------------------------------------------------------------
-// ✅ 3. 인증 상태 초기 확인
+// ✅ 3. 초기 인증 상태 확인
 // ------------------------------------------------------------
 (async () => {
   try {
@@ -113,7 +127,7 @@ window.SWINGINV = {
 })();
 
 // ------------------------------------------------------------
-// ✅ 4. 로그인/로그아웃 이벤트 감지
+// ✅ 4. 인증 이벤트 감지
 // ------------------------------------------------------------
 db.auth.onAuthStateChange(async (event, session) => {
   console.log("🔄 Auth state changed:", event);
@@ -128,13 +142,13 @@ db.auth.onAuthStateChange(async (event, session) => {
 });
 
 // ------------------------------------------------------------
-// ✅ 5. 헤더 로그인/로그아웃 UI 자동 갱신 (안전 버전)
+// ✅ 5. 헤더 자동 갱신 (닉네임 + 버튼 전환)
 // ------------------------------------------------------------
 window.SWINGINV_updateHeaderAuthUI = async () => {
   const tryGet = (id) => document.getElementById(id);
-  let emailSpan = tryGet("user-email");
-  let loginBtn = tryGet("loginBtn");
-  let logoutBtn = tryGet("logoutBtn");
+  const emailSpan = tryGet("user-email");
+  const loginBtn = tryGet("loginBtn");
+  const logoutBtn = tryGet("logoutBtn");
 
   if (!emailSpan || !loginBtn || !logoutBtn) {
     console.warn("⏳ Header not ready, retrying in 300ms...");
@@ -155,7 +169,6 @@ window.SWINGINV_updateHeaderAuthUI = async () => {
 
       logoutBtn.onclick = async () => {
         await SWINGINV.logoutUser();
-        location.href = "index.html"; // 로그아웃 후 메인으로 이동
         window.SWINGINV_updateHeaderAuthUI();
       };
 
@@ -173,7 +186,7 @@ window.SWINGINV_updateHeaderAuthUI = async () => {
 };
 
 // ------------------------------------------------------------
-// ✅ 6. 페이지 로드 후 헤더 자동 갱신
+// ✅ 6. 페이지 로드 후 헤더 갱신
 // ------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
   setTimeout(window.SWINGINV_updateHeaderAuthUI, 500);
