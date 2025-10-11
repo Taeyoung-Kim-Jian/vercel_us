@@ -158,6 +158,7 @@ main.content {
 .card h4 {
   font-size: 15px;
   font-weight: 700;
+  margin-top: 10;         /* ✅ 위쪽 여백 제거 */
   margin-bottom: 10px;
   color: #111827;
   text-align: center; /* ✅ 가운데 정렬 */
