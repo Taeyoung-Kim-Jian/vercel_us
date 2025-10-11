@@ -62,9 +62,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           <td class="clickable-name" data-code="${r.종목코드}" data-name="${r.종목명}">
             ${SWINGINV.esc(r.종목명)}
           </td>
-          <td style="text-align:right">${SWINGINV.nf(r.시작가격)}</td>
-          <td style="text-align:right">${SWINGINV.nf(r.현재가격)}</td>
-          <td style="text-align:right">${SWINGINV.fmtPct(r.수익률)}</td>
+          <td style="text-align:center">${SWINGINV.nf(r.시작가격)}</td>
+          <td style="text-align:center">${SWINGINV.nf(r.현재가격)}</td>
+          <td style="text-align:center">${SWINGINV.fmtPct(r.수익률)}</td>
         </tr>
       `
         )
@@ -105,9 +105,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           <td class="clickable-name" data-code="${r.종목코드}" data-name="${r.종목명}">
             ${SWINGINV.esc(r.종목명)}
           </td>
-          <td style="text-align:right">${SWINGINV.nf(r.적정매수가)}</td>
-          <td style="text-align:right">${SWINGINV.nf(r.현재가)}</td>
-          <td style="text-align:right">${SWINGINV.fmtPct(r.괴리율)}</td>
+          <td style="text-align:center">${SWINGINV.nf(r.적정매수가)}</td>
+          <td style="text-align:center">${SWINGINV.nf(r.현재가)}</td>
+          <td style="text-align:center">${SWINGINV.fmtPct(r.괴리율)}</td>
         </tr>
       `
         )
