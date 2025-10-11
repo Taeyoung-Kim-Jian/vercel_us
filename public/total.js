@@ -45,9 +45,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             <td>${i + 1}</td>
             <td class="clickable-name">${r.종목명 || "-"}</td>
             <td>${r.종목코드 || "-"}</td>
-            <td style="text-align:right;">${r.시작가격?.toLocaleString() || "-"}</td>
-            <td style="text-align:right;">${r.현재가격?.toLocaleString() || "-"}</td>
-            <td style="text-align:right; color:${rateColor}; font-weight:500;">
+            <td style="text-align:center;">${r.시작가격?.toLocaleString() || "-"}</td>
+            <td style="text-align:center;">${r.현재가격?.toLocaleString() || "-"}</td>
+            <td style="text-align:center; color:${rateColor}; font-weight:500;">
               ${rateSign}${Math.abs(rate).toFixed(2)}%
             </td>
             <td style="text-align:right;">${r.기간 ?? "-"}</td>
