@@ -1,4 +1,4 @@
-<!-- ✅ SWING INVESTOR 통합 헤더 (v3.5) -->
+<!-- ✅ SWING INVESTOR 통합 헤더 (v3.5 — inline script 완전버전) -->
 <header id="site-header">
   <div class="header-top">
     <!-- 🔹 로고 -->
@@ -29,9 +29,6 @@
 
 <!-- ✅ 스타일 -->
 <style>
-  /* ===========================
-     📘 HEADER 기본 구조
-  ============================ */
   #site-header {
     background: #fff;
     border-bottom: 1px solid #e5e7eb;
@@ -42,7 +39,6 @@
     font-family: "Noto Sans KR", "Segoe UI", Arial, sans-serif;
   }
 
-  /* 🔹 상단 영역 (로고 + 로그인) */
   .header-top {
     display: flex;
     justify-content: space-between;
@@ -59,7 +55,6 @@
     cursor: pointer;
   }
 
-  /* 🔹 로그인/로그아웃 영역 */
   .auth-area {
     display: flex;
     align-items: center;
@@ -77,7 +72,6 @@
     border-radius: 5px;
     padding: 4px 8px;
     font-size: 12px;
-    line-height: 1;
     cursor: pointer;
   }
 
@@ -97,9 +91,6 @@
     background: #f9fafb;
   }
 
-  /* ===========================
-     📗 NAV (모든 페이지 공통)
-  ============================ */
   .gnb {
     border-top: 1px solid #f3f4f6;
     background: #fafafa;
@@ -136,7 +127,6 @@
     padding: 6px 10px;
   }
 
-  /* ✅ 반응형 */
   @media (max-width: 768px) {
     .header-top {
       padding: 6px 12px;
@@ -168,5 +158,49 @@
   }
 </style>
 
-<!-- ✅ 로그인 상태 갱신 스크립트 -->
-<script src="js/header.js"></script>
+<!-- ✅ 로그인 상태 자동 갱신 스크립트 -->
+<script>
+  console.log("🧭 Header script inline initialized");
+
+  // ✅ 헤더 UI 업데이트 함수 (common.js v3.5 호환)
+  window.SWINGINV_updateHeaderAuthUI = async function () {
+    try {
+      const { data: { user } } = await SWINGINV.db.auth.getUser();
+      const emailSpan = document.getElementById("user-email");
+      const loginBtn = document.getElementById("loginBtn");
+      const logoutBtn = document.getElementById("logoutBtn");
+
+      if (user) {
+        const nickname = user.user_metadata?.nickname || user.email.split("@")[0];
+        emailSpan.textContent = `${nickname} 님`;
+        emailSpan.style.color = "#2563eb";
+        loginBtn.style.display = "none";
+        logoutBtn.style.display = "inline-flex";
+      } else {
+        emailSpan.textContent = "로그아웃 중";
+        emailSpan.style.color = "#374151";
+        loginBtn.style.display = "inline-flex";
+        logoutBtn.style.display = "none";
+      }
+    } catch (err) {
+      console.error("❌ Header UI update failed:", err);
+    }
+  };
+
+  // ✅ Supabase 초기화 대기 후 실행
+  async function waitForSwingInv() {
+    return new Promise((resolve) => {
+      const check = () => {
+        if (window.SWINGINV?.db) return resolve();
+        setTimeout(check, 100);
+      };
+      check();
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    await waitForSwingInv();
+    console.log("✅ Header ready — Supabase 연결 완료");
+    SWINGINV_updateHeaderAuthUI();
+  });
+</script>
