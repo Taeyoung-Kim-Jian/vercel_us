@@ -5,12 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>로그인 / 회원가입 | SWING INVESTOR</title>
 
-  <!-- Supabase SDK -->
+  <!-- ✅ Supabase SDK -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
-  <!-- 공통 스크립트 -->
-  <script src="common.js"></script>
-  <script src="auth.js"></script>
+  <!-- ✅ 통합 스크립트 (common_auth.js) -->
+  <script src="./common_auth.js"></script>
 
   <style>
     body {
@@ -95,13 +94,6 @@
       margin-top: 8px;
       height: 18px;
     }
-
-    .success {
-      color: #16a34a;
-      font-size: 13px;
-      margin-top: 8px;
-      height: 18px;
-    }
   </style>
 </head>
 
@@ -130,10 +122,80 @@
       <button class="link-btn" id="goLogin">로그인으로 돌아가기</button>
     </div>
 
-    <!-- ✅ 로그아웃 -->
+    <!-- ✅ 로그아웃 버튼 -->
     <button id="logoutBtn" style="display:none;">로그아웃</button>
 
     <div class="nickname" id="userInfo"></div>
   </div>
+
+  <script>
+    // ----------------------------------------------------------
+    // ✅ 1. DOM 요소 참조
+    // ----------------------------------------------------------
+    const loginForm = document.getElementById("loginForm");
+    const signupForm = document.getElementById("signupForm");
+    const loginBtn = document.getElementById("loginBtn");
+    const signupBtn = document.getElementById("signupBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const goSignup = document.getElementById("goSignup");
+    const goLogin = document.getElementById("goLogin");
+    const loginError = document.getElementById("loginError");
+    const signupError = document.getElementById("signupError");
+    const userInfo = document.getElementById("userInfo");
+
+    // ----------------------------------------------------------
+    // ✅ 2. 폼 전환
+    // ----------------------------------------------------------
+    goSignup.onclick = () => {
+      loginForm.style.display = "none";
+      signupForm.style.display = "block";
+      loginError.textContent = "";
+    };
+    goLogin.onclick = () => {
+      signupForm.style.display = "none";
+      loginForm.style.display = "block";
+      signupError.textContent = "";
+    };
+
+    // ----------------------------------------------------------
+    // ✅ 3. 로그인 / 회원가입 / 로그아웃 바인딩
+    // ----------------------------------------------------------
+    loginBtn.onclick = async () => {
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value.trim();
+      loginError.textContent = "";
+      await SWINGINV.loginUser(email, password, loginError);
+    };
+
+    signupBtn.onclick = async () => {
+      const email = document.getElementById("signupEmail").value.trim();
+      const password = document.getElementById("signupPassword").value.trim();
+      const nickname = document.getElementById("signupNickname").value.trim();
+      signupError.textContent = "";
+      await SWINGINV.signUpUser(email, password, nickname, signupError);
+    };
+
+    logoutBtn.onclick = async () => {
+      await SWINGINV.logoutUser();
+    };
+
+    // ----------------------------------------------------------
+    // ✅ 4. 자동 로그인 상태 감지
+    // ----------------------------------------------------------
+    document.addEventListener("DOMContentLoaded", async () => {
+      const { data: { session } } = await SWINGINV.db.auth.getSession();
+      if (session?.user) {
+        loginForm.style.display = "none";
+        signupForm.style.display = "none";
+        logoutBtn.style.display = "block";
+        userInfo.innerText = `${session.user.email} 로그인 중`;
+      } else {
+        loginForm.style.display = "block";
+        signupForm.style.display = "none";
+        logoutBtn.style.display = "none";
+        userInfo.innerText = "";
+      }
+    });
+  </script>
 </body>
 </html>
