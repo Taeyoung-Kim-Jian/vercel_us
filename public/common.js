@@ -1,6 +1,7 @@
 /* ==========================================================
-   🌐 SWING INVESTOR — common.js (v3.7 Simple UI Sync Edition)
-   - 로그인 감지 → 버튼 자동 변경
+   🌐 SWING INVESTOR — common.js (v3.7.1 Stable Edition)
+   - 로그인 감지 → 헤더 버튼 자동 변경
+   - showLoading / showError 복원
    - Render / Vercel / Supabase 완전 호환
    ========================================================== */
 
@@ -83,15 +84,17 @@ document.addEventListener("click", async (e) => {
 });
 
 // ------------------------------------------------------------
-// ✅ 6. 헤더 UI 업데이트 함수
+// ✅ 6. 헤더 UI 업데이트 (자동 재시도 포함)
 // ------------------------------------------------------------
 function updateAuthUI(user) {
   const emailSpan = document.getElementById("user-email");
   const loginBtn = document.getElementById("loginBtn");
   const logoutBtn = document.getElementById("logoutBtn");
 
+  // header가 아직 로드되지 않았으면 재시도
   if (!emailSpan || !loginBtn || !logoutBtn) {
-    console.warn("⚠️ Header elements not found yet.");
+    console.warn("⚠️ Header elements not found yet. Retrying...");
+    setTimeout(() => updateAuthUI(user), 300);
     return;
   }
 
@@ -110,7 +113,20 @@ function updateAuthUI(user) {
 }
 
 // ------------------------------------------------------------
-// ✅ 7. 호환성 alias
+// ✅ 7. 구버전 호환용 함수 복원
+// ------------------------------------------------------------
+SWINGINV.showLoading = function (el, msg = "⏳ 불러오는 중...") {
+  if (!el) return;
+  el.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:10px;">${msg}</td></tr>`;
+};
+
+SWINGINV.showError = function (el, msg = "❌ 오류가 발생했습니다.") {
+  if (!el) return;
+  el.innerHTML = `<tr><td colspan="10" style="text-align:center;color:red;padding:10px;">${msg}</td></tr>`;
+};
+
+// ------------------------------------------------------------
+// ✅ 8. 호환성 alias
 // ------------------------------------------------------------
 window.db = db;
 console.log("✅ window.db alias created (for backward compatibility)");
