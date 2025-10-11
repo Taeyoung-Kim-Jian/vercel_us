@@ -160,6 +160,8 @@ main.content {
   font-weight: 700;
   margin-bottom: 10px;
   color: #111827;
+  text-align: center; /* ✅ 가운데 정렬 */
+
 }
 
 .top5-list {
