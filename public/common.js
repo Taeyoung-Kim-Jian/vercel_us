@@ -1,6 +1,6 @@
 /* ==========================================================
-   🌐 SWING INVESTOR — common.js (v3.3)
-   - Supabase 클라이언트 및 공통 유틸 초기화
+   🌐 SWING INVESTOR — common.js (v3.5 안정판)
+   - Supabase + Header 연동 + 공통 유틸 복원
    ========================================================== */
 
 console.log("🌐 SWING INVESTOR common.js loaded");
@@ -12,30 +12,33 @@ const SUPABASE_URL = "https://sssmldmhcfuodutvvcqf.supabase.co";
 const SUPABASE_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1b2R1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4";
 
-if (!window.supabase) {
+if (!window.supabase)
   console.error("❌ Supabase SDK not loaded. Please include it before this script.");
-}
 
 const { createClient } = window.supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 console.log("✅ Supabase client initialized.");
 
 // ------------------------------------------------------------
-// ✅ 2. 전역 네임스페이스 정의
+// ✅ 2. 전역 네임스페이스 생성
 // ------------------------------------------------------------
 window.SWINGINV = {
   db,
   user: null,
 
-  // 공통 유틸
+  // ✅ 숫자 포맷
   nf(val) {
     if (val == null || val === "") return "-";
     return Number(val).toLocaleString();
   },
+
+  // ✅ 날짜 포맷
   fmtDate(dateStr) {
     if (!dateStr) return "-";
     return new Date(dateStr).toISOString().slice(0, 10);
   },
+
+  // ✅ 퍼센트 표시
   fmtPct(num) {
     if (num == null) return "-";
     const n = parseFloat(num);
@@ -43,11 +46,31 @@ window.SWINGINV = {
     const color = n >= 0 ? "#dc2626" : "#2563eb";
     return `<span style="color:${color};font-weight:600;">${sign}${Math.abs(n).toFixed(2)}%</span>`;
   },
+
+  // ✅ HTML 이스케이프
   esc(str) {
     return (str || "").replace(/[&<>"']/g, (m) => {
-      const map = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+      const map = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      };
       return map[m];
     });
+  },
+
+  // ✅ 로딩 표시 (복원)
+  showLoading(el, msg = "⏳ 불러오는 중...") {
+    if (!el) return;
+    el.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:10px;">${msg}</td></tr>`;
+  },
+
+  // ✅ 에러 표시 (복원)
+  showError(el, msg = "❌ 오류가 발생했습니다.") {
+    if (!el) return;
+    el.innerHTML = `<tr><td colspan="10" style="text-align:center;color:red;padding:10px;">${msg}</td></tr>`;
   },
 };
 
@@ -74,7 +97,7 @@ window.SWINGINV = {
 })();
 
 // ------------------------------------------------------------
-// ✅ 4. 로그인/로그아웃 상태 자동 감지
+// ✅ 4. 로그인/로그아웃 실시간 감지
 // ------------------------------------------------------------
 db.auth.onAuthStateChange(async (event, session) => {
   console.log("🔄 Auth state changed:", event);
@@ -87,13 +110,14 @@ db.auth.onAuthStateChange(async (event, session) => {
     console.log("👋 로그아웃 감지");
   }
 
+  // Header 업데이트
   if (typeof window.SWINGINV_updateHeaderAuthUI === "function") {
     window.SWINGINV_updateHeaderAuthUI();
   }
 });
 
 // ------------------------------------------------------------
-// ✅ 5. 로그아웃 버튼 동작
+// ✅ 5. 로그아웃 버튼 이벤트 처리
 // ------------------------------------------------------------
 document.addEventListener("click", async (e) => {
   if (e.target.id === "logoutBtn") {
@@ -103,13 +127,13 @@ document.addEventListener("click", async (e) => {
       location.reload();
     } catch (err) {
       console.error("❌ 로그아웃 실패:", err);
-      alert("로그아웃 중 오류 발생.");
+      alert("로그아웃 중 오류가 발생했습니다.");
     }
   }
 });
 
 // ------------------------------------------------------------
-// ✅ 6. window.db 호환성 alias 추가
+// ✅ 6. window.db 호환성 alias
 // ------------------------------------------------------------
 if (window.SWINGINV?.db) {
   window.db = window.SWINGINV.db;
@@ -117,6 +141,6 @@ if (window.SWINGINV?.db) {
 }
 
 // ------------------------------------------------------------
-// ✅ 7. 준비 완료
+// ✅ 7. 초기화 완료
 // ------------------------------------------------------------
 console.log("✅ SWINGINV common.js fully initialized.");
