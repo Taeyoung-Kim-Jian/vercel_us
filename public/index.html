@@ -5,14 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SWING INVESTOR Dashboard</title>
   <link rel="stylesheet" href="./style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./common.js"></script>
 
   <style>
+    /* ✅ 메인 페이지 전용 레이아웃 (공통 폭 유지) */
     main.content {
-      max-width: 1000px;
+      max-width: 1100px;
       margin: 0 auto;
-      padding: 20px;
+      padding: 20px 16px 80px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     }
 
+    /* ✅ 카드 영역 */
     .cards {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -33,6 +40,12 @@
       transform: translateY(-3px);
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       background: #fafafa;
+    }
+
+    /* ✅ Top5 카드 */
+    #top5-card {
+      display: flex;
+      flex-direction: column;
     }
 
     #top5-card h4 {
@@ -59,12 +72,28 @@
 
     #top5-card li:last-child { border-bottom: none; }
 
-    .top5-rank { font-weight: 600; color: #2563eb; width: 35px; }
-    .top5-name { flex-grow: 1; color: #111827; }
-    .top5-return { font-weight: 600; }
+    .top5-rank {
+      font-weight: 600;
+      color: #2563eb;
+      width: 35px;
+      text-align: center;
+    }
+
+    .top5-name {
+      flex-grow: 1;
+      color: #111827;
+      text-align: left;
+    }
+
+    .top5-return {
+      font-weight: 600;
+      text-align: right;
+    }
+
     .top5-return.up { color: #dc2626; }
     .top5-return.down { color: #2563eb; }
 
+    /* ✅ 테이블 */
     .table-wrap {
       background: #fff;
       border-radius: 12px;
@@ -91,8 +120,8 @@
     }
 
     thead {
-      background-color: #f1f5f9 !important;
-      color: #111827 !important;
+      background-color: #f1f5f9;
+      color: #111827;
       font-weight: 600;
       border-bottom: 2px solid #2563eb;
     }
@@ -100,8 +129,8 @@
     th, td {
       padding: 10px 12px;
       border-bottom: 1px solid #e5e7eb;
-      white-space: nowrap;
       text-align: center;
+      white-space: nowrap;
     }
 
     tbody tr:hover {
@@ -109,10 +138,42 @@
       transition: background 0.2s;
     }
 
+    /* ✅ 버튼 */
+    button {
+      display: block;
+      margin: 15px auto 0;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    button:hover { background: #1e3a8a; }
+
+    /* ✅ NAV 메뉴 폭 통일 (다른 페이지와 동일) */
+    .gnb-inner {
+      max-width: 1100px !important;
+      margin: 0 auto !important;
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+      gap: 22px !important;
+    }
+
     footer {
       text-align: center;
       color: #6b7280;
       margin: 50px 0 30px;
+    }
+
+    @media (max-width: 768px) {
+      main.content { padding: 12px; }
+      table { font-size: 12px; }
+      .gnb-inner { gap: 14px !important; }
     }
   </style>
 </head>
@@ -131,13 +192,15 @@
   </script>
 
   <main class="content">
+    <!-- 🏆 수익률 Top 5 -->
     <section class="cards">
-      <div id="card-total" class="card">📊 전체 수익률 Top5 불러오는 중...</div>
-      <div id="card-watchlist" class="card">⭐ 관심종목 Top5 불러오는 중...</div>
-      <div id="card-month" class="card">📅 이번달 Top5 불러오는 중...</div>
-      <div id="card-allmonth" class="card">📆 전체월 Top5 불러오는 중...</div>
+      <div id="top5-card" class="card">📈 데이터 불러오는 중...</div>
+      <div class="card">📊 수익률 2</div>
+      <div class="card">📈 수익률 3</div>
+      <div class="card">📉 수익률 4</div>
     </section>
 
+    <!-- 🧾 전체 수익률 -->
     <div class="table-wrap">
       <h3>📈 전체 수익률</h3>
       <table>
@@ -152,39 +215,25 @@
       </table>
       <button id="loadMoreTotalBtn">더보기</button>
     </div>
+
+    <!-- 💰 스윙 적정가격 -->
+    <div class="table-wrap">
+      <h3>💰 스윙 적정가격</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>종목명</th><th>적정매수가</th><th>현재가</th><th>괴리율</th>
+          </tr>
+        </thead>
+        <tbody id="swing-table-body">
+          <tr><td colspan="4">데이터를 불러오는 중...</td></tr>
+        </tbody>
+      </table>
+      <button id="loadMoreSwingBtn">더보기</button>
+    </div>
   </main>
 
   <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
-
-  <!-- ✅ Supabase SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- ✅ 공통 스크립트 -->
-  <script src="./common.js"></script>
-
-  <!-- ✅ Supabase 준비 후 main.js 로드 -->
-  <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      console.log("📡 index.html loaded");
-
-      // Supabase 클라이언트 대기
-      let tries = 0;
-      while ((!window.SWINGINV || !window.SWINGINV.db) && tries < 20) {
-        await new Promise(res => setTimeout(res, 100));
-        tries++;
-      }
-
-      const db = window.SWINGINV?.db;
-      if (!db) {
-        console.error("❌ Supabase client not found after waiting.");
-        return;
-      }
-
-      console.log("✅ Supabase client ready, loading main.js...");
-      const script = document.createElement("script");
-      script.src = "./main.js";
-      document.body.appendChild(script);
-    });
-  </script>
+  <script src="./main.js"></script>
 </body>
 </html>
