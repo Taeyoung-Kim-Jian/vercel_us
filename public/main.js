@@ -1,14 +1,16 @@
 /* ===========================================================
-   📊 main.js — SWING INVESTOR 메인 페이지 (자동 월 + 통일 카드)
+   📊 main.js — SWING INVESTOR 메인 페이지 (Supabase 재사용 + 자동 월)
    =========================================================== */
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const SUPABASE_URL = "https://sssmldmhcfuodutvvcqf.supabase.co";
-  const SUPABASE_ANON_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4";
+  console.log("📡 main.js loaded");
 
-  const { createClient } = window.supabase;
-  const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // ✅ common.js 에서 이미 초기화된 Supabase 클라이언트를 재사용
+  const db = window.db || window.supabaseClient;
+  if (!db) {
+    console.error("❌ Supabase client not found. Check common.js initialization.");
+    return;
+  }
 
   const cards = document.querySelectorAll(".card");
   const totalBody = document.getElementById("total-table-body");
@@ -17,7 +19,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const showLoading = (el, msg = "📊 불러오는 중...") =>
     (el.innerHTML = `<div style="text-align:center;padding:20px;">${msg}</div>`);
 
-  // 📌 카드 렌더링 공통 함수
+  // 📌 공통 Top5 렌더링 함수
   const renderTop5 = (card, title, rows, field = "수익률") => {
     if (!rows?.length) {
       card.innerHTML = `<div style="text-align:center;padding:20px;">데이터 없음</div>`;
@@ -55,7 +57,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       .select("종목명, 수익률")
       .order("수익률", { ascending: false })
       .limit(5);
-    if (error) return renderTop5(card, "🏆 전체 수익률 TOP5", []);
+
+    if (error) {
+      console.error("❌ total_return:", error);
+      renderTop5(card, "🏆 전체 수익률 TOP5", []);
+      return;
+    }
     renderTop5(card, "🏆 전체 수익률 TOP5", data);
   }
 
@@ -71,7 +78,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       .eq("공개여부", true)
       .order("수익률", { ascending: false })
       .limit(5);
-    if (error) return renderTop5(card, "⭐ 관심종목 TOP5", []);
+
+    if (error) {
+      console.error("❌ watchlist_with_return:", error);
+      renderTop5(card, "⭐ 관심종목 TOP5", []);
+      return;
+    }
     renderTop5(card, "⭐ 관심종목 TOP5", data);
   }
 
@@ -93,12 +105,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       .order("측정일대비수익률", { ascending: false })
       .limit(5);
 
-    if (error) return renderTop5(card, `📆 ${monthLabel} 수익률 TOP5`, []);
+    if (error) {
+      console.error("❌ monthly_performance_view:", error);
+      renderTop5(card, `📆 ${monthLabel} 수익률 TOP5`, []);
+      return;
+    }
     renderTop5(card, `📆 ${monthLabel} 수익률 TOP5`, data, "측정일대비수익률");
   }
 
   // ===========================================================
-  // 🌍 4️⃣ 전체기간 수익률 TOP5 — monthly_performance_view
+  // 🌍 4️⃣ 전체기간 수익률 TOP5 — monthly_performance_view (전체)
   // ===========================================================
   async function loadMonthAllTop5() {
     const card = cards[3];
@@ -108,7 +124,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       .select("종목명, 측정일대비수익률")
       .order("측정일대비수익률", { ascending: false })
       .limit(5);
-    if (error) return renderTop5(card, "🌍 전체 수익률 TOP5", []);
+
+    if (error) {
+      console.error("❌ monthly_performance_view(all):", error);
+      renderTop5(card, "🌍 전체 수익률 TOP5", []);
+      return;
+    }
     renderTop5(card, "🌍 전체 수익률 TOP5", data, "측정일대비수익률");
   }
 
@@ -116,11 +137,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   // 📊 하단 테이블 — total_return & swing_proper_view
   // ===========================================================
   async function loadTables() {
+    // 전체 수익률 테이블
     const { data: total, error: e1 } = await db
       .from("total_return")
       .select("종목명, 시작가격, 현재가격, 수익률")
       .order("수익률", { ascending: false })
       .limit(20);
+
     totalBody.innerHTML =
       e1 || !total?.length
         ? `<tr><td colspan="4">데이터 없음</td></tr>`
@@ -138,11 +161,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             )
             .join("");
 
+    // 스윙 적정가 테이블
     const { data: swing, error: e2 } = await db
       .from("swing_proper_view")
       .select("종목명, 적정매수가, 현재가, 괴리율")
       .order("괴리율", { ascending: true })
       .limit(20);
+
     swingBody.innerHTML =
       e2 || !swing?.length
         ? `<tr><td colspan="4">데이터 없음</td></tr>`
