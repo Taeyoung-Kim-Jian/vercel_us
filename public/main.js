@@ -110,6 +110,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderTop5(cards[1], "⭐ 관심종목 수익률 Top5", watchlist, "수익률");
 
 /* ✅ 3️⃣ 전체 기준가 수익률 Top5 */
+const toNumber = (v) => {
+  if (v === null || v === undefined) return 0;
+  const n = parseFloat(String(v).replace(/,/g, ""));
+  return isNaN(n) ? 0 : n;
+};
+
 const { data: monthAll, error: monthAllErr } = await SWINGINV.db
   .from("monthly_performance_view")
   .select("종목명, 종목코드, 측정일대비수익률")
@@ -120,8 +126,13 @@ if (monthAllErr) {
   console.error("❌ monthly_performance_view(all):", monthAllErr);
   renderTop5(cards[2], "🌍 기준가 수익률 Top5", []);
 } else {
-  renderTop5(cards[2], "🌍 기준가 수익률 Top5", monthAll, "측정일대비수익률");
+  // ✅ 수익률을 숫자로 안전하게 변환 후 다시 정렬
+  const sorted = [...monthAll].sort(
+    (a, b) => toNumber(b.측정일대비수익률) - toNumber(a.측정일대비수익률)
+  );
+  renderTop5(cards[2], "🌍 기준가 수익률 Top5", sorted, "측정일대비수익률");
 }
+
 
     /* ✅ 4️⃣ 이번 달 수익률 Top5 */
     const now = new Date();
