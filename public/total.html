@@ -3,146 +3,54 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>📊 전체 종목 | SWING INVESTOR</title>
-  <link rel="stylesheet" href="./style.css" />
+  <title>스윙 종목 | SWING INVESTOR</title>
 
-  <!-- ✅ Supabase & 공통 스크립트 -->
+  <!-- ✅ 통합 스타일 및 라이브러리 -->
+  <link rel="stylesheet" href="./style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./common.js"></script>
 </head>
 
 <body>
-  <!-- ✅ 공통 헤더 자동 로드 -->
+  <!-- ✅ 공통 헤더 -->
   <div id="header-container"></div>
   <script>
     fetch("./header.html")
-      .then((r) => r.text())
-      .then((html) => {
+      .then(r => r.text())
+      .then(html => {
         document.getElementById("header-container").innerHTML = html;
-        if (typeof SWINGINV_updateHeaderAuthUI === "function") {
+        if (typeof SWINGINV_updateHeaderAuthUI === "function")
           SWINGINV_updateHeaderAuthUI();
-        }
       });
   </script>
 
-  <!-- ===================================
-       📊 전체 종목 본문
-  =================================== -->
   <main class="content">
-    <section class="table-wrap">
-      <h2>📊 전체 종목 목록</h2>
+    <h2>💰 스윙 종목 리스트</h2>
+    <p style="color:#555;">현재 적정 매수가 대비 괴리율이 낮은 종목들을 확인하세요.</p>
+
+    <!-- ✅ 스크롤 가능한 글로벌 테이블 -->
+    <div class="table-container">
       <table>
         <thead>
           <tr>
             <th>종목명</th>
-            <th>종목코드</th>
-            <th>시작가격</th>
-            <th>현재가격</th>
-            <th>수익률</th>
-            <th>기간(일)</th>
+            <th>적정 매수가</th>
+            <th>현재가</th>
+            <th>괴리율</th>
           </tr>
         </thead>
-        <tbody id="total-table-body">
-          <tr><td colspan="6">데이터 불러오는 중...</td></tr>
+        <tbody id="swing-table-body">
+          <tr>
+            <td colspan="4" style="text-align:center;">⏳ 데이터를 불러오는 중...</td>
+          </tr>
         </tbody>
       </table>
-      <button id="loadMoreBtn">더보기</button>
-    </section>
+    </div>
   </main>
 
-  <!-- ===================================
-       ⚙️ 푸터
-  =================================== -->
-  <footer>
-    © 2025 SWING INVESTOR | 데이터 제공: Supabase
-  </footer>
+  <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
 
-  <!-- ===================================
-       📜 페이지 스크립트
-  =================================== -->
-  <script>
-    /* =========================================================
-       📊 전체 종목 total.html 로직
-       - common.js의 SWINGINV.db 사용
-       - Supabase 페이징 유틸(fetchAllRows)
-       ========================================================= */
-
-    document.addEventListener("DOMContentLoaded", async () => {
-      const tableBody = document.getElementById("total-table-body");
-      const loadMoreBtn = document.getElementById("loadMoreBtn");
-
-      SWINGINV.showLoading(tableBody);
-
-      // ✅ Supabase 페이징 유틸 (1000개씩 전부 가져오기)
-      async function fetchAllRows(builderFactory, pageSize = 1000) {
-        const all = [];
-        let from = 0;
-        while (true) {
-          const to = from + pageSize - 1;
-          const { data, error } = await builderFactory().range(from, to);
-          if (error) throw error;
-          if (!data || data.length === 0) break;
-          all.push(...data);
-          if (data.length < pageSize) break;
-          from += pageSize;
-        }
-        return all;
-      }
-
-      try {
-        console.log("⏳ 전체 종목 데이터 불러오는 중...");
-
-        const allData = await fetchAllRows(() =>
-          SWINGINV.db
-            .from("total_return")
-            .select("종목명, 종목코드, 시작가격, 현재가격, 수익률, 기간")
-            .order("수익률", { ascending: false })
-        );
-
-        if (!allData || allData.length === 0) {
-          SWINGINV.showError(tableBody, "데이터가 없습니다.");
-          return;
-        }
-
-        // ✅ 처음에는 20개만 표시
-        let visibleCount = 20;
-
-        function renderTable() {
-          const slice = allData.slice(0, visibleCount);
-          tableBody.innerHTML = slice
-            .map(
-              (r) => `
-              <tr>
-                <td class="clickable-name" data-code="${r.종목코드}" data-name="${r.종목명}">
-                  ${SWINGINV.esc(r.종목명)}
-                </td>
-                <td>${SWINGINV.esc(r.종목코드)}</td>
-                <td style="text-align:right">${SWINGINV.nf(r.시작가격)}</td>
-                <td style="text-align:right">${SWINGINV.nf(r.현재가격)}</td>
-                <td style="text-align:right">${SWINGINV.fmtPct(r.수익률)}</td>
-                <td style="text-align:right">${r.기간 ?? "-"}</td>
-              </tr>
-            `
-            )
-            .join("");
-
-          if (visibleCount >= allData.length) {
-            loadMoreBtn.style.display = "none";
-          }
-        }
-
-        // ✅ 더보기 버튼
-        loadMoreBtn.addEventListener("click", () => {
-          visibleCount += 20;
-          renderTable();
-        });
-
-        renderTable();
-      } catch (e) {
-        console.error("❌ 전체 종목 로딩 실패:", e);
-        SWINGINV.showError(tableBody, e.message || "데이터 로딩 실패");
-      }
-    });
-  </script>
+  <!-- ✅ 스크립트 -->
+  <script src="./proper.js"></script>
 </body>
 </html>
