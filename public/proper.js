@@ -1,58 +1,49 @@
 /* =========================================================
-   💰 proper.js — swing_proper_view 기반 페이지
+   💰 proper.js — swing_proper_view 기반 페이지 (전체 출력 버전)
    ========================================================= */
 
 document.addEventListener("DOMContentLoaded", async () => {
   const tbody = document.getElementById("swing-table-body");
-  const loadMoreBtn = document.getElementById("loadMoreSwingBtn");
   SWINGINV.showLoading(tbody);
 
-  const PAGE_SIZE = 10;
-  let currentPage = 0;
-  let allData = [];
-
   try {
-    // ✅ Supabase View에서 데이터 로드
+    // ✅ Supabase View에서 모든 데이터 불러오기
     const { data, error } = await SWINGINV.db
       .from("swing_proper_view")
       .select("*")
       .order("괴리율", { ascending: true });
 
     if (error) throw error;
-    allData = data || [];
 
-    // ✅ 페이지 렌더링
-    const renderPage = () => {
-      const start = currentPage * PAGE_SIZE;
-      const end = start + PAGE_SIZE;
-      const pageData = allData.slice(start, end);
+    if (!data || data.length === 0) {
+      SWINGINV.showError(tbody, "📭 표시할 종목이 없습니다.");
+      return;
+    }
 
-      const rows = pageData
-        .map(
-          (r) => `
-            <tr>
-              <td class="clickable-name" data-code="${r.종목코드}" data-name="${r.종목명}">
-                ${SWINGINV.esc(r.종목명)}
-              </td>
-              <td style="text-align:right">${SWINGINV.nf(r.적정매수가)}</td>
-              <td style="text-align:right">${SWINGINV.nf(r.현재가)}</td>
-              <td style="text-align:right">${SWINGINV.fmtPct(r.괴리율)}</td>
-            </tr>
-          `
-        )
-        .join("");
+    // ✅ 모든 행을 한 번에 렌더링
+    tbody.innerHTML = data
+      .map(
+        (r) => `
+          <tr class="clickable-row" data-code="${r.종목코드}" data-name="${r.종목명}">
+            <td>${SWINGINV.esc(r.종목명)}</td>
+            <td style="text-align:right;">${SWINGINV.nf(r.적정매수가)}</td>
+            <td style="text-align:right;">${SWINGINV.nf(r.현재가)}</td>
+            <td style="text-align:right;">${SWINGINV.fmtPct(r.괴리율)}</td>
+          </tr>
+        `
+      )
+      .join("");
 
-      if (currentPage === 0) tbody.innerHTML = rows;
-      else tbody.insertAdjacentHTML("beforeend", rows);
-
-      currentPage++;
-      if (end >= allData.length) loadMoreBtn.style.display = "none";
-    };
-
-    renderPage();
-    loadMoreBtn.addEventListener("click", renderPage);
+    // ✅ 클릭 시 detail.html로 이동
+    document.querySelectorAll(".clickable-row").forEach((row) => {
+      row.addEventListener("click", () => {
+        const name = row.dataset.name;
+        const code = row.dataset.code;
+        location.href = `detail.html?name=${encodeURIComponent(name)}&code=${code}`;
+      });
+    });
   } catch (err) {
     console.error("❌ 데이터 로드 오류:", err);
-    SWINGINV.showError(tbody, "데이터 로딩 실패");
+    SWINGINV.showError(tbody, "데이터를 불러오지 못했습니다.");
   }
 });
