@@ -49,67 +49,112 @@
       font-size: 15px;
     }
     button:hover { background: #0056b3; }
-    #logoutBtn { background: #dc3545; }
-    #logoutBtn:hover { background: #a71d2a; }
-    .nickname { margin-top: 20px; font-weight: bold; color: #333; }
+    .link-btn {
+      background: none;
+      border: none;
+      color: #2563eb;
+      margin-top: 12px;
+      text-decoration: underline;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    #logoutBtn {
+      background: #dc3545;
+    }
+    #logoutBtn:hover {
+      background: #a71d2a;
+    }
+    .nickname {
+      margin-top: 20px;
+      font-weight: bold;
+      color: #333;
+    }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <h2>SWING INVESTOR 로그인</h2>
+    <h2>SWING INVESTOR</h2>
 
-    <div id="auth-area">
-      <input type="email" id="email" placeholder="이메일" />
-      <input type="password" id="password" placeholder="비밀번호" />
-      <input type="text" id="nickname" placeholder="닉네임 (회원가입 시)" />
-
-      <button id="signupBtn">회원가입</button>
+    <!-- ✅ 로그인 폼 -->
+    <div id="loginForm">
+      <h3>로그인</h3>
+      <input type="email" id="loginEmail" placeholder="이메일" />
+      <input type="password" id="loginPassword" placeholder="비밀번호" />
       <button id="loginBtn">로그인</button>
+      <button class="link-btn" id="goSignup">회원가입으로 이동</button>
     </div>
 
+    <!-- ✅ 회원가입 폼 -->
+    <div id="signupForm" style="display:none;">
+      <h3>회원가입</h3>
+      <input type="email" id="signupEmail" placeholder="이메일" />
+      <input type="password" id="signupPassword" placeholder="비밀번호" />
+      <input type="text" id="signupNickname" placeholder="닉네임" />
+      <button id="signupBtn">회원가입</button>
+      <button class="link-btn" id="goLogin">로그인으로 돌아가기</button>
+    </div>
+
+    <!-- ✅ 로그아웃 -->
     <button id="logoutBtn" style="display:none;">로그아웃</button>
+
     <div class="nickname" id="userInfo"></div>
   </div>
 
   <script>
-    // ✅ 로그인 / 회원가입
-    document.getElementById("signupBtn").onclick = async () => {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const nickname = document.getElementById("nickname").value.trim();
-      if (!email || !password || !nickname) return alert("이메일, 비밀번호, 닉네임을 모두 입력해주세요.");
-      await SWINGINV.signUpUser(email, password, nickname);
+    const loginForm = document.getElementById("loginForm");
+    const signupForm = document.getElementById("signupForm");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const userInfo = document.getElementById("userInfo");
+
+    // 🔄 폼 전환
+    document.getElementById("goSignup").onclick = () => {
+      loginForm.style.display = "none";
+      signupForm.style.display = "block";
+    };
+    document.getElementById("goLogin").onclick = () => {
+      signupForm.style.display = "none";
+      loginForm.style.display = "block";
     };
 
+    // ✅ 로그인 처리
     document.getElementById("loginBtn").onclick = async () => {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-      if (!email || !password) return alert("이메일과 비밀번호를 입력해주세요.");
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value.trim();
+      if (!email || !password) return alert("이메일과 비밀번호를 입력하세요.");
       await SWINGINV.loginUser(email, password);
-      location.href = "index.html"; // ✅ 로그인 후 바로 이동
+      location.href = "index.html"; // 바로 이동
     };
 
-    document.getElementById("logoutBtn").onclick = async () => {
+    // ✅ 회원가입 처리
+    document.getElementById("signupBtn").onclick = async () => {
+      const email = document.getElementById("signupEmail").value.trim();
+      const password = document.getElementById("signupPassword").value.trim();
+      const nickname = document.getElementById("signupNickname").value.trim();
+      if (!email || !password || !nickname) return alert("모든 항목을 입력하세요.");
+      await SWINGINV.signUpUser(email, password, nickname);
+      // 회원가입 완료 후 바로 로그인 페이지로 이동
+      signupForm.style.display = "none";
+      loginForm.style.display = "block";
+    };
+
+    // ✅ 로그아웃
+    logoutBtn.onclick = async () => {
       await SWINGINV.logoutUser();
-      location.href = "index.html"; // ✅ 로그아웃 후 바로 이동
+      location.href = "index.html";
     };
 
     // ✅ 로그인 상태 감지
     document.addEventListener("DOMContentLoaded", async () => {
       const { data: { session } } = await SWINGINV.db.auth.getSession();
-      const authArea = document.getElementById("auth-area");
-      const logoutBtn = document.getElementById("logoutBtn");
-      const userInfo = document.getElementById("userInfo");
-
       if (session?.user) {
-        // 로그인 상태
-        authArea.style.display = "none";
+        loginForm.style.display = "none";
+        signupForm.style.display = "none";
         logoutBtn.style.display = "block";
         userInfo.innerText = `${session.user.email} 로그인 중`;
       } else {
-        // 로그아웃 상태
-        authArea.style.display = "block";
+        loginForm.style.display = "block";
+        signupForm.style.display = "none";
         logoutBtn.style.display = "none";
         userInfo.innerText = "";
       }
