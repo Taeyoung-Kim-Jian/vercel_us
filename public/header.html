@@ -1,4 +1,4 @@
-<!-- ✅ SWING INVESTOR 통합 헤더 -->
+<!-- ✅ SWING INVESTOR 통합 헤더 (v3.5) -->
 <header id="site-header">
   <div class="header-top">
     <!-- 🔹 로고 -->
@@ -27,47 +27,146 @@
   </nav>
 </header>
 
-<!-- ✅ 로그인 상태 갱신 스크립트 -->
-<script>
-  // 헤더 표시 갱신 함수
-  window.SWINGINV_updateHeaderAuthUI = async function () {
-    try {
-      const { data: { user } } = await SWINGINV.db.auth.getUser();
-      const emailSpan = document.getElementById("user-email");
-      const loginBtn = document.getElementById("loginBtn");
-      const logoutBtn = document.getElementById("logoutBtn");
-
-      if (user) {
-        const nickname = user.user_metadata?.nickname || user.email.split("@")[0];
-        emailSpan.textContent = `${nickname} 님`;
-        emailSpan.style.color = "#2563eb";
-        loginBtn.style.display = "none";
-        logoutBtn.style.display = "inline-flex";
-      } else {
-        emailSpan.textContent = "로그아웃 중";
-        emailSpan.style.color = "#374151";
-        loginBtn.style.display = "inline-flex";
-        logoutBtn.style.display = "none";
-      }
-    } catch (err) {
-      console.error("❌ Header UI update failed:", err);
-    }
-  };
-
-  // Supabase 로딩 대기 후 실행
-  async function waitForSwingInv() {
-    return new Promise((resolve) => {
-      const check = () => {
-        if (window.SWINGINV?.db) return resolve();
-        setTimeout(check, 100);
-      };
-      check();
-    });
+<!-- ✅ 스타일 -->
+<style>
+  /* ===========================
+     📘 HEADER 기본 구조
+  ============================ */
+  #site-header {
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    font-family: "Noto Sans KR", "Segoe UI", Arial, sans-serif;
   }
 
-  document.addEventListener("DOMContentLoaded", async () => {
-    await waitForSwingInv();
-    console.log("🧭 Header: Supabase ready, updating UI...");
-    await SWINGINV_updateHeaderAuthUI();
-  });
-</script>
+  /* 🔹 상단 영역 (로고 + 로그인) */
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .logo {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1f2937;
+    cursor: pointer;
+  }
+
+  /* 🔹 로그인/로그아웃 영역 */
+  .auth-area {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #374151;
+  }
+
+  #user-email {
+    font-weight: 500;
+  }
+
+  .btn-login,
+  .btn-logout {
+    border-radius: 5px;
+    padding: 4px 8px;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .btn-login {
+    color: #2563eb;
+    border: 1px solid #2563eb;
+    background: #f8fafc;
+  }
+
+  .btn-login:hover {
+    background: #eff6ff;
+  }
+
+  .btn-logout {
+    color: #4b5563;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+  }
+
+  /* ===========================
+     📗 NAV (모든 페이지 공통)
+  ============================ */
+  .gnb {
+    border-top: 1px solid #f3f4f6;
+    background: #fafafa;
+  }
+
+  .gnb-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 22px;
+    padding: 10px 0;
+    overflow-x: auto;
+  }
+
+  .gnb-inner::-webkit-scrollbar {
+    display: none;
+  }
+
+  .gnb-inner button {
+    border: none;
+    background: none;
+    color: #374151;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+  }
+
+  .gnb-inner button:hover {
+    color: #2563eb;
+    background: #f1f5ff;
+    border-radius: 6px;
+    padding: 6px 10px;
+  }
+
+  /* ✅ 반응형 */
+  @media (max-width: 768px) {
+    .header-top {
+      padding: 6px 12px;
+    }
+
+    .logo {
+      font-size: 0.95rem;
+    }
+
+    .auth-area {
+      gap: 6px;
+      font-size: 12px;
+    }
+
+    .btn-login,
+    .btn-logout {
+      font-size: 11px;
+      padding: 3px 6px;
+    }
+
+    .gnb-inner {
+      gap: 14px;
+      padding: 8px 0;
+    }
+
+    .gnb-inner button {
+      font-size: 13px;
+    }
+  }
+</style>
+
+<!-- ✅ 로그인 상태 갱신 스크립트 -->
+<script src="js/header.js"></script>
