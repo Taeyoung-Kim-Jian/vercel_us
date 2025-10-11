@@ -1,88 +1,65 @@
 /* ===========================================================
-   📊 main.js — SWING INVESTOR 메인 페이지 (Supabase 재사용 + 자동 월)
+   📊 main.js — SWING INVESTOR 메인 페이지 (4 카드 통합 버전)
    =========================================================== */
 
 document.addEventListener("DOMContentLoaded", async () => {
-  console.log("📡 main.js loaded");
+  const SUPABASE_URL = "https://sssmldmhcfuodutvvcqf.supabase.co";
+  const SUPABASE_ANON_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1b2R1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4";
 
-  // ✅ 공통 Supabase 클라이언트 재사용
-  const db =
-    (window.SWINGINV && window.SWINGINV.db) ||
-    window.db ||
-    (window.supabaseClient ? window.supabaseClient : null);
+  const { createClient } = window.supabase;
+  const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  if (!db) {
-    console.error("❌ Supabase client not found after waiting.");
-    return;
-  }
-
-  console.log("✅ Supabase client found and ready in main.js");
-
-  // -----------------------------------------------------------
-  // 기본 셀렉터
-  // -----------------------------------------------------------
-  const cards = document.querySelectorAll(".card");
+  const topCards = document.querySelectorAll(".card");
   const totalBody = document.getElementById("total-table-body");
   const swingBody = document.getElementById("swing-table-body");
 
-  const showLoading = (el, msg = "📊 불러오는 중...") =>
-    (el.innerHTML = `<div style="text-align:center;padding:20px;">${msg}</div>`);
-
-  // -----------------------------------------------------------
-  // 📌 공통 Top5 렌더링 함수
-  // -----------------------------------------------------------
-  const renderTop5 = (card, title, rows, field = "수익률") => {
-    if (!rows?.length) {
-      card.innerHTML = `<h4>${title}</h4><div style="text-align:center;padding:20px;">데이터 없음</div>`;
-      return;
-    }
-
-    const html = rows
-      .map((r, i) => {
-        const val = parseFloat(r[field] || r.측정일대비수익률 || 0);
-        const colorClass = val >= 0 ? "up" : "down";
-        const sign = val >= 0 ? "▲" : "▼";
-        return `
-          <li>
-            <span class="top5-rank">${i + 1}</span>
-            <span class="top5-name">${r.종목명}</span>
-            <span class="top5-return ${colorClass}">
-              ${sign}${Math.abs(val).toFixed(2)}%
-            </span>
-          </li>
-        `;
-      })
-      .join("");
-
-    card.innerHTML = `<h4>${title}</h4><ul>${html}</ul>`;
+  // 📌 공통 로딩
+  const showLoading = (el, msg = "📊 불러오는 중...") => {
+    el.innerHTML = `<div style="text-align:center;padding:20px;">${msg}</div>`;
   };
 
-  // -----------------------------------------------------------
+  // ===========================================================
   // 🏆 1️⃣ 전체 수익률 TOP5 — total_return
-  // -----------------------------------------------------------
+  // ===========================================================
   async function loadTotalTop5() {
-    const card = cards[0];
-    showLoading(card);
+    const card = topCards[0];
+    showLoading(card, "📈 불러오는 중...");
+
     const { data, error } = await db
       .from("total_return")
       .select("종목명, 수익률")
       .order("수익률", { ascending: false })
       .limit(5);
 
-    if (error) {
-      console.error("❌ total_return:", error);
-      renderTop5(card, "🏆 전체 수익률 TOP5", []);
+    if (error || !data?.length) {
+      card.innerHTML = "❌ 데이터 없음";
       return;
     }
-    renderTop5(card, "🏆 전체 수익률 TOP5", data);
+
+    const html = data
+      .map(
+        (r, i) => `
+        <li>
+          <span class="top5-rank">${i + 1}</span>
+          <span class="top5-name">${r.종목명}</span>
+          <span class="top5-return ${r.수익률 >= 0 ? "up" : "down"}">
+            ${r.수익률 >= 0 ? "▲" : "▼"}${Math.abs(r.수익률).toFixed(2)}%
+          </span>
+        </li>`
+      )
+      .join("");
+
+    card.innerHTML = `<h4>🏆 전체 수익률 TOP5</h4><ul>${html}</ul>`;
   }
 
-  // -----------------------------------------------------------
+  // ===========================================================
   // ⭐ 2️⃣ 관심종목 랭킹 TOP5 — watchlist_with_return
-  // -----------------------------------------------------------
+  // ===========================================================
   async function loadWatchlistTop5() {
-    const card = cards[1];
-    showLoading(card);
+    const card = topCards[1];
+    showLoading(card, "⭐ 불러오는 중...");
+
     const { data, error } = await db
       .from("watchlist_with_return")
       .select("종목명, 수익률")
@@ -90,24 +67,36 @@ document.addEventListener("DOMContentLoaded", async () => {
       .order("수익률", { ascending: false })
       .limit(5);
 
-    if (error) {
-      console.error("❌ watchlist_with_return:", error);
-      renderTop5(card, "⭐ 관심종목 TOP5", []);
+    if (error || !data?.length) {
+      card.innerHTML = "❌ 데이터 없음";
       return;
     }
-    renderTop5(card, "⭐ 관심종목 TOP5", data);
+
+    const html = data
+      .map(
+        (r, i) => `
+        <li>
+          <span class="top5-rank">${i + 1}</span>
+          <span class="top5-name">${r.종목명}</span>
+          <span class="top5-return ${r.수익률 >= 0 ? "up" : "down"}">
+            ${r.수익률 >= 0 ? "▲" : "▼"}${Math.abs(r.수익률).toFixed(2)}%
+          </span>
+        </li>`
+      )
+      .join("");
+
+    card.innerHTML = `<h4>⭐ 관심종목 랭킹 TOP5</h4><ul>${html}</ul>`;
   }
 
-  // -----------------------------------------------------------
-  // 📆 3️⃣ 이번 달 수익률 TOP5 — monthly_performance_view
-  // -----------------------------------------------------------
+  // ===========================================================
+  // 📅 3️⃣ 이번 달 수익률 TOP5 — monthly_performance_view
+  // ===========================================================
   async function loadMonthTop5() {
-    const card = cards[2];
-    showLoading(card);
+    const card = topCards[2];
+    showLoading(card, "📆 이번 달 불러오는 중...");
 
     const now = new Date();
     const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-    const monthLabel = `${now.getMonth() + 1}월`;
 
     const { data, error } = await db
       .from("monthly_performance_view")
@@ -116,20 +105,33 @@ document.addEventListener("DOMContentLoaded", async () => {
       .order("측정일대비수익률", { ascending: false })
       .limit(5);
 
-    if (error) {
-      console.error("❌ monthly_performance_view:", error);
-      renderTop5(card, `📆 ${monthLabel} 수익률 TOP5`, []);
+    if (error || !data?.length) {
+      card.innerHTML = "❌ 데이터 없음";
       return;
     }
-    renderTop5(card, `📆 ${monthLabel} 수익률 TOP5`, data, "측정일대비수익률");
+
+    const html = data
+      .map(
+        (r, i) => `
+        <li>
+          <span class="top5-rank">${i + 1}</span>
+          <span class="top5-name">${r.종목명}</span>
+          <span class="top5-return ${r.측정일대비수익률 >= 0 ? "up" : "down"}">
+            ${r.측정일대비수익률 >= 0 ? "▲" : "▼"}${Math.abs(r.측정일대비수익률).toFixed(2)}%
+          </span>
+        </li>`
+      )
+      .join("");
+
+    card.innerHTML = `<h4>📅 이번 달 수익률 TOP5</h4><ul>${html}</ul>`;
   }
 
-  // -----------------------------------------------------------
-  // 🌍 4️⃣ 전체기간 수익률 TOP5 — monthly_performance_view 전체
-  // -----------------------------------------------------------
+  // ===========================================================
+  // 🌍 4️⃣ 전체 기간 수익률 TOP5 — monthly_performance_view (전체)
+  // ===========================================================
   async function loadMonthAllTop5() {
-    const card = cards[3];
-    showLoading(card);
+    const card = topCards[3];
+    showLoading(card, "🌍 전체기간 불러오는 중...");
 
     const { data, error } = await db
       .from("monthly_performance_view")
@@ -137,17 +139,30 @@ document.addEventListener("DOMContentLoaded", async () => {
       .order("측정일대비수익률", { ascending: false })
       .limit(5);
 
-    if (error) {
-      console.error("❌ monthly_performance_view(all):", error);
-      renderTop5(card, "🌍 전체 수익률 TOP5", []);
+    if (error || !data?.length) {
+      card.innerHTML = "❌ 데이터 없음";
       return;
     }
-    renderTop5(card, "🌍 전체 수익률 TOP5", data, "측정일대비수익률");
+
+    const html = data
+      .map(
+        (r, i) => `
+        <li>
+          <span class="top5-rank">${i + 1}</span>
+          <span class="top5-name">${r.종목명}</span>
+          <span class="top5-return ${r.측정일대비수익률 >= 0 ? "up" : "down"}">
+            ${r.측정일대비수익률 >= 0 ? "▲" : "▼"}${Math.abs(r.측정일대비수익률).toFixed(2)}%
+          </span>
+        </li>`
+      )
+      .join("");
+
+    card.innerHTML = `<h4>🌍 전체 수익률 TOP5</h4><ul>${html}</ul>`;
   }
 
-  // -----------------------------------------------------------
-  // 📊 하단 테이블 (total_return + swing_proper_view)
-  // -----------------------------------------------------------
+  // ===========================================================
+  // 📊 테이블 (하단 섹션) — total_return + swing_proper_view
+  // ===========================================================
   async function loadTables() {
     // 전체 수익률
     const { data: total, error: e1 } = await db
@@ -156,51 +171,49 @@ document.addEventListener("DOMContentLoaded", async () => {
       .order("수익률", { ascending: false })
       .limit(20);
 
-    totalBody.innerHTML =
-      e1 || !total?.length
-        ? `<tr><td colspan="4">데이터 없음</td></tr>`
-        : total
-            .map(
-              (r) => `
-              <tr>
-                <td>${r.종목명}</td>
-                <td>${(r.시작가격 || 0).toLocaleString()}</td>
-                <td>${(r.현재가격 || 0).toLocaleString()}</td>
-                <td style="color:${r.수익률 >= 0 ? "#dc2626" : "#2563eb"};">
-                  ${r.수익률 >= 0 ? "▲" : "▼"}${Math.abs(r.수익률).toFixed(2)}%
-                </td>
-              </tr>`
-            )
-            .join("");
+    totalBody.innerHTML = e1 || !total?.length
+      ? `<tr><td colspan="4">데이터 없음</td></tr>`
+      : total
+          .map(
+            (r) => `
+            <tr>
+              <td>${r.종목명}</td>
+              <td>${(r.시작가격 || 0).toLocaleString()}</td>
+              <td>${(r.현재가격 || 0).toLocaleString()}</td>
+              <td style="color:${r.수익률 >= 0 ? "#dc2626" : "#2563eb"};">
+                ${r.수익률 >= 0 ? "▲" : "▼"}${Math.abs(r.수익률).toFixed(2)}%
+              </td>
+            </tr>`
+          )
+          .join("");
 
-    // 스윙 적정가
+    // 스윙 적정가격
     const { data: swing, error: e2 } = await db
       .from("swing_proper_view")
       .select("종목명, 적정매수가, 현재가, 괴리율")
       .order("괴리율", { ascending: true })
       .limit(20);
 
-    swingBody.innerHTML =
-      e2 || !swing?.length
-        ? `<tr><td colspan="4">데이터 없음</td></tr>`
-        : swing
-            .map(
-              (r) => `
-              <tr>
-                <td>${r.종목명}</td>
-                <td>${(r.적정매수가 || 0).toLocaleString()}</td>
-                <td>${(r.현재가 || 0).toLocaleString()}</td>
-                <td style="color:${r.괴리율 >= 0 ? "#2563eb" : "#dc2626"};">
-                  ${r.괴리율 >= 0 ? "▲" : "▼"}${Math.abs(r.괴리율).toFixed(2)}%
-                </td>
-              </tr>`
-            )
-            .join("");
+    swingBody.innerHTML = e2 || !swing?.length
+      ? `<tr><td colspan="4">데이터 없음</td></tr>`
+      : swing
+          .map(
+            (r) => `
+            <tr>
+              <td>${r.종목명}</td>
+              <td>${(r.적정매수가 || 0).toLocaleString()}</td>
+              <td>${(r.현재가 || 0).toLocaleString()}</td>
+              <td style="color:${r.괴리율 >= 0 ? "#2563eb" : "#dc2626"};">
+                ${r.괴리율 >= 0 ? "▲" : "▼"}${Math.abs(r.괴리율).toFixed(2)}%
+              </td>
+            </tr>`
+          )
+          .join("");
   }
 
-  // -----------------------------------------------------------
+  // ===========================================================
   // 🚀 실행
-  // -----------------------------------------------------------
+  // ===========================================================
   await Promise.all([
     loadTotalTop5(),
     loadWatchlistTop5(),
