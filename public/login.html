@@ -59,50 +59,59 @@
   <div class="container">
     <h2>SWING INVESTOR 로그인</h2>
 
-    <input type="email" id="email" placeholder="이메일" />
-    <input type="password" id="password" placeholder="비밀번호" />
-    <input type="text" id="nickname" placeholder="닉네임 (회원가입 시)" />
+    <div id="auth-area">
+      <input type="email" id="email" placeholder="이메일" />
+      <input type="password" id="password" placeholder="비밀번호" />
+      <input type="text" id="nickname" placeholder="닉네임 (회원가입 시)" />
 
-    <button id="signupBtn">회원가입</button>
-    <button id="loginBtn">로그인</button>
+      <button id="signupBtn">회원가입</button>
+      <button id="loginBtn">로그인</button>
+    </div>
+
     <button id="logoutBtn" style="display:none;">로그아웃</button>
-
     <div class="nickname" id="userInfo"></div>
   </div>
 
   <script>
-    // ✅ 버튼 클릭 핸들러
+    // ✅ 로그인 / 회원가입
     document.getElementById("signupBtn").onclick = async () => {
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value.trim();
       const nickname = document.getElementById("nickname").value.trim();
-      if (!email || !password || !nickname) {
-        alert("이메일, 비밀번호, 닉네임을 모두 입력해주세요.");
-        return;
-      }
+      if (!email || !password || !nickname) return alert("이메일, 비밀번호, 닉네임을 모두 입력해주세요.");
       await SWINGINV.signUpUser(email, password, nickname);
     };
 
     document.getElementById("loginBtn").onclick = async () => {
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value.trim();
-      if (!email || !password) {
-        alert("이메일과 비밀번호를 입력해주세요.");
-        return;
-      }
+      if (!email || !password) return alert("이메일과 비밀번호를 입력해주세요.");
       await SWINGINV.loginUser(email, password);
+      location.href = "index.html"; // ✅ 로그인 후 바로 이동
     };
 
     document.getElementById("logoutBtn").onclick = async () => {
       await SWINGINV.logoutUser();
+      location.href = "index.html"; // ✅ 로그아웃 후 바로 이동
     };
 
-    // ✅ 로그인 상태 감지 (자동 로그인 유지)
+    // ✅ 로그인 상태 감지
     document.addEventListener("DOMContentLoaded", async () => {
       const { data: { session } } = await SWINGINV.db.auth.getSession();
+      const authArea = document.getElementById("auth-area");
+      const logoutBtn = document.getElementById("logoutBtn");
+      const userInfo = document.getElementById("userInfo");
+
       if (session?.user) {
-        document.getElementById("logoutBtn").style.display = "block";
-        document.getElementById("userInfo").innerText = `${session.user.email} 로그인 중`;
+        // 로그인 상태
+        authArea.style.display = "none";
+        logoutBtn.style.display = "block";
+        userInfo.innerText = `${session.user.email} 로그인 중`;
+      } else {
+        // 로그아웃 상태
+        authArea.style.display = "block";
+        logoutBtn.style.display = "none";
+        userInfo.innerText = "";
       }
     });
   </script>
