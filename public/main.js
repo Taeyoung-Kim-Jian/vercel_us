@@ -96,12 +96,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
     renderTop5(cards[2], "🌍 기준가 수익률 Top5", sorted, "측정일대비수익률");
 
-    // ✅ 4️⃣ 이번 달 수익률 Top5
-    const now = new Date();
-    const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
-    const monthLabel = `${now.getMonth() + 1}월`;
-    const monthNow = monthAll.filter((r) => r.월구분 === ym);
+/* ✅ 4️⃣ 이번 달 수익률 Top5 */
+const now = new Date();
+const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`; // YYYY-MM-01 형식
+const monthLabel = `${now.getMonth() + 1}월`;
+
+try {
+  const { data: monthNow, error: monthErr } = await SWINGINV.db
+    .from("monthly_performance_view")
+    .select("종목명, 종목코드, 측정일대비수익률, 월구분")
+    .eq("월구분", ym)
+    .order("측정일대비수익률", { ascending: false })
+    .limit(5);
+
+  if (monthErr) {
+    console.error("❌ monthly_performance_view(monthNow):", monthErr);
+    renderTop5(cards[3], `📆 ${monthLabel} 수익률 Top5`, []);
+  } else {
     renderTop5(cards[3], `📆 ${monthLabel} 수익률 Top5`, monthNow, "측정일대비수익률");
+  }
+} catch (err) {
+  console.error("❌ 이번 달 수익률 불러오기 실패:", err);
+  renderTop5(cards[3], `📆 ${monthLabel} 수익률 Top5`, []);
+}
+
 
     // ✅ 전체 수익률 테이블 렌더
     const renderTotalPage = () => {
