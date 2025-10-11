@@ -2,12 +2,29 @@
    📊 main.js — index.html (4개 카드 + 2개 테이블)
    ========================================================= */
 
+console.log("📡 main.js loaded");
+
+// ✅ Supabase 준비 대기 함수
+async function waitForSwingInv() {
+  return new Promise((resolve) => {
+    const check = () => {
+      if (window.SWINGINV?.db) return resolve(window.SWINGINV.db);
+      setTimeout(check, 100);
+    };
+    check();
+  });
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
-  console.log("📡 main.js loaded");
+  console.log("✅ DOM ready — waiting for Supabase...");
+
+  // ✅ common.js 초기화 대기
+  const db = await waitForSwingInv();
+  console.log("✅ Supabase ready, now loading data...");
 
   const totalBody = document.getElementById("total-table-body");
   const swingBody = document.getElementById("swing-table-body");
-  const cards = document.querySelectorAll(".card"); // 1~4번 카드
+  const cards = document.querySelectorAll(".card");
   const loadMoreTotalBtn = document.getElementById("loadMoreTotalBtn");
   const loadMoreSwingBtn = document.getElementById("loadMoreSwingBtn");
 
@@ -33,8 +50,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         ${data
           .slice(0, 5)
           .map((r, i) => {
-            const value =
-              parseFloat(r[field] ?? r.측정일대비수익률 ?? 0) || 0;
+            const value = parseFloat(r[field] ?? r.측정일대비수익률 ?? 0) || 0;
             const color = value >= 0 ? "#dc2626" : "#2563eb";
             const sign = value >= 0 ? "▲" : "▼";
             return `
@@ -46,8 +62,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <span class="rate" style="color:${color}">
                   ${sign}${Math.abs(value).toFixed(2)}%
                 </span>
-              </li>
-            `;
+              </li>`;
           })
           .join("")}
       </ul>
@@ -56,7 +71,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   try {
     /* ✅ 1️⃣ 전체 수익률 Top5 */
-    const { data: totalDataRaw, error: totalErr } = await SWINGINV.db
+    const { data: totalDataRaw, error: totalErr } = await db
       .from("total_return")
       .select("종목명, 종목코드, 시작가격, 현재가격, 수익률")
       .order("수익률", { ascending: false });
@@ -99,7 +114,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     /* ✅ 2️⃣ 관심종목 Top5 */
-    const { data: watchlist, error: watchErr } = await SWINGINV.db
+    const { data: watchlist, error: watchErr } = await db
       .from("watchlist_with_return")
       .select("종목명, 종목코드, 수익률")
       .eq("공개여부", true)
@@ -109,40 +124,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (watchErr) throw watchErr;
     renderTop5(cards[1], "⭐ 관심종목 수익률 Top5", watchlist, "수익률");
 
-/* ✅ 3️⃣ 전체 기준가 수익률 Top5 */
-const toNumber = (v) => {
-  if (v === null || v === undefined) return 0;
-  const n = parseFloat(String(v).replace(/,/g, ""));
-  return isNaN(n) ? 0 : n;
-};
+    /* ✅ 3️⃣ 전체 기준가 수익률 Top5 */
+    const { data: monthAll, error: monthAllErr } = await db
+      .from("monthly_performance_view")
+      .select("종목명, 종목코드, 측정일대비수익률")
+      .order("측정일대비수익률", { ascending: false })
+      .limit(5);
 
-const { data: monthAll, error: monthAllErr } = await SWINGINV.db
-  .from("monthly_performance_view")
-  .select("종목명, 종목코드, 측정일대비수익률")
-  .order("측정일대비수익률", { ascending: false })
-  .limit(5);
-
-if (monthAllErr) {
-  console.error("❌ monthly_performance_view(all):", monthAllErr);
-  renderTop5(cards[2], "🌍 기준가 수익률 Top5", []);
-} else {
-  // ✅ 수익률을 숫자로 안전하게 변환 후 다시 정렬
-  const sorted = [...monthAll].sort(
-    (a, b) => toNumber(b.측정일대비수익률) - toNumber(a.측정일대비수익률)
-  );
-  renderTop5(cards[2], "🌍 기준가 수익률 Top5", sorted, "측정일대비수익률");
-}
-
+    if (monthAllErr) {
+      console.error("❌ monthly_performance_view(all):", monthAllErr);
+      renderTop5(cards[2], "🌍 기준가 수익률 Top5", []);
+    } else {
+      const sorted = [...monthAll].sort(
+        (a, b) => (parseFloat(b.측정일대비수익률) || 0) - (parseFloat(a.측정일대비수익률) || 0)
+      );
+      renderTop5(cards[2], "🌍 기준가 수익률 Top5", sorted, "측정일대비수익률");
+    }
 
     /* ✅ 4️⃣ 이번 달 수익률 Top5 */
     const now = new Date();
-    const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
-      2,
-      "0"
-    )}-01`; // ✅ date 타입 호환 ("YYYY-MM-01")
+    const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
     const monthLabel = `${now.getMonth() + 1}월`;
 
-    const { data: monthNow, error: monthErr } = await SWINGINV.db
+    const { data: monthNow, error: monthErr } = await db
       .from("monthly_performance_view")
       .select("종목명, 종목코드, 측정일대비수익률, 월구분")
       .eq("월구분", ym)
@@ -157,7 +161,7 @@ if (monthAllErr) {
     }
 
     /* ✅ 5️⃣ 스윙 적정가격 테이블 */
-    const { data: swingView, error: swingErr } = await SWINGINV.db
+    const { data: swingView, error: swingErr } = await db
       .from("swing_proper_view")
       .select("*")
       .order("괴리율", { ascending: true });
