@@ -50,7 +50,7 @@ body {
 .login-btn button:hover { background: #e2e8f0; }
 
 /* ===============================
-   🗂️ NAV MENU (스크롤형)
+   🗂️ NAV MENU (메뉴 폭 본문과 정렬 통일)
 ================================ */
 .sub-menu {
   background: #fff;
@@ -58,16 +58,28 @@ body {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
-.sub-menu::-webkit-scrollbar { display: none; }
+
+.sub-menu::-webkit-scrollbar {
+  display: none;
+}
+
+/* ✅ 본문과 동일한 폭 & 중앙 정렬 */
+.sub-menu-inner {
+  max-width: 1100px; /* main.content와 동일 */
+  margin: 0 auto;    /* 중앙 정렬 */
+  padding: 0 16px;   /* 좌우 여백 통일 */
+}
 
 .sub-menu ul {
   display: flex;
   gap: 18px;
   list-style: none;
   margin: 0;
-  padding: 10px 16px;
+  padding: 10px 0; /* ✅ 상하만 패딩, 좌우는 .sub-menu-inner에서 관리 */
   white-space: nowrap;
+  justify-content: flex-start;
 }
+
 .sub-menu li {
   font-size: 0.9rem;
   font-weight: 500;
@@ -76,11 +88,16 @@ body {
   border-bottom: 2px solid transparent;
   transition: 0.2s;
 }
+
 .sub-menu li.active {
   color: #1e40af;
   border-bottom: 2px solid #1e40af;
 }
-.sub-menu li:hover { color: #1e3a8a; }
+
+.sub-menu li:hover {
+  color: #1e3a8a;
+}
+
 
 /* ===============================
    🧱 CONTENT LAYOUT
