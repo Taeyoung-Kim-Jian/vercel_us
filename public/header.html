@@ -199,3 +199,41 @@
     }
   });
 </script>
+<script>
+  // ------------------------------------------------------------
+  // ✅ 헤더 로그인 상태 갱신 함수
+  // ------------------------------------------------------------
+  window.SWINGINV_updateHeaderAuthUI = async function () {
+    try {
+      const { data: { user } } = await SWINGINV.db.auth.getUser();
+      const emailSpan = document.getElementById("user-email");
+      const loginBtn = document.getElementById("loginBtn");
+      const logoutBtn = document.getElementById("logoutBtn");
+
+      if (user) {
+        // ✅ 로그인 상태
+        const nickname = user.user_metadata?.nickname || user.email.split("@")[0];
+        emailSpan.textContent = `${nickname} 님`;
+        emailSpan.style.color = "#2563eb";
+        loginBtn.style.display = "none";
+        logoutBtn.style.display = "inline-flex";
+      } else {
+        // ❌ 로그아웃 상태
+        emailSpan.textContent = "로그아웃 중";
+        emailSpan.style.color = "#374151";
+        loginBtn.style.display = "inline-flex";
+        logoutBtn.style.display = "none";
+      }
+    } catch (err) {
+      console.error("❌ Header UI update failed:", err);
+    }
+  };
+
+  // ------------------------------------------------------------
+  // ✅ 페이지 로드 시 즉시 실행
+  // ------------------------------------------------------------
+  document.addEventListener("DOMContentLoaded", () => {
+    SWINGINV_updateHeaderAuthUI();
+  });
+</script>
+
