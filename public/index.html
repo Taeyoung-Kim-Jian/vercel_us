@@ -25,12 +25,13 @@
       border: 1px solid #e5e7eb;
       border-radius: 12px;
       padding: 18px 20px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
       transition: all 0.25s ease;
     }
+
     .card:hover {
       transform: translateY(-3px);
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       background: #fafafa;
     }
 
@@ -71,6 +72,7 @@
       margin-top: 40px;
       padding: 20px;
     }
+
     .table-wrap h3 {
       font-size: 1.1rem;
       font-weight: 600;
@@ -102,7 +104,10 @@
       text-align: center;
     }
 
-    tbody tr:hover { background: #f9fafb; transition: background 0.2s; }
+    tbody tr:hover {
+      background: #f9fafb;
+      transition: background 0.2s;
+    }
 
     footer {
       text-align: center;
@@ -154,22 +159,23 @@
   <!-- ✅ Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- ✅ common.js 먼저 로드 -->
+  <!-- ✅ 공통 스크립트 -->
   <script src="./common.js"></script>
 
-  <!-- ✅ Supabase 초기화 완료 후 main.js 실행 -->
+  <!-- ✅ Supabase 준비 후 main.js 로드 -->
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
       console.log("📡 index.html loaded");
 
       // Supabase 클라이언트 대기
       let tries = 0;
-      while (!window.db && tries < 20) {
+      while ((!window.SWINGINV || !window.SWINGINV.db) && tries < 20) {
         await new Promise(res => setTimeout(res, 100));
         tries++;
       }
 
-      if (!window.db) {
+      const db = window.SWINGINV?.db;
+      if (!db) {
         console.error("❌ Supabase client not found after waiting.");
         return;
       }
