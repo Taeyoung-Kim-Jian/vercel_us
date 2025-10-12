@@ -61,11 +61,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const baseOption = {
       tooltip: {
-        trigger: "axis",
-        formatter: () => {
-          // 종가는 표시하지 않고, B 가격만 표시
-          if (!showBLines || bLines.length === 0) return "";
-          return bLines.map(v => `B: ${v.toLocaleString()}`).join("<br>");
+        trigger: "item", // item 기준으로 hover
+        formatter: (params) => {
+          if (params.seriesId === "b-series") {
+            return `B: ${params.value}`;
+          }
+          return "";
         }
       },
       xAxis: { type: "category", data: dates, boundaryGap: false },
@@ -92,10 +93,13 @@ document.addEventListener("DOMContentLoaded", async () => {
           data: closes.map(() => null),
           markLine: {
             symbol: "none",
+            emphasis: {
+              label: { show: true, formatter: params => `B ${params.value}` } // hover 시 해당 B 가격만 표시
+            },
             data: bLines.map(v => ({
               yAxis: v,
               lineStyle: { type: "dashed", color: "#e11d48" },
-              label: { formatter: `B ${v.toLocaleString()}`, position: "end" }
+              label: { show: false } // 평소에는 라벨 숨김
             })),
           },
         }
@@ -115,7 +119,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 ? bLines.map(v => ({
                     yAxis: v,
                     lineStyle: { type: "dashed", color: "#e11d48" },
-                    label: { formatter: `B ${v.toLocaleString()}`, position: "end" }
+                    label: { show: false }
                   }))
                 : []
             }
