@@ -6,10 +6,18 @@
   <title>전체 성과 | SWING INVESTOR</title>
   <link rel="stylesheet" href="./style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: "Pretendard", sans-serif; margin: 20px; color: #333; }
+    h2 { margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background-color: #f2f2f2; }
+    tr:hover { background-color: #f9f9f9; cursor: pointer; }
+    footer { margin-top: 40px; text-align: center; color: #888; font-size: 13px; }
+  </style>
 </head>
 
 <body>
- 
   <main class="content">
     <h2>📊 전체 성과 리스트</h2>
     <p style="color:#555;">모든 종목의 누적 수익률을 확인할 수 있습니다.</p>
@@ -26,7 +34,7 @@
           </tr>
         </thead>
         <tbody id="total-list-body">
-          <tr><td colspan="7" style="text-align:center;">⏳ 로딩 중...</td></tr>
+          <tr><td colspan="5" style="text-align:center;">⏳ 데이터를 불러오는 중...</td></tr>
         </tbody>
       </table>
     </div>
@@ -34,6 +42,79 @@
 
   <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
 
-  <script src="./total.js"></script>
+  <script>
+    /* =========================================================
+       📈 Supabase에서 total_return 테이블 조회 + 클릭 이동
+       ========================================================= */
+
+    // ✅ Supabase 설정 (👉 여기에 본인 프로젝트 주소/키 입력)
+    const supabaseUrl = "https://YOUR_PROJECT.supabase.co";  // ← 실제 주소로 교체
+    const supabaseAnonKey = "YOUR_ANON_KEY"; // ← 실제 anon key로 교체
+    const db = supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      console.log("✅ total_test.html script loaded");
+
+      const tbody = document.getElementById("total-list-body");
+      tbody.innerHTML = `
+        <tr><td colspan="5" style="text-align:center;">⏳ 데이터를 불러오는 중...</td></tr>
+      `;
+
+      try {
+        // ✅ Supabase에서 데이터 조회
+        const { data, error } = await db
+          .from("total_return")
+          .select("종목명, 종목코드, 시작가격, 현재가격, 수익률")
+          .order("수익률", { ascending: false });
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">📭 데이터가 없습니다.</td></tr>`;
+          return;
+        }
+
+        // ✅ 표 출력
+        tbody.innerHTML = data.map((r, i) => {
+          const rate = parseFloat(r.수익률 ?? 0);
+          const rateColor = rate >= 0 ? "#d32f2f" : "#1976d2";
+          const rateSign = rate >= 0 ? "▲" : "▼";
+
+          return `
+            <tr class="stock-row" 
+                data-code="${r.종목코드}" 
+                data-name="${r.종목명}">
+              <td>${i + 1}</td>
+              <td class="clickable" style="color:#007bff;">${r.종목명}</td>
+              <td>${r.시작가격?.toLocaleString() ?? "-"}</td>
+              <td>${r.현재가격?.toLocaleString() ?? "-"}</td>
+              <td style="color:${rateColor}; font-weight:500;">
+                ${rateSign}${Math.abs(rate).toFixed(2)}%
+              </td>
+            </tr>
+          `;
+        }).join("");
+
+        // ✅ 클릭 시 test.html로 이동
+        document.querySelectorAll(".stock-row").forEach((row) => {
+          row.addEventListener("click", () => {
+            const code = row.dataset.code;
+            const name = row.dataset.name;
+            if (!code || !name) return;
+
+            console.log(`🔗 이동: ${name} (${code})`);
+            window.location.href = `test.html?code=${encodeURIComponent(code)}&name=${encodeURIComponent(name)}`;
+          });
+        });
+      } catch (err) {
+        console.error("❌ 데이터 로드 오류:", err);
+        tbody.innerHTML = `
+          <tr><td colspan="5" style="color:red;text-align:center;">
+            ❌ 불러오기 실패: ${err.message}
+          </td></tr>
+        `;
+      }
+    });
+  </script>
 </body>
 </html>
