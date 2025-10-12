@@ -48,15 +48,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     const dates = data.map(d => d.날짜);
     const closes = data.map(d => parseFloat(d.종가));
 
-    // B가격 데이터 (B 가격 + 발견 날짜)
+    // B가격 데이터
     const { data: btData } = await db
       .from("bt_points")
-      .select("b가격, b날짜")
+      .select("b가격")
       .eq("종목코드", code);
-    const bLines = (btData || []).map(b => ({
-      price: parseFloat(b.b가격),
-      date: b.b날짜
-    }));
+    const bLines = Array.from(new Set(btData?.map(b => parseFloat(b.b가격)) || []));
 
     // ECharts 초기화
     const chart = echarts.init(chartEl);
@@ -64,14 +61,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const baseOption = {
       tooltip: {
-        trigger: "item",
+        trigger: "axis",
         formatter: (params) => {
-          if (params.componentType === "markLine" && params.seriesId === "b-series") {
-            // B 수평선 hover 시
-            return `B 가격: ${params.value}<br>B 발견일: ${params.data.b날짜}`;
-          } else if (params.seriesId === "main-series") {
-            // 종가선 hover 시
-            return `날짜: ${params.axisValue}<br>종가: ${params.data.toLocaleString()}`;
+          // main-series(종가선) tooltip
+          const main = params.find(p => p.seriesId === "main-series");
+          const bLine = params.find(p => p.seriesId === "b-series");
+          if (main) {
+            return `날짜: ${main.axisValue}<br>종가: ${main.data.toLocaleString()}`;
+          } else if (bLine) {
+            return `B: ${bLine.value}`;
           }
           return "";
         }
@@ -100,15 +98,14 @@ document.addEventListener("DOMContentLoaded", async () => {
           data: closes.map(() => null),
           markLine: {
             symbol: "none",
-            emphasis: {
-              label: { show: true, formatter: params => `B ${params.value}` }
-            },
-            data: bLines.map(b => ({
-              yAxis: b.price,
-              b날짜: b.date,
+            data: bLines.map(v => ({
+              yAxis: v,
               lineStyle: { type: "dashed", color: "#e11d48" },
-              label: { show: false }
+              label: { show: false } // 평소 라벨 숨김
             })),
+            emphasis: {
+              label: { show: true, formatter: params => `B ${params.value}` } // hover 시 B가격만 표시
+            }
           },
         }
       ],
@@ -124,9 +121,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             markLine: {
               symbol: "none",
               data: showBLines
-                ? bLines.map(b => ({
-                    yAxis: b.price,
-                    b날짜: b.date,
+                ? bLines.map(v => ({
+                    yAxis: v,
                     lineStyle: { type: "dashed", color: "#e11d48" },
                     label: { show: false }
                   }))
