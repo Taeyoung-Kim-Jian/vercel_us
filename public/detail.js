@@ -64,10 +64,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         trigger: "axis",
         formatter: (params) => {
           const main = params.find(p => p.seriesId === "main-series");
-          const bPoint = params.find(p => p.seriesId === "b-points");
+          const bLine = params.find(p => p.seriesId === "b-series");
           let text = "";
           if (main) text += `날짜: ${main.axisValue}<br>종가: ${main.data.toLocaleString()}`;
-          if (bPoint) text += `<br>B가격: ${bPoint.value.toLocaleString()}`;
+          if (bLine) text += `<br>B가격: ${bLine.value.toLocaleString()}`;
           return text;
         }
       },
@@ -93,14 +93,17 @@ document.addEventListener("DOMContentLoaded", async () => {
           id: "b-series",
           type: "line",
           data: closes.map(() => null),
-        },
-        {
-          id: "b-points",
-          type: "scatter",
-          name: "B가격",
-          data: bLines.map(v => ({ value: v })), // y값 = B가격
-          symbol: "none",
-          tooltip: { formatter: (params) => `B가격: ${params.value.toLocaleString()}` }
+          markLine: {
+            symbol: "none",
+            tooltip: {
+              formatter: params => `B가격: ${params.value}`
+            },
+            data: bLines.map(v => ({
+              yAxis: v,
+              lineStyle: { type: "dashed", color: "#e11d48" },
+              label: { show: false } // 평소에는 숨김
+            }))
+          }
         }
       ]
     };
@@ -111,8 +114,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       chart.setOption({
         series: [
           {
-            id: "b-points",
-            data: showBLines ? bLines.map(v => ({ value: v })) : []
+            id: "b-series",
+            markLine: {
+              symbol: "none",
+              tooltip: { formatter: params => `B가격: ${params.value}` },
+              data: showBLines
+                ? bLines.map(v => ({ yAxis: v, lineStyle: { type: "dashed", color: "#e11d48" }, label: { show: false } }))
+                : []
+            }
           }
         ]
       }, false, true);
@@ -171,7 +180,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
-    // 차트 초기 렌더
     updateBLines();
     window.addEventListener("resize", () => chart.resize());
     subEl.textContent = `${dates[0]} ~ ${dates.at(-1)} (${data.length}일치 데이터)`;
