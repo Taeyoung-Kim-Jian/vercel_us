@@ -48,12 +48,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     const dates = data.map(d => d.날짜);
     const closes = data.map(d => parseFloat(d.종가));
 
-    // B가격 데이터
+    // B가격 데이터 (B 가격 + 발견 날짜)
     const { data: btData } = await db
       .from("bt_points")
-      .select("b가격")
+      .select("b가격, b날짜")
       .eq("종목코드", code);
-    const bLines = Array.from(new Set(btData?.map(b => parseFloat(b.b가격)) || []));
+    const bLines = (btData || []).map(b => ({
+      price: parseFloat(b.b가격),
+      date: b.b날짜
+    }));
 
     // ECharts 초기화
     const chart = echarts.init(chartEl);
@@ -61,14 +64,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const baseOption = {
       tooltip: {
-        trigger: "axis",
+        trigger: "item",
         formatter: (params) => {
-          const main = params.find(p => p.seriesId === "main-series");
-          const bLine = params.find(p => p.seriesId === "b-series");
-          let text = "";
-          if (main) text += `날짜: ${main.axisValue}<br>종가: ${main.data.toLocaleString()}`;
-          if (bLine) text += `<br>B가격: ${bLine.value.toLocaleString()}`;
-          return text;
+          if (params.componentType === "markLine" && params.seriesId === "b-series") {
+            // B 수평선 hover 시
+            return `B 가격: ${params.value}<br>B 발견일: ${params.data.b날짜}`;
+          } else if (params.seriesId === "main-series") {
+            // 종가선 hover 시
+            return `날짜: ${params.axisValue}<br>종가: ${params.data.toLocaleString()}`;
+          }
+          return "";
         }
       },
       xAxis: { type: "category", data: dates, boundaryGap: false },
@@ -95,17 +100,18 @@ document.addEventListener("DOMContentLoaded", async () => {
           data: closes.map(() => null),
           markLine: {
             symbol: "none",
-            tooltip: {
-              formatter: params => `B가격: ${params.value}`
+            emphasis: {
+              label: { show: true, formatter: params => `B ${params.value}` }
             },
-            data: bLines.map(v => ({
-              yAxis: v,
+            data: bLines.map(b => ({
+              yAxis: b.price,
+              b날짜: b.date,
               lineStyle: { type: "dashed", color: "#e11d48" },
-              label: { show: false } // 평소에는 숨김
-            }))
-          }
+              label: { show: false }
+            })),
+          },
         }
-      ]
+      ],
     };
 
     chart.setOption(baseOption);
@@ -117,9 +123,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             id: "b-series",
             markLine: {
               symbol: "none",
-              tooltip: { formatter: params => `B가격: ${params.value}` },
               data: showBLines
-                ? bLines.map(v => ({ yAxis: v, lineStyle: { type: "dashed", color: "#e11d48" }, label: { show: false } }))
+                ? bLines.map(b => ({
+                    yAxis: b.price,
+                    b날짜: b.date,
+                    lineStyle: { type: "dashed", color: "#e11d48" },
+                    label: { show: false }
+                  }))
                 : []
             }
           }
@@ -180,6 +190,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
+    // 차트 초기 렌더
     updateBLines();
     window.addEventListener("resize", () => chart.resize());
     subEl.textContent = `${dates[0]} ~ ${dates.at(-1)} (${data.length}일치 데이터)`;
