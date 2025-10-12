@@ -1,5 +1,14 @@
 <!-- ✅ total_test.html -->
 <script>
+/* ✅ 테스트 전용: 페이지 로드 즉시 test.html로 이동 */
+window.addEventListener("load", () => {
+  // 다른 스크립트(common.js 등)가 redirect하기 전에 바로 이동
+  window.location.href = "test.html";
+});
+
+/* =========================================================
+   📈 total_test.js — total_return 테이블 전체 조회 + 클릭 이동
+   ========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
   const tbody = document.getElementById("total-list-body");
 
