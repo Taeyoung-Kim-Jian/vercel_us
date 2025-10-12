@@ -1,16 +1,13 @@
-/* =========================================================
-   📈 total.js — total_return 테이블 전체 조회 + 차트 이동 지원
-   ========================================================= */
+<!-- ✅ total_test.html -->
+<script>
 document.addEventListener("DOMContentLoaded", async () => {
   const tbody = document.getElementById("total-list-body");
 
-  // 초기 로딩 표시
   tbody.innerHTML = `
     <tr><td colspan="7" style="text-align:center;">⏳ 전체 데이터를 불러오는 중...</td></tr>
   `;
 
   try {
-    // ✅ Supabase total_return 조회
     const { data, error } = await db
       .from("total_return")
       .select("*")
@@ -18,13 +15,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (error) throw error;
 
-    // ✅ 데이터가 없을 경우 처리
     if (!data || data.length === 0) {
       tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">📭 데이터가 없습니다.</td></tr>`;
       return;
     }
 
-    // ✅ 테이블 렌더링
     tbody.innerHTML = data
       .map((r, i) => {
         const rate = parseFloat(r.수익률 ?? 0);
@@ -47,14 +42,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       })
       .join("");
 
-    // ✅ 차트 페이지(detail.html) 이동 이벤트
+    // ✅ 클릭 시 test.html로 이동
     document.querySelectorAll(".clickable-row").forEach((row) => {
       row.addEventListener("click", () => {
         const code = row.dataset.code;
         const name = row.dataset.name;
         if (!code || !name) return;
-        // detail 페이지로 이동
-        location.href = `detail.html?code=${encodeURIComponent(code)}&name=${encodeURIComponent(name)}`;
+        location.href = `test.html?code=${encodeURIComponent(code)}&name=${encodeURIComponent(name)}`;
       });
     });
   } catch (err) {
@@ -66,3 +60,4 @@ document.addEventListener("DOMContentLoaded", async () => {
     `;
   }
 });
+</script>
