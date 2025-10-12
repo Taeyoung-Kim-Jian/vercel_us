@@ -66,8 +66,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       yAxis: { type: "value", scale: true },
       grid: { left: 50, right: 20, top: 40, bottom: 60 },
       dataZoom: [
-        { type: "inside", start: 85, end: 100 },
-        { type: "slider", start: 85, end: 100 }
+        { type: "inside", start: 0, end: 100 },
+        { type: "slider", start: 0, end: 100 }
       ],
       series: [
         {
