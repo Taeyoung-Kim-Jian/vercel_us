@@ -5,35 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>전체 성과 | SWING INVESTOR</title>
   <link rel="stylesheet" href="./style.css" />
-
-  <!-- ✅ Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- ✅ ⚠️ common.js보다 먼저 test.html로 강제 이동 -->
-  <script>
-    if (window.location.pathname.endsWith("total_test.html")) {
-      window.stop(); // 나머지 로딩 중단
-      window.location.replace("test.html");
-    }
-  </script>
 </head>
 
 <body>
-  <!-- ✅ 공통 헤더 -->
-  <div id="header-container"></div>
-
-  <!-- ⚠️ common.js는 이제 여기서 로드되지만, 위의 redirect가 먼저 실행됨 -->
-  <script src="./common.js"></script>
-  <script>
-    fetch("./header.html")
-      .then(r => r.text())
-      .then(html => {
-        document.getElementById("header-container").innerHTML = html;
-        if (typeof SWINGINV_updateHeaderAuthUI === "function")
-          SWINGINV_updateHeaderAuthUI();
-      });
-  </script>
-
+ 
   <main class="content">
     <h2>📊 전체 성과 리스트</h2>
     <p style="color:#555;">모든 종목의 누적 수익률을 확인할 수 있습니다.</p>
@@ -58,7 +34,6 @@
 
   <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
 
-  <!-- ✅ test.js or total_test.js 로드 -->
-  <script src="./total_test.js"></script>
+  <script src="./total.js"></script>
 </body>
 </html>
