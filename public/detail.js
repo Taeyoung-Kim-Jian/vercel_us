@@ -1,4 +1,4 @@
-// 📈 detail.js — ECharts 안정 버전 + B가격 토글 + 관심종목 통합
+// 📈 detail.js — ECharts 안정 버전 + B가격 수평선 hover 표시 + 관심종목 통합
 document.addEventListener("DOMContentLoaded", async () => {
   const params = new URLSearchParams(window.location.search);
   const code = params.get("code");
@@ -64,6 +64,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         trigger: "axis",
         formatter: (params) => {
           const main = params.find(p => p.seriesId === "main-series");
+          // B가격 수평선 tooltip 표시
           const bLinesTooltip = params
             .filter(p => p.seriesId === "b-series")
             .map(p => `B: ${parseFloat(p.value).toLocaleString()}`)
@@ -97,10 +98,14 @@ document.addEventListener("DOMContentLoaded", async () => {
           id: "b-series",
           type: "line",
           name: "B가격",
-          data: closes.map(() => null),
+          data: closes.map(() => null), // 실제 라인 데이터는 필요 없음
           markLine: {
             symbol: "none",
-            data: bLines.map(v => ({ yAxis: v, lineStyle: { type: "dashed", color: "#e11d48" }, label: { formatter: `B ${v.toLocaleString()}` } })),
+            data: bLines.map(v => ({
+              yAxis: v,
+              lineStyle: { type: "dashed", color: "#e11d48" },
+              label: { formatter: `B ${v.toLocaleString()}`, position: "end" }
+            })),
           },
         }
       ],
@@ -116,7 +121,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             markLine: {
               symbol: "none",
               data: showBLines
-                ? bLines.map(v => ({ yAxis: v, lineStyle: { type: "dashed", color: "#e11d48" }, label: { formatter: `B ${v.toLocaleString()}` } }))
+                ? bLines.map(v => ({
+                    yAxis: v,
+                    lineStyle: { type: "dashed", color: "#e11d48" },
+                    label: { formatter: `B ${v.toLocaleString()}`, position: "end" }
+                  }))
                 : []
             }
           }
