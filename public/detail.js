@@ -1,4 +1,4 @@
-// 📈 detail.js — ECharts 완전 안정 버전 (줌/스크롤 유지 + B가격 토글 최적화)
+// 📈 detail.js — ECharts 안정 버전 + B가격 토글 + 관심종목 통합
 document.addEventListener("DOMContentLoaded", async () => {
   const params = new URLSearchParams(window.location.search);
   const code = params.get("code");
@@ -9,7 +9,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const errBox = document.getElementById("error-box");
   const chartEl = document.getElementById("chart");
 
-  // 🔙 뒤로가기
   document.getElementById("backBtn").addEventListener("click", () => history.back());
 
   titleEl.textContent = `📈 ${name} (${code || "?"})`;
@@ -49,19 +48,33 @@ document.addEventListener("DOMContentLoaded", async () => {
     const dates = data.map(d => d.날짜);
     const closes = data.map(d => parseFloat(d.종가));
 
-    // 📍 B가격 데이터
+    // 📍 B가격 데이터 (중복 제거)
     const { data: btData } = await db
       .from("bt_points")
       .select("b가격")
       .eq("종목코드", code);
     const bLines = Array.from(new Set(btData?.map(b => parseFloat(b.b가격)) || []));
 
-    // 📈 차트 기본 설정
+    // 📈 ECharts 초기화
     const chart = echarts.init(chartEl);
     let showBLines = true;
 
     const baseOption = {
-      tooltip: { trigger: "axis" },
+      tooltip: {
+        trigger: "axis",
+        formatter: (params) => {
+          const main = params.find(p => p.seriesId === "main-series");
+          const bLinesTooltip = params
+            .filter(p => p.seriesId === "b-series")
+            .map(p => `B: ${parseFloat(p.value).toLocaleString()}`)
+            .join("<br>");
+          return [
+            `날짜: ${main.axisValue}`,
+            `종가: ${main.data.toLocaleString()}`,
+            bLinesTooltip
+          ].filter(Boolean).join("<br>");
+        }
+      },
       xAxis: { type: "category", data: dates, boundaryGap: false },
       yAxis: { type: "value", scale: true },
       grid: { left: 50, right: 20, top: 40, bottom: 60 },
@@ -71,7 +84,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       ],
       series: [
         {
-          id: "main-series", // ✅ 부분 업데이트 타겟
+          id: "main-series",
           name: "종가",
           type: "line",
           data: closes,
@@ -80,44 +93,44 @@ document.addEventListener("DOMContentLoaded", async () => {
           lineStyle: { color: "#2563eb", width: 2 },
           areaStyle: { color: "rgba(37,99,235,0.1)" },
         },
+        {
+          id: "b-series",
+          type: "line",
+          name: "B가격",
+          data: closes.map(() => null),
+          markLine: {
+            symbol: "none",
+            data: bLines.map(v => ({ yAxis: v, lineStyle: { type: "dashed", color: "#e11d48" }, label: { formatter: `B ${v.toLocaleString()}` } })),
+          },
+        }
       ],
     };
 
     chart.setOption(baseOption);
 
-    // ✅ B가격 라인 업데이트 함수 (줌 상태 유지)
-    const updateChart = () => {
-      const marks = showBLines
-        ? bLines.map(v => ({
-            yAxis: v,
-            lineStyle: { type: "dashed", color: "#e11d48" },
-            label: { formatter: `B ${v.toLocaleString()}` },
-          }))
-        : [];
-
-      chart.setOption(
-        {
-          series: [
-            {
-              id: "main-series",
-              markLine: marks.length
-                ? { symbol: "none", label: { show: true }, data: marks }
-                : { data: [] },
-            },
-          ],
-        },
-        false, // ✅ 전체 덮어쓰기 X (merge)
-        true   // ✅ lazy update (성능 개선)
-      );
+    const updateBLines = () => {
+      chart.setOption({
+        series: [
+          {
+            id: "b-series",
+            markLine: {
+              symbol: "none",
+              data: showBLines
+                ? bLines.map(v => ({ yAxis: v, lineStyle: { type: "dashed", color: "#e11d48" }, label: { formatter: `B ${v.toLocaleString()}` } }))
+                : []
+            }
+          }
+        ]
+      }, false, true);
     };
 
     // ✅ B가격 토글
     document.getElementById("toggleB").addEventListener("change", e => {
       showBLines = e.target.checked;
-      updateChart();
+      updateBLines();
     });
 
-    // ✅ 관심종목 자동체크 & 등록/삭제
+    // ✅ 관심종목 체크 & 등록/삭제
     const watchToggle = document.getElementById("watchToggle");
     if (user) {
       const { data: exist } = await db
@@ -129,19 +142,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (exist) watchToggle.checked = true;
     }
 
-    watchToggle.addEventListener("change", async (e) => {
+    watchToggle.addEventListener("change", async e => {
       if (!SWINGINV.user) {
         alert("🔐 로그인 후 이용해주세요.");
         e.target.checked = false;
         return;
       }
 
-      if (e.target.checked) {
-        const latestPrice = closes[closes.length - 1];
-        const nickname = (
-          await db.from("profiles").select("nickname").eq("id", SWINGINV.user.id).single()
-        ).data?.nickname;
+      const latestPrice = closes[closes.length - 1];
+      const nickname = (
+        await db.from("profiles").select("nickname").eq("id", SWINGINV.user.id).single()
+      ).data?.nickname;
 
+      if (e.target.checked) {
         const { error } = await db.from("watchlist").insert({
           user_id: SWINGINV.user.id,
           닉네임: nickname || "익명",
@@ -151,7 +164,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           등록종가: latestPrice,
           공개여부: true,
         });
-
         if (error) alert("❌ 등록 실패: " + error.message);
         else alert("⭐ 관심종목으로 등록되었습니다!");
       } else {
@@ -161,16 +173,15 @@ document.addEventListener("DOMContentLoaded", async () => {
             .eq("user_id", SWINGINV.user.id)
             .eq("종목코드", code);
           alert("🗑️ 삭제되었습니다.");
-        } else {
-          e.target.checked = true;
-        }
+        } else e.target.checked = true;
       }
     });
 
     // ✅ 차트 초기 렌더
-    updateChart();
+    updateBLines();
     window.addEventListener("resize", () => chart.resize());
     subEl.textContent = `${dates[0]} ~ ${dates.at(-1)} (${data.length}일치 데이터)`;
+
   } catch (err) {
     console.error("❌ detail.js 오류:", err);
     errBox.style.display = "block";
