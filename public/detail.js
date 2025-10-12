@@ -62,16 +62,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const baseOption = {
       tooltip: {
         trigger: "axis",
-        formatter: (params) => {
-          const main = params.find(p => p.seriesId === "main-series");
-          const bLinesTooltip = showBLines
-            ? bLines.map(v => `B: ${v.toLocaleString()}`).join("<br>")
-            : '';
-          return [
-            `날짜: ${main.axisValue}`,
-            `종가: ${main.data.toLocaleString()}`,
-            bLinesTooltip
-          ].filter(Boolean).join("<br>");
+        formatter: () => {
+          // 종가는 표시하지 않고, B 가격만 표시
+          if (!showBLines || bLines.length === 0) return "";
+          return bLines.map(v => `B: ${v.toLocaleString()}`).join("<br>");
         }
       },
       xAxis: { type: "category", data: dates, boundaryGap: false },
