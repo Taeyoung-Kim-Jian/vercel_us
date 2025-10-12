@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         formatter: (params) => {
           if (params.componentType === "markLine" && params.seriesId === "b-series") {
             // B 수평선 hover 시
-            return `B 가격: ${params.value}<br>B 발견일: ${params.data.b날짜}`;
+            return `B 가격: ${params.value}`;
           } else if (params.seriesId === "main-series") {
             // 종가선 hover 시
             return `날짜: ${params.axisValue}<br>종가: ${params.data.toLocaleString()}`;
