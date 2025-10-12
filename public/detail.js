@@ -1,4 +1,4 @@
-// 📈 detail.js — ECharts 안정 버전 + B가격 수평선 hover 표시 + 관심종목 통합
+// 📈 detail.js — ECharts + B가격 수평선 + 관심종목 통합 + 토글 기능
 document.addEventListener("DOMContentLoaded", async () => {
   const params = new URLSearchParams(window.location.search);
   const code = params.get("code");
@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   titleEl.textContent = `📈 ${name} (${code || "?"})`;
   subEl.textContent = "가격 데이터를 불러오는 중...";
 
-  // ✅ Supabase 로드 대기
+  // Supabase 로드 대기
   let db;
   for (let i = 0; i < 25; i++) {
     if (window.SWINGINV?.db) { db = SWINGINV.db; break; }
@@ -26,13 +26,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // ✅ 로그인 세션
+  // 로그인 세션
   const { data: { session } } = await db.auth.getSession();
   const user = session?.user || null;
   if (user) SWINGINV.user = user;
 
   try {
-    // 📊 가격 데이터 로드
+    // 가격 데이터 로드
     const { data, error } = await db
       .from("prices")
       .select("날짜, 종가")
@@ -48,14 +48,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     const dates = data.map(d => d.날짜);
     const closes = data.map(d => parseFloat(d.종가));
 
-    // 📍 B가격 데이터 (중복 제거)
+    // B가격 데이터
     const { data: btData } = await db
       .from("bt_points")
       .select("b가격")
       .eq("종목코드", code);
     const bLines = Array.from(new Set(btData?.map(b => parseFloat(b.b가격)) || []));
 
-    // 📈 ECharts 초기화
+    // ECharts 초기화
     const chart = echarts.init(chartEl);
     let showBLines = true;
 
@@ -64,11 +64,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         trigger: "axis",
         formatter: (params) => {
           const main = params.find(p => p.seriesId === "main-series");
-          // B가격 수평선 tooltip 표시
-          const bLinesTooltip = params
-            .filter(p => p.seriesId === "b-series")
-            .map(p => `B: ${parseFloat(p.value).toLocaleString()}`)
-            .join("<br>");
+          const bLinesTooltip = showBLines
+            ? bLines.map(v => `B: ${v.toLocaleString()}`).join("<br>")
+            : '';
           return [
             `날짜: ${main.axisValue}`,
             `종가: ${main.data.toLocaleString()}`,
@@ -97,8 +95,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         {
           id: "b-series",
           type: "line",
-          name: "B가격",
-          data: closes.map(() => null), // 실제 라인 데이터는 필요 없음
+          data: closes.map(() => null),
           markLine: {
             symbol: "none",
             data: bLines.map(v => ({
@@ -133,13 +130,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       }, false, true);
     };
 
-    // ✅ B가격 토글
+    // B가격 토글
     document.getElementById("toggleB").addEventListener("change", e => {
       showBLines = e.target.checked;
       updateBLines();
     });
 
-    // ✅ 관심종목 체크 & 등록/삭제
+    // 관심종목 체크 & 등록/삭제
     const watchToggle = document.getElementById("watchToggle");
     if (user) {
       const { data: exist } = await db
@@ -186,7 +183,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
-    // ✅ 차트 초기 렌더
+    // 차트 초기 렌더
     updateBLines();
     window.addEventListener("resize", () => chart.resize());
     subEl.textContent = `${dates[0]} ~ ${dates.at(-1)} (${data.length}일치 데이터)`;
