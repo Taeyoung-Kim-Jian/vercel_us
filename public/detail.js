@@ -61,12 +61,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const baseOption = {
       tooltip: {
-        trigger: "item", // item 기준으로 hover
+        trigger: "axis", // x축 기준
         formatter: (params) => {
-          if (params.seriesId === "b-series") {
-            return `B: ${params.value}`;
-          }
-          return "";
+          // 종가선 정보
+          const main = params.find(p => p.seriesId === "main-series");
+          let txt = `날짜: ${main.axisValue}<br>종가: ${main.data.toLocaleString()}`;
+
+          // B선 hover 여부 확인
+          params.forEach(p => {
+            if (p.seriesId === "b-series" && p.componentType === "markLine") {
+              txt += `<br>B: ${p.value}`;
+            }
+          });
+          return txt;
         }
       },
       xAxis: { type: "category", data: dates, boundaryGap: false },
@@ -94,12 +101,12 @@ document.addEventListener("DOMContentLoaded", async () => {
           markLine: {
             symbol: "none",
             emphasis: {
-              label: { show: true, formatter: params => `B ${params.value}` } // hover 시 해당 B 가격만 표시
+              label: { show: true, formatter: params => `B ${params.value}` } // hover 시 B 가격만
             },
             data: bLines.map(v => ({
               yAxis: v,
               lineStyle: { type: "dashed", color: "#e11d48" },
-              label: { show: false } // 평소에는 라벨 숨김
+              label: { show: false } // 평소에는 숨김
             })),
           },
         }
