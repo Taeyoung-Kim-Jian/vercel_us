@@ -1,4 +1,4 @@
-// 📈 detail.js — ECharts + B가격 수평선 + 관심종목 통합 + B 날짜 표시
+// 📈 detail.js — ECharts + B가격 수평선 + 관심종목 통합 + 토글 기능
 document.addEventListener("DOMContentLoaded", async () => {
   const params = new URLSearchParams(window.location.search);
   const code = params.get("code");
@@ -48,16 +48,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     const dates = data.map(d => d.날짜);
     const closes = data.map(d => parseFloat(d.종가));
 
-    // B가격 + B날짜 데이터
+    // B가격 데이터
     const { data: btData } = await db
       .from("bt_points")
-      .select("b가격, b날짜")
+      .select("b가격")
       .eq("종목코드", code);
-
-    const bLines = btData?.map(b => ({
-      price: parseFloat(b.b가격),
-      date: b.b날짜
-    })) || [];
+    const bLines = Array.from(new Set(btData?.map(b => parseFloat(b.b가격)) || []));
 
     // ECharts 초기화
     const chart = echarts.init(chartEl);
@@ -65,17 +61,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const baseOption = {
       tooltip: {
-        trigger: "axis",
+        trigger: "axis", // x축 기준
         formatter: (params) => {
           // 종가선 정보
           const main = params.find(p => p.seriesId === "main-series");
           let txt = `날짜: ${main.axisValue}<br>종가: ${main.data.toLocaleString()}`;
 
-          // B선 hover
+          // B선 hover 여부 확인
           params.forEach(p => {
             if (p.seriesId === "b-series" && p.componentType === "markLine") {
-              const bItem = p.data;
-              txt += `<br>B: ${p.value} (날짜: ${bItem.b날짜 || "?"})`;
+              txt += `<br>B: ${p.value}`;
             }
           });
           return txt;
@@ -106,13 +101,12 @@ document.addEventListener("DOMContentLoaded", async () => {
           markLine: {
             symbol: "none",
             emphasis: {
-              label: { show: true, formatter: params => `B ${params.value}` }
+              label: { show: true, formatter: params => `B ${params.value}` } // hover 시 B 가격만
             },
-            data: bLines.map(b => ({
-              yAxis: b.price,
-              b날짜: b.date, // hover 시 사용
+            data: bLines.map(v => ({
+              yAxis: v,
               lineStyle: { type: "dashed", color: "#e11d48" },
-              label: { show: false }
+              label: { show: false } // 평소에는 숨김
             })),
           },
         }
@@ -129,9 +123,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             markLine: {
               symbol: "none",
               data: showBLines
-                ? bLines.map(b => ({
-                    yAxis: b.price,
-                    b날짜: b.date,
+                ? bLines.map(v => ({
+                    yAxis: v,
                     lineStyle: { type: "dashed", color: "#e11d48" },
                     label: { show: false }
                   }))
