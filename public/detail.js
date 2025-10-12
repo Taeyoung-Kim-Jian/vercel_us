@@ -61,17 +61,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const baseOption = {
       tooltip: {
-        trigger: "axis", // axis 기준으로 hover
+        trigger: "axis",
         formatter: (params) => {
-          let tooltipText = "";
-          params.forEach(p => {
-            if (p.seriesId === "main-series") {
-              tooltipText += `날짜: ${p.axisValue}<br>종가: ${p.data}<br>`;
-            } else if (p.seriesId === "b-series" && p.componentType === "markLine") {
-              tooltipText += `B가격: ${p.value}<br>`;
-            }
-          });
-          return tooltipText;
+          const main = params.find(p => p.seriesId === "main-series");
+          const bPoint = params.find(p => p.seriesId === "b-points");
+          let text = "";
+          if (main) text += `날짜: ${main.axisValue}<br>종가: ${main.data.toLocaleString()}`;
+          if (bPoint) text += `<br>B가격: ${bPoint.value.toLocaleString()}`;
+          return text;
         }
       },
       xAxis: { type: "category", data: dates, boundaryGap: false },
@@ -96,19 +93,16 @@ document.addEventListener("DOMContentLoaded", async () => {
           id: "b-series",
           type: "line",
           data: closes.map(() => null),
-          markLine: {
-            symbol: "none",
-            data: bLines.map(v => ({
-              yAxis: v,
-              lineStyle: { type: "dashed", color: "#e11d48" },
-              label: { show: false }
-            })),
-            emphasis: {
-              label: { show: true, formatter: params => `B ${params.value}` }
-            }
-          },
+        },
+        {
+          id: "b-points",
+          type: "scatter",
+          name: "B가격",
+          data: bLines.map(v => ({ value: v })), // y값 = B가격
+          symbol: "none",
+          tooltip: { formatter: (params) => `B가격: ${params.value.toLocaleString()}` }
         }
-      ],
+      ]
     };
 
     chart.setOption(baseOption);
@@ -117,20 +111,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       chart.setOption({
         series: [
           {
-            id: "b-series",
-            markLine: {
-              symbol: "none",
-              data: showBLines
-                ? bLines.map(v => ({
-                    yAxis: v,
-                    lineStyle: { type: "dashed", color: "#e11d48" },
-                    label: { show: false }
-                  }))
-                : [],
-              emphasis: {
-                label: { show: true, formatter: params => `B ${params.value}` }
-              }
-            }
+            id: "b-points",
+            data: showBLines ? bLines.map(v => ({ value: v })) : []
           }
         ]
       }, false, true);
