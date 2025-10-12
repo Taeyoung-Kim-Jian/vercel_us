@@ -170,7 +170,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     // ✅ 차트 초기 렌더
     updateChart();
     window.addEventListener("resize", () => chart.resize());
-    subEl.textContent = `${dates[0]} ~ ${dates.at(-1)} (${data.length}일치 데이터)`;
   } catch (err) {
     console.error("❌ detail.js 오류:", err);
     errBox.style.display = "block";
