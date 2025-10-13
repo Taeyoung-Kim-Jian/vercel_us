@@ -388,4 +388,39 @@ button.active {
   color: #fff;
   border-color: #2563eb;
 }
+/* ===============================
+   테이블 첫 번째 열 고정
+================================ */
+
+/* 종목명만 고정 */
+.fixed-name th:first-child,
+.fixed-name td:first-child {
+  position: sticky;
+  left: 0;
+  background: #f8fafc;
+  z-index: 3;
+}
+
+/* 순위+종목명 두 열 고정 */
+.fixed-rank-name th:first-child,
+.fixed-rank-name td:first-child {
+  position: sticky;
+  left: 0;
+  width: 20px; /* 순위 열 너비 */
+  background: #f8fafc;
+  z-index: 3;
+}
+
+.fixed-rank-name th:nth-child(2),
+.fixed-rank-name td:nth-child(2) {
+  position: sticky;
+  left: 20px; /* 첫 번째 열 너비만큼 밀림 */
+  background: #f8fafc;
+  z-index: 2;
+}
+
+/* 테이블 전체 스크롤 가능하게 */
+.table-wrapper {
+  overflow-x: auto;
+}
 
