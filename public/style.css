@@ -118,14 +118,14 @@ main.content {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 18px;
-  margin: 0px 0 0px;
+  margin: 10px 0 10px;
 }
 
 .card {
   background: #fff;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  padding: 10px 10px;
+  padding: 18px 20px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.05);
   transition: all 0.25s ease;
 }
@@ -182,28 +182,33 @@ main.content {
 }
 
 /* ===============================
-   모바일: 순위 숨기기, 나머지는 가로 유지
+   모바일: 1단 카드, 순위 숨김, 종목명 아래 수익률
 ================================ */
 @media (max-width: 600px) {
+  .cards {
+    grid-template-columns: 1fr; /* 한 줄에 카드 1개 */
+  }
+
   .rank {
-    display: none; /* 모바일에서 순위 숨기기 */
+    display: none; /* 순위 숨기기 */
   }
 
   .top5-list li {
-    flex-direction: row; /* 가로 배치 유지 */
-    align-items: center;
-    gap: 8px;
+    flex-direction: column; /* 종목명 아래 수익률 */
+    align-items: flex-start;
+    gap: 4px;
+    padding: 8px 0;
   }
 
   .top5-content {
-    flex-direction: row; /* 종목명과 수익률 가로 배치 */
+    flex-direction: column; /* 종목명 아래 수익률 */
     width: 100%;
   }
 
   .rate {
     min-width: auto;
-    text-align: right;
-    font-size: 11px;
+    text-align: left;
+    font-size: 13px;
     color: #2563eb;
   }
 }
