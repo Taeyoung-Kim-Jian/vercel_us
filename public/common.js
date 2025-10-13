@@ -1,6 +1,6 @@
 /* ==========================================================
-   🌐 SWING INVESTOR — common.js (v4.5 Stable Full)
-   - Supabase 초기화 + 로그인/회원가입/로그아웃/헤더 UI + 유틸 완전 통합
+   🌐 SWING INVESTOR — common.js (v4.6 Stable Full)
+   - Supabase 초기화 + 로그인/회원가입/로그아웃/헤더 UI + 유틸 + 테이블 정렬
    ========================================================== */
 
 console.log("🌐 SWING INVESTOR common_auth.js loaded");
@@ -199,5 +199,51 @@ if (window.SWINGINV?.db) {
   window.db = window.SWINGINV.db;
   console.log("✅ window.db alias created (for backward compatibility)");
 }
+
+// ------------------------------------------------------------
+// ✅ 8. 모든 테이블 컬럼 클릭 정렬 기능 (오름/내림 토글 + 화살표 표시)
+// ------------------------------------------------------------
+document.addEventListener("DOMContentLoaded", () => {
+  const tables = document.querySelectorAll("table");
+  tables.forEach((table) => {
+    const headers = table.querySelectorAll("thead th");
+    headers.forEach((th, index) => {
+      th.style.cursor = "pointer";
+      let asc = true;
+
+      // 초기 화살표 제거
+      th.innerHTML = th.textContent.trim();
+
+      th.addEventListener("click", () => {
+        const tbody = table.querySelector("tbody");
+        if (!tbody) return;
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+
+        // 정렬
+        const sortedRows = rows.sort((a, b) => {
+          const aText = a.children[index].textContent.trim();
+          const bText = b.children[index].textContent.trim();
+
+          const aNum = parseFloat(aText.replace(/[^\d.-]/g, ""));
+          const bNum = parseFloat(bText.replace(/[^\d.-]/g, ""));
+
+          if (!isNaN(aNum) && !isNaN(bNum)) {
+            return asc ? aNum - bNum : bNum - aNum;
+          }
+          return asc ? aText.localeCompare(bText) : bText.localeCompare(aText);
+        });
+
+        tbody.innerHTML = "";
+        sortedRows.forEach((row) => tbody.appendChild(row));
+
+        // 화살표 표시
+        headers.forEach(h => h.innerHTML = h.textContent.trim());
+        th.innerHTML = `${th.textContent.trim()} ${asc ? "▲" : "▼"}`;
+
+        asc = !asc;
+      });
+    });
+  });
+});
 
 console.log("✅ SWINGINV common_auth.js fully initialized.");
