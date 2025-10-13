@@ -170,7 +170,7 @@ main.content {
 
 .top5-content {
   display: flex;
-  flex-direction: row;
+  flex-direction: row; /* 기본은 가로 배치 */
   justify-content: space-between;
   width: 100%;
 }
@@ -180,40 +180,33 @@ main.content {
   min-width: 70px;
   text-align: right;
 }
+
 /* ===============================
-   모바일: 카드 1단, 순위 숨김, 종목명 아래 수익률
+   모바일: 순위 숨기기, 나머지는 가로 유지
 ================================ */
 @media (max-width: 600px) {
-  .cards {
-    display: grid !important;
-    grid-template-columns: 1fr !important; /* 모바일에서는 무조건 1열 */
-    gap: 12px;
-  }
-
   .rank {
-    display: none; /* 순위 숨김 */
+    display: none; /* 모바일에서 순위 숨기기 */
   }
 
   .top5-list li {
-    flex-direction: row; /* 종목명 아래 수익률 */
-    align-items: flex-start;
-    gap: 4px;
-    padding: 8px 0;
+    flex-direction: row; /* 가로 배치 유지 */
+    align-items: center;
+    gap: 8px;
   }
 
   .top5-content {
-    flex-direction: row; /* 종목명 아래 수익률 */
+    flex-direction: row; /* 종목명과 수익률 가로 배치 */
     width: 100%;
   }
 
   .rate {
     min-width: auto;
-    text-align: left;
+    text-align: right;
     font-size: 13px;
     color: #2563eb;
   }
 }
-
 
 /* ===============================
    📊 TABLE (모든 페이지 통합)
