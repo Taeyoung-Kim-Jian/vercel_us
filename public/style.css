@@ -152,7 +152,7 @@ main.content {
 
 .top5-list li {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   padding: 8px 0;
   border-bottom: 1px solid #f3f4f6;
@@ -166,11 +166,12 @@ main.content {
   color: #2563eb;
   width: 30px;
   text-align: center;
+  margin-right: 8px;
 }
 
 .top5-content {
   display: flex;
-  flex-direction: row; /* 기본은 가로 배치 */
+  flex-direction: row; /* 기본: PC 가로 배치 */
   justify-content: space-between;
   width: 100%;
 }
@@ -182,14 +183,14 @@ main.content {
 }
 
 /* ===============================
-   모바일: 순위 아래 종목명 / 수익률 세로 배치
+   모바일: 순위 → 종목명 → 수익률 세로 배치
 ================================ */
 @media (max-width: 600px) {
   .top5-list li {
     flex-direction: column; /* 세로 배치 */
     align-items: flex-start; /* 왼쪽 정렬 */
-    gap: 4px;
-    padding: 8px 0;
+    gap: 2px;
+    padding: 6px 0;
   }
 
   .rank {
@@ -200,7 +201,7 @@ main.content {
 
   .top5-content {
     display: flex;
-    flex-direction: column; /* 종목명 아래 수익률 */
+    flex-direction: column; /* 종목명 위, 수익률 아래 */
     width: 100%;
   }
 
@@ -211,7 +212,6 @@ main.content {
     color: #2563eb;
   }
 }
-
 
 /* ===============================
    📊 TABLE (모든 페이지 통합)
