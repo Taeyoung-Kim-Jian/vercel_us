@@ -7,27 +7,6 @@
 <link rel="stylesheet" href="./style.css" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./common.js"></script>
-
-<style>
-  body { font-family: 'Noto Sans KR', sans-serif; background: #f8fafc; margin:0; padding:0; }
-  main { max-width: 1100px; margin:40px auto; background:#fff; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.05); padding:20px;}
-  h2 { margin-top:0; color:#1e293b; }
-  #month-tabs { display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-bottom:10px; }
-  #month-tabs button { padding:8px 14px; border:none; border-radius:6px; background:#e2e8f0; cursor:pointer; color:#334155; font-weight:500; transition: all 0.2s; }
-  #month-tabs button.active { background:#2563eb; color:#fff; }
-  table { width:100%; border-collapse:collapse; margin-top:10px; font-size:14px; }
-  thead { background-color:#2563eb; color:#fff; }
-  th, td { padding:10px; border-bottom:1px solid #e2e8f0; text-align:center; }
-  tbody tr:hover { background-color:#f9fafb; }
-  .clickable-row { cursor:pointer; transition: background 0.2s; }
-  .clickable-row:hover { background:#f1f5f9; }
-  .pattern-filter { margin: 16px 0; text-align:center; }
-  .pattern-filter button { margin:0 4px; padding:6px 12px; border:1px solid #ccc; border-radius:6px; background:#f8f8f8; cursor:pointer; font-weight:500; transition: all 0.2s ease; }
-  .pattern-filter button.active { background:#007bff; color:#fff; border-color:#007bff; }
-  .pattern-filter button:hover { background:#007bff20; }
-  footer { text-align:center; padding:30px 0; color:#555; font-size:0.85rem; }
-  @media(max-width:600px){ main{padding:12px;} table{font-size:12px;} #month-tabs{gap:6px;} #month-tabs button{padding:6px 10px; font-size:13px;} }
-</style>
 </head>
 
 <body>
@@ -57,7 +36,7 @@
 </div>
 
 <!-- 테이블 -->
-<table>
+<table class="month-table">
 <thead>
 <tr>
   <th>종목명</th>
@@ -123,10 +102,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
 
-    // ✅ 초기 렌더
     renderTable();
 
-    // ✅ 월 탭 클릭 이벤트
+    // 월 탭 클릭 이벤트
     document.querySelectorAll('#month-tabs button').forEach(btn=>{
       btn.addEventListener('click',()=>{
         document.querySelectorAll('#month-tabs button').forEach(b=>b.classList.remove('active'));
@@ -135,7 +113,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     });
 
-    // ✅ 패턴 필터 클릭 이벤트
+    // 패턴 필터 클릭 이벤트
     patternButtons.forEach(btn=>{
       btn.addEventListener('click',()=>{
         patternButtons.forEach(b=>b.classList.remove('active'));
