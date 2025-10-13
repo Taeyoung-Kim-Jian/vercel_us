@@ -1,188 +1,181 @@
-<!-- ✅ SWING INVESTOR 통합 헤더 (v3.8 Stable — common.js v4.4 호환) -->
-<header id="site-header">
-  <div class="header-top">
-    <!-- 🔹 로고 -->
-    <h1 class="logo" onclick="location.href='index.html'">
-      <span class="logo-text">SWING INVESTOR</span>
-    </h1>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SWING INVESTOR Header</title>
+  <!-- common.js는 이미 존재하므로 불러오기 -->
+  <script src="./common.js"></script>
 
-    <!-- 🔹 로그인 영역 -->
-    <div class="auth-area">
-      <span id="user-email">로그아웃 중</span>
-      <button id="loginBtn" class="btn-login" onclick="location.href='login.html'">로그인</button>
-      <button id="logoutBtn" class="btn-logout" style="display:none;">로그아웃</button>
-    </div>
-  </div>
+  <!-- ✅ 헤더 스타일 -->
+  <style>
+    #site-header {
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      font-family: "Noto Sans KR", "Segoe UI", Arial, sans-serif;
+    }
 
-  <!-- 🔹 네비게이션 메뉴 -->
-  <nav class="gnb">
-    <div class="gnb-inner">
-      <button onclick="location.href='index.html'">🏠 홈</button>
-      <button onclick="location.href='proper.html'">📊 스윙 종목</button>
-      <button onclick="location.href='total.html'">📈 전체 종목</button>
-      <button onclick="location.href='month.html'">📅 월별 성과</button>
-      <button onclick="location.href='board.html'">💬 게시판</button>
-      <button onclick="location.href='ranking.html'">⭐ 관심종목</button>
-    </div>
-  </nav>
-</header>
-
-<!-- ✅ 헤더 스타일 -->
-<style>
-  #site-header {
-    background: #fff;
-    border-bottom: 1px solid #e5e7eb;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    font-family: "Noto Sans KR", "Segoe UI", Arial, sans-serif;
-  }
-
-  .header-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 16px;
-    max-width: 1100px;
-    margin: 0 auto;
-  }
-
-  .logo {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #1f2937;
-    cursor: pointer;
-  }
-
-  .auth-area {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    color: #374151;
-  }
-
-  #user-email {
-    font-weight: 500;
-  }
-
-  .btn-login,
-  .btn-logout {
-    border-radius: 5px;
-    padding: 4px 8px;
-    font-size: 12px;
-    cursor: pointer;
-  }
-
-  .btn-login {
-    color: #2563eb;
-    border: 1px solid #2563eb;
-    background: #f8fafc;
-  }
-
-  .btn-login:hover {
-    background: #eff6ff;
-  }
-
-  .btn-logout {
-    color: #4b5563;
-    border: 1px solid #d1d5db;
-    background: #f9fafb;
-  }
-
-  .btn-logout:hover {
-    background: #f3f4f6;
-  }
-
-  .gnb {
-    border-top: 1px solid #f3f4f6;
-    background: #fafafa;
-  }
-
-  .gnb-inner {
-    max-width: 1100px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 22px;
-    padding: 10px 0;
-    overflow-x: auto;
-  }
-
-  .gnb-inner::-webkit-scrollbar {
-    display: none;
-  }
-
-  .gnb-inner button {
-    border: none;
-    background: none;
-    color: #374151;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.15s ease-in-out;
-  }
-
-  .gnb-inner button:hover {
-    color: #2563eb;
-    background: #f1f5ff;
-    border-radius: 6px;
-    padding: 6px 10px;
-  }
-
-  @media (max-width: 768px) {
     .header-top {
-      padding: 6px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 16px;
+      max-width: 1100px;
+      margin: 0 auto;
     }
 
     .logo {
-      font-size: 0.95rem;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1f2937;
+      cursor: pointer;
     }
 
     .auth-area {
-      gap: 6px;
-      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #374151;
+    }
+
+    #user-email {
+      font-weight: 500;
     }
 
     .btn-login,
     .btn-logout {
-      font-size: 11px;
-      padding: 3px 6px;
+      border-radius: 5px;
+      padding: 4px 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .btn-login {
+      color: #2563eb;
+      border: 1px solid #2563eb;
+      background: #f8fafc;
+    }
+
+    .btn-login:hover { background: #eff6ff; }
+
+    .btn-logout {
+      color: #4b5563;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+    }
+
+    .btn-logout:hover { background: #f3f4f6; }
+
+    /* ===============================
+       GNB (메뉴) — 가로 스크롤 가능
+    ================================= */
+    .gnb {
+      border-top: 1px solid #f3f4f6;
+      background: #fafafa;
     }
 
     .gnb-inner {
-      gap: 14px;
-      padding: 8px 0;
+      max-width: 100%;
+      margin: 0 auto;
+      display: flex;
+      justify-content: flex-start;  /* 좌측 정렬 */
+      align-items: center;
+      gap: 22px;
+      padding: 10px 16px;
+      overflow-x: auto;             /* 가로 스크롤 */
+      -webkit-overflow-scrolling: touch; /* 모바일 부드럽게 스크롤 */
     }
+
+    .gnb-inner::-webkit-scrollbar { display: none; }
 
     .gnb-inner button {
-      font-size: 13px;
+      flex: 0 0 auto; /* 버튼 줄어들지 않게 */
+      white-space: nowrap; /* 글자 줄바꿈 방지 */
+      border: none;
+      background: none;
+      color: #374151;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.15s ease-in-out;
+      padding: 6px 10px;
+      border-radius: 6px;
     }
-  }
-</style>
 
-<!-- ✅ 헤더 초기화 스크립트 -->
-<script>
-  console.log("🧭 Header script initialized (Session-Safe)");
+    .gnb-inner button:hover {
+      color: #2563eb;
+      background: #f1f5ff;
+    }
 
-  // ✅ Supabase 초기화 완료 대기
-  async function waitForSwingInv() {
-    return new Promise((resolve) => {
-      const check = () => {
-        if (window.SWINGINV?.db) return resolve();
-        setTimeout(check, 100);
-      };
-      check();
+    @media (max-width: 768px) {
+      .header-top { padding: 6px 12px; }
+      .logo { font-size: 0.95rem; }
+      .auth-area { gap: 6px; font-size: 12px; }
+      .btn-login, .btn-logout { font-size: 11px; padding: 3px 6px; }
+      .gnb-inner { gap: 14px; padding: 8px 0; }
+      .gnb-inner button { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- ===============================
+       헤더 HTML
+  ================================== -->
+  <header id="site-header">
+    <div class="header-top">
+      <!-- 🔹 로고 -->
+      <h1 class="logo" onclick="location.href='index.html'">
+        <span class="logo-text">SWING INVESTOR</span>
+      </h1>
+
+      <!-- 🔹 로그인 영역 -->
+      <div class="auth-area">
+        <span id="user-email">로그아웃 중</span>
+        <button id="loginBtn" class="btn-login" onclick="location.href='login.html'">로그인</button>
+        <button id="logoutBtn" class="btn-logout" style="display:none;">로그아웃</button>
+      </div>
+    </div>
+
+    <!-- 🔹 네비게이션 메뉴 -->
+    <nav class="gnb">
+      <div class="gnb-inner">
+        <button onclick="location.href='index.html'">🏠 홈</button>
+        <button onclick="location.href='proper.html'">📊 스윙 종목</button>
+        <button onclick="location.href='total.html'">📈 전체 종목</button>
+        <button onclick="location.href='month.html'">📅 월별 성과</button>
+        <button onclick="location.href='board.html'">💬 게시판</button>
+        <button onclick="location.href='ranking.html'">⭐ 관심종목</button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ===============================
+       헤더 초기화 스크립트
+  ================================== -->
+  <script>
+    console.log("🧭 Header script initialized (Session-Safe)");
+
+    async function waitForSwingInv() {
+      return new Promise((resolve) => {
+        const check = () => {
+          if (window.SWINGINV?.db) return resolve();
+          setTimeout(check, 100);
+        };
+        check();
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      await waitForSwingInv();
+      console.log("✅ Header ready — Supabase 연결 확인됨");
+      if (typeof SWINGINV_updateHeaderAuthUI === "function") {
+        SWINGINV_updateHeaderAuthUI();
+      }
     });
-  }
-
-  // ✅ 페이지 로드 후 실행
-  document.addEventListener("DOMContentLoaded", async () => {
-    await waitForSwingInv();
-    console.log("✅ Header ready — Supabase 연결 확인됨");
-    if (typeof SWINGINV_updateHeaderAuthUI === "function") {
-      SWINGINV_updateHeaderAuthUI();
-    }
-  });
-</script>
+  </script>
+</body>
+</html>
