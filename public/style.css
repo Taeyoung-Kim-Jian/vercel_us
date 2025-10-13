@@ -195,7 +195,7 @@ main.content {
   }
 
   .top5-list li {
-    flex-direction: column; /* 종목명 아래 수익률 */
+    flex-direction: row; /* 종목명 아래 수익률 */
     align-items: flex-start;
     gap: 4px;
     padding: 8px 0;
