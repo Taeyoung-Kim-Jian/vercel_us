@@ -1,11 +1,11 @@
 <!-- ================================
-     ✅ SWING INVESTOR 헤더 (전체)
+     ✅ SWING INVESTOR 헤더
 ================================ -->
 <header id="site-header">
-  <!-- 🔹 상단 로고 + 로그인 영역 -->
+  <!-- 상단 로고 + 로그인 영역 -->
   <div class="header-top">
     <h1 class="logo" onclick="location.href='index.html'">
-      <span class="logo-text">SWING INVESTOR</span>
+      SWING INVESTOR
     </h1>
 
     <div class="auth-area">
@@ -15,7 +15,7 @@
     </div>
   </div>
 
-  <!-- 🔹 네비게이션 메뉴 -->
+  <!-- 하단 네비게이션 메뉴 -->
   <nav class="gnb">
     <div class="gnb-inner">
       <button onclick="location.href='index.html'">🏠 홈</button>
@@ -28,22 +28,19 @@
   </nav>
 </header>
 
-<!-- ================================
-     ✅ 헤더 스타일
-================================ -->
 <style>
-  /* 헤더 전체 */
+  /* ===============================
+     헤더 기본 스타일
+  ================================ */
   #site-header {
     background: #fff;
     border-bottom: 1px solid #e5e7eb;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
     position: sticky;
     top: 0;
     z-index: 100;
     font-family: "Noto Sans KR", "Segoe UI", Arial, sans-serif;
   }
 
-  /* 상단 로고 + 로그인 */
   .header-top {
     display: flex;
     justify-content: space-between;
@@ -68,12 +65,7 @@
     color: #374151;
   }
 
-  #user-email {
-    font-weight: 500;
-  }
-
-  .btn-login,
-  .btn-logout {
+  .btn-login, .btn-logout {
     border-radius: 5px;
     padding: 4px 8px;
     font-size: 12px;
@@ -85,7 +77,6 @@
     border: 1px solid #2563eb;
     background: #f8fafc;
   }
-
   .btn-login:hover { background: #eff6ff; }
 
   .btn-logout {
@@ -93,27 +84,28 @@
     border: 1px solid #d1d5db;
     background: #f9fafb;
   }
-
   .btn-logout:hover { background: #f3f4f6; }
 
-  /* 네비게이션 메뉴 */
+  /* ===============================
+     메뉴
+  ================================ */
   .gnb {
     border-top: 1px solid #f3f4f6;
     background: #fafafa;
   }
 
-  /* PC 기본: 중앙 정렬 */
   .gnb-inner {
     max-width: 1100px;
     margin: 0 auto;
     display: flex;
-    justify-content: center;
-    align-items: center;
     gap: 22px;
     padding: 10px 0;
     flex-wrap: nowrap;
-    overflow-x: visible;
+    overflow-x: auto; /* 모바일 스크롤 */
+    -webkit-overflow-scrolling: touch; /* 스무스 스크롤 */
   }
+
+  .gnb-inner::-webkit-scrollbar { display: none; }
 
   .gnb-inner button {
     border: none;
@@ -122,6 +114,7 @@
     font-size: 14px;
     cursor: pointer;
     transition: all 0.15s ease-in-out;
+    flex-shrink: 0; /* 버튼 줄어들지 않도록 */
   }
 
   .gnb-inner button:hover {
@@ -131,42 +124,19 @@
     padding: 6px 10px;
   }
 
-  /* 모바일 대응 */
+  /* ===============================
+     모바일 전용
+  ================================ */
   @media (max-width: 768px) {
-    .header-top {
-      padding: 6px 12px;
-    }
-
+    .header-top { padding: 6px 12px; }
     .logo { font-size: 0.95rem; }
+    .auth-area { gap: 6px; font-size: 12px; }
+    .btn-login, .btn-logout { font-size: 11px; padding: 3px 6px; }
 
-    .auth-area {
-      gap: 6px;
-      font-size: 12px;
-    }
-
-    .btn-login, .btn-logout {
-      font-size: 11px;
-      padding: 3px 6px;
-    }
-
-    /* 모바일에서 메뉴 스크롤 */
-    .gnb-inner {
-      justify-content: flex-start;        /* 왼쪽 정렬 */
-      overflow-x: auto;                   /* 가로 스크롤 허용 */
-      -webkit-overflow-scrolling: touch;  /* iOS 스크롤 부드럽게 */
-    }
-
-    .gnb-inner::-webkit-scrollbar { display: none; }
-
-    .gnb-inner button { font-size: 13px; }
+    .gnb-inner { justify-content: flex-start; }
   }
 </style>
 
-<!-- ================================
-     ✅ 헤더 초기화 스크립트
-================================ -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="common.js"></script>
 <script>
   console.log("🧭 Header script initialized (Session-Safe)");
 
