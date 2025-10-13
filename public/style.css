@@ -180,13 +180,14 @@ main.content {
   min-width: 70px;
   text-align: right;
 }
-
 /* ===============================
    모바일: 카드 1단, 순위 숨김, 종목명 아래 수익률
 ================================ */
 @media (max-width: 600px) {
   .cards {
-    grid-template-columns: 1fr; /* 모든 카드 1열 */
+    display: grid !important;
+    grid-template-columns: 1fr !important; /* 모바일에서는 무조건 1열 */
+    gap: 12px;
   }
 
   .rank {
@@ -212,6 +213,7 @@ main.content {
     color: #2563eb;
   }
 }
+
 
 /* ===============================
    📊 TABLE (모든 페이지 통합)
