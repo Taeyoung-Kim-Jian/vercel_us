@@ -247,3 +247,33 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 console.log("✅ SWINGINV common_auth.js fully initialized.");
+
+function applyTableFixes() {
+  document.querySelectorAll('table').forEach(table => {
+    // 테이블을 감싸서 가로 스크롤 가능하게
+    if (!table.parentElement.classList.contains('table-wrapper')) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'table-wrapper';
+      table.parentNode.insertBefore(wrapper, table);
+      wrapper.appendChild(table);
+    }
+
+    const firstTh = table.querySelector('thead th:first-child');
+    if (!firstTh) return;
+
+    const firstColName = firstTh.innerText.trim();
+
+    // 기존 클래스 제거
+    table.classList.remove('fixed-name', 'fixed-rank-name');
+
+    if (firstColName === '순위') {
+      table.classList.add('fixed-rank-name');
+    } else if (firstColName === '종목명') {
+      table.classList.add('fixed-name');
+    }
+  });
+}
+
+// DOM 로드 후 자동 적용
+document.addEventListener('DOMContentLoaded', applyTableFixes);
+
