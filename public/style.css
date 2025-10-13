@@ -255,7 +255,6 @@ main.content {
   }
 }
 
-
 /* ===============================
    📊 TABLE (모든 페이지 통합)
 ================================ */
@@ -305,6 +304,27 @@ tbody tr:hover {
   transition: background 0.2s;
 }
 .clickable-row:hover { background: #f1f5f9; }
+
+/* ===============================
+   📱 MOBILE TABLE ADJUSTMENTS
+================================ */
+@media (max-width: 768px) {
+  .table-container {
+    overflow-x: auto; /* 모바일에서 가로 스크롤 */
+  }
+
+  table {
+    table-layout: auto; /* 글자수에 따라 셀 너비 자동 조정 */
+    font-size: 11px;    /* 모바일용 글자크기 */
+  }
+
+  th, td {
+    padding: 6px 8px;
+    white-space: nowrap; /* 줄바꿈 방지 */
+    min-width: 80px;     /* 최소 너비 지정 */
+  }
+}
+
 
 /* ===============================
    🌐 BUTTON STYLE (GLOBAL)
