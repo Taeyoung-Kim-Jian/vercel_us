@@ -1,265 +1,154 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>월별 성과 | SWING INVESTOR</title>
-  <link rel="stylesheet" href="./style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./common.js"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>월별 성과 | SWING INVESTOR</title>
+<link rel="stylesheet" href="./style.css" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./common.js"></script>
 
-  <style>
-    body {
-      font-family: 'Noto Sans KR', sans-serif;
-      background: #f8fafc;
-      margin: 0;
-      padding: 0;
-    }
-
-    main {
-      max-width: 1100px;
-      margin: 40px auto;
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-      padding: 20px;
-    }
-
-    h2 {
-      margin-top: 0;
-      color: #1e293b;
-    }
-
-    /* ✅ 월 탭 바 */
-    #month-tabs {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    #month-tabs button {
-      padding: 8px 14px;
-      border: none;
-      border-radius: 6px;
-      background: #e2e8f0;
-      cursor: pointer;
-      color: #334155;
-      font-weight: 500;
-      transition: all 0.2s;
-    }
-
-    #month-tabs button.active {
-      background: #2563eb;
-      color: #fff;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 14px;
-    }
-
-    thead {
-      background-color: #2563eb;
-      color: #fff;
-    }
-
-    th, td {
-      padding: 10px;
-      border-bottom: 1px solid #e2e8f0;
-      text-align: center;
-    }
-
-    tbody tr:hover {
-      background-color: #f9fafb;
-    }
-
-    /* ✅ 클릭 가능한 행 효과 */
-    .clickable-row {
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .clickable-row:hover {
-      background: #f1f5f9;
-    }
-
-    /* ✅ 패턴 필터 */
-    .pattern-filter {
-      margin: 16px 0;
-      text-align: center;
-    }
-
-    .pattern-filter button {
-      margin: 0 4px;
-      padding: 6px 12px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      background: #f8f8f8;
-      cursor: pointer;
-      font-weight: 500;
-      transition: all 0.2s ease;
-    }
-
-    .pattern-filter button.active {
-      background: #007bff;
-      color: #fff;
-      border-color: #007bff;
-    }
-
-    .pattern-filter button:hover {
-      background: #007bff20;
-    }
-
-    footer {
-      text-align: center;
-      padding: 30px 0;
-      color: #555;
-      font-size: 0.85rem;
-    }
-
-    @media (max-width: 600px) {
-      main {
-        padding: 12px;
-      }
-      table {
-        font-size: 12px;
-      }
-      #month-tabs {
-        gap: 6px;
-      }
-      #month-tabs button {
-        padding: 6px 10px;
-        font-size: 13px;
-      }
-    }
-  </style>
+<style>
+  body { font-family: 'Noto Sans KR', sans-serif; background: #f8fafc; margin:0; padding:0; }
+  main { max-width: 1100px; margin:40px auto; background:#fff; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.05); padding:20px;}
+  h2 { margin-top:0; color:#1e293b; }
+  #month-tabs { display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-bottom:10px; }
+  #month-tabs button { padding:8px 14px; border:none; border-radius:6px; background:#e2e8f0; cursor:pointer; color:#334155; font-weight:500; transition: all 0.2s; }
+  #month-tabs button.active { background:#2563eb; color:#fff; }
+  table { width:100%; border-collapse:collapse; margin-top:10px; font-size:14px; }
+  thead { background-color:#2563eb; color:#fff; }
+  th, td { padding:10px; border-bottom:1px solid #e2e8f0; text-align:center; }
+  tbody tr:hover { background-color:#f9fafb; }
+  .clickable-row { cursor:pointer; transition: background 0.2s; }
+  .clickable-row:hover { background:#f1f5f9; }
+  .pattern-filter { margin: 16px 0; text-align:center; }
+  .pattern-filter button { margin:0 4px; padding:6px 12px; border:1px solid #ccc; border-radius:6px; background:#f8f8f8; cursor:pointer; font-weight:500; transition: all 0.2s ease; }
+  .pattern-filter button.active { background:#007bff; color:#fff; border-color:#007bff; }
+  .pattern-filter button:hover { background:#007bff20; }
+  footer { text-align:center; padding:30px 0; color:#555; font-size:0.85rem; }
+  @media(max-width:600px){ main{padding:12px;} table{font-size:12px;} #month-tabs{gap:6px;} #month-tabs button{padding:6px 10px; font-size:13px;} }
+</style>
 </head>
 
 <body>
-  <!-- ✅ 공통 헤더 -->
-  <div id="header-container"></div>
-  <script>
-    fetch("./header.html")
-      .then(r => r.text())
-      .then(html => {
-        document.getElementById("header-container").innerHTML = html;
-        if (typeof SWINGINV_updateHeaderAuthUI === "function") SWINGINV_updateHeaderAuthUI();
+<div id="header-container"></div>
+<script>
+  fetch("./header.html").then(r=>r.text()).then(html=>{
+    document.getElementById("header-container").innerHTML = html;
+    if(typeof SWINGINV_updateHeaderAuthUI==="function") SWINGINV_updateHeaderAuthUI();
+  });
+</script>
+
+<main>
+<h2>📅 월별 성과</h2>
+<p style="color:#555;">월별로 측정된 주요 종목의 수익률과 패턴을 확인하고 상세 차트로 이동하세요.</p>
+
+<!-- 월 탭 -->
+<div id="month-tabs"></div>
+
+<!-- 패턴 필터 -->
+<div class="pattern-filter">
+  <button class="active" data-pattern="전체">전체</button>
+  <button data-pattern="돌파">돌파</button>
+  <button data-pattern="돌파눌림">돌파눌림</button>
+  <button data-pattern="박스권">박스권</button>
+  <button data-pattern="이탈">이탈</button>
+  <button data-pattern="기타">기타</button>
+</div>
+
+<!-- 테이블 -->
+<table>
+<thead>
+<tr>
+  <th>종목명</th>
+  <th>측정일</th>
+  <th>측정일 종가</th>
+  <th>현재가</th>
+  <th>측정일 대비 수익률</th>
+  <th>최고 수익률</th>
+  <th>최저 수익률</th>
+  <th>패턴</th>
+</tr>
+</thead>
+<tbody id="month-table-body">
+<tr><td colspan="8" style="text-align:center;">⏳ 데이터를 불러오는 중...</td></tr>
+</tbody>
+</table>
+</main>
+
+<footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const tbody = document.getElementById("month-table-body");
+  const monthTabs = document.getElementById("month-tabs");
+  const patternButtons = document.querySelectorAll('.pattern-filter button');
+  let allData = [];
+
+  SWINGINV.showLoading(tbody);
+
+  try {
+    const { data, error } = await SWINGINV.db
+      .from("monthly_performance_view")
+      .select("종목명, 측정일, 측정일종가, 현재가, 측정일대비수익률, 최고수익률, 최저수익률, pattern, 월구분")
+      .order("측정일",{ascending:false});
+    if(error) throw error;
+    if(!data || data.length===0) { SWINGINV.showError(tbody,"📭 표시할 데이터가 없습니다."); return; }
+    allData = data;
+
+    // ✅ 월 탭 생성
+    const months = [...new Set(data.map(d=>d.월구분))].sort((a,b)=>b.localeCompare(a));
+    monthTabs.innerHTML = months.map(m=>`<button data-month="${m}" ${m===months[0]?'class="active"':''}>${m}</button>`).join('');
+
+    function renderTable(){
+      const activeMonth = document.querySelector('#month-tabs button.active')?.dataset.month;
+      const activePattern = document.querySelector('.pattern-filter button.active')?.dataset.pattern;
+      tbody.innerHTML = allData
+        .filter(d=> (activeMonth==='전체' || d.월구분===activeMonth) && (activePattern==='전체' || (d.pattern || "기타")===activePattern))
+        .map(d=>`
+          <tr class="clickable-row" data-name="${d.종목명}">
+            <td>${SWINGINV.esc(d.종목명)}</td>
+            <td>${d.측정일}</td>
+            <td>${SWINGINV.nf(d.측정일종가)}</td>
+            <td>${SWINGINV.nf(d.현재가)}</td>
+            <td>${SWINGINV.fmtPct(d.측정일대비수익률)}</td>
+            <td>${SWINGINV.fmtPct(d.최고수익률)}</td>
+            <td>${SWINGINV.fmtPct(d.최저수익률)}</td>
+            <td>${d.pattern || "기타"}</td>
+          </tr>
+        `).join('');
+
+      document.querySelectorAll(".clickable-row").forEach(row=>{
+        row.addEventListener("click",()=>{ location.href=`detail.html?name=${encodeURIComponent(row.dataset.name)}`; });
       });
-  </script>
+    }
 
-  <main>
-    <h2>📅 월별 성과</h2>
-    <p style="color:#555;">월별로 측정된 주요 종목의 수익률과 패턴을 확인하고 상세 차트로 이동하세요.</p>
+    // ✅ 초기 렌더
+    renderTable();
 
-    <!-- ✅ 월 탭 -->
-    <div id="month-tabs"></div>
-
-    <!-- ✅ 패턴 필터 -->
-    <div class="pattern-filter">
-      <button class="active" data-pattern="전체">전체</button>
-      <button data-pattern="돌파">돌파</button>
-      <button data-pattern="돌파눌림">돌파눌림</button>
-      <button data-pattern="박스권">박스권</button>
-      <button data-pattern="이탈">이탈</button>
-      <button data-pattern="기타">기타</button>
-    </div>
-
-    <!-- ✅ 테이블 -->
-    <table>
-      <thead>
-        <tr>
-          <th>종목명</th>
-          <th>측정일</th>
-          <th>측정일 종가</th>
-          <th>현재가</th>
-          <th>측정일 대비 수익률</th>
-          <th>최고 수익률</th>
-          <th>최저 수익률</th>
-          <th>패턴</th>
-        </tr>
-      </thead>
-      <tbody id="month-table-body">
-        <tr><td colspan="8" style="text-align:center;">⏳ 데이터를 불러오는 중...</td></tr>
-      </tbody>
-    </table>
-  </main>
-
-  <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
-
-  <!-- ✅ 동작 스크립트 -->
-  <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      const tbody = document.getElementById("month-table-body");
-      SWINGINV.showLoading(tbody);
-
-      try {
-        // ✅ Supabase에서 월별 데이터 가져오기 (pattern 포함)
-        const { data, error } = await SWINGINV.db
-          .from("monthly_performance_view")
-          .select("종목명, 측정일, 측정일종가, 현재가, 측정일대비수익률, 최고수익률, 최저수익률, pattern")
-          .order("측정일", { ascending: false });
-
-        if (error) throw error;
-        if (!data || data.length === 0) {
-          SWINGINV.showError(tbody, "📭 표시할 데이터가 없습니다.");
-          return;
-        }
-
-        // ✅ 데이터 렌더링
-        tbody.innerHTML = data
-          .map(r => `
-            <tr class="clickable-row" data-name="${r.종목명}">
-              <td>${SWINGINV.esc(r.종목명)}</td>
-              <td>${r.측정일}</td>
-              <td>${SWINGINV.nf(r.측정일종가)}</td>
-              <td>${SWINGINV.nf(r.현재가)}</td>
-              <td>${SWINGINV.fmtPct(r.측정일대비수익률)}</td>
-              <td>${SWINGINV.fmtPct(r.최고수익률)}</td>
-              <td>${SWINGINV.fmtPct(r.최저수익률)}</td>
-              <td>${r.pattern || "기타"}</td>
-            </tr>
-          `).join("");
-
-        // ✅ 클릭 시 detail.html로 이동
-        document.querySelectorAll(".clickable-row").forEach(row => {
-          row.addEventListener("click", () => {
-            const name = row.dataset.name;
-            location.href = `detail.html?name=${encodeURIComponent(name)}`;
-          });
-        });
-
-        // ✅ 패턴 필터 기능
-        document.querySelectorAll('.pattern-filter button').forEach(btn => {
-          btn.addEventListener('click', () => {
-            document.querySelectorAll('.pattern-filter button').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            const pattern = btn.dataset.pattern;
-            const rows = document.querySelectorAll('#month-table-body tr');
-
-            rows.forEach(row => {
-              const cell = row.querySelector('td:nth-child(8)');
-              if (!cell) return;
-              const rowPattern = cell.textContent.trim();
-              if (pattern === "전체" || rowPattern === pattern) {
-                row.style.display = "";
-              } else {
-                row.style.display = "none";
-              }
-            });
-          });
-        });
-
-      } catch (err) {
-        console.error("❌ 데이터 로드 오류:", err);
-        SWINGINV.showError(tbody, "데이터를 불러오지 못했습니다.");
-      }
+    // ✅ 월 탭 클릭 이벤트
+    document.querySelectorAll('#month-tabs button').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        document.querySelectorAll('#month-tabs button').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        renderTable();
+      });
     });
-  </script>
+
+    // ✅ 패턴 필터 클릭 이벤트
+    patternButtons.forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        patternButtons.forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        renderTable();
+      });
+    });
+
+  } catch(err){
+    console.error("❌ 데이터 로드 오류:", err);
+    SWINGINV.showError(tbody,"데이터를 불러오지 못했습니다.");
+  }
+});
+</script>
 </body>
 </html>
