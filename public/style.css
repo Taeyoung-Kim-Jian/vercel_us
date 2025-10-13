@@ -59,15 +59,12 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
-.sub-menu::-webkit-scrollbar {
-  display: none;
-}
+.sub-menu::-webkit-scrollbar { display: none; }
 
-/* ✅ 본문과 동일한 폭 & 중앙 정렬 */
 .sub-menu-inner {
-  max-width: 1100px; /* main.content와 동일 */
-  margin: 0 auto;    /* 중앙 정렬 */
-  padding: 0 16px;   /* 좌우 여백 통일 */
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 16px;
 }
 
 .sub-menu ul {
@@ -75,7 +72,7 @@ body {
   gap: 18px;
   list-style: none;
   margin: 0;
-  padding: 10px 0; /* ✅ 상하만 패딩, 좌우는 .sub-menu-inner에서 관리 */
+  padding: 10px 0;
   white-space: nowrap;
   justify-content: flex-start;
 }
@@ -94,10 +91,7 @@ body {
   border-bottom: 2px solid #1e40af;
 }
 
-.sub-menu li:hover {
-  color: #1e3a8a;
-}
-
+.sub-menu li:hover { color: #1e3a8a; }
 
 /* ===============================
    🧱 CONTENT LAYOUT
@@ -112,27 +106,6 @@ main.content {
 /* ===============================
    💳 CARD SECTION
 ================================ */
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-  margin-top: 20px;
-}
-.card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 14px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  font-size: 0.9rem;
-  transition: 0.25s ease;
-}
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-}
-
-/* ✅ 공통 카드 스타일 (1~4번 동일하게 적용) */
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -158,11 +131,9 @@ main.content {
 .card h4 {
   font-size: 15px;
   font-weight: 700;
-  margin-top: 10;         /* ✅ 위쪽 여백 제거 */
-  margin-bottom: 10px;
+  margin: 10px 0;
   color: #111827;
-  text-align: center; /* ✅ 가운데 정렬 */
-
+  text-align: center;
 }
 
 .top5-list {
@@ -180,9 +151,7 @@ main.content {
   font-size: 14px;
 }
 
-.top5-list li:last-child {
-  border-bottom: none;
-}
+.top5-list li:last-child { border-bottom: none; }
 
 .rank {
   font-weight: 600;
@@ -197,12 +166,12 @@ main.content {
   text-align: right;
 }
 
-
 /* ===============================
    📊 TABLE (모든 페이지 통합)
 ================================ */
 .table-container {
   width: 100%;
+  overflow-x: auto;
   overflow-y: auto;
   max-height: 600px;
   border-radius: 8px;
@@ -211,7 +180,6 @@ main.content {
   box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
-/* ✅ 통일된 테이블 구조 */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -220,46 +188,107 @@ table {
   color: #1f2937;
 }
 
-/* ✅ 헤더 */
 thead {
-  background-color: #f1f5f9 !important;  /* 밝은 회색 배경 */
-  color: #111827 !important;             /* 진회색 글씨 */
+  background-color: #f1f5f9 !important;
+  color: #111827 !important;
   font-weight: 600;
-  border-bottom: 2px solid #2563eb;      /* 파란 하단선 */
+  border-bottom: 2px solid #2563eb;
 }
 
-/* ✅ 셀 기본 (모든 내용 중앙 정렬) */
 th, td {
   padding: 10px 12px;
   border-bottom: 1px solid #e5e7eb;
   white-space: nowrap;
-  text-align: center;      /* ✅ 가로 중앙 정렬 */
-  vertical-align: middle;  /* ✅ 세로 중앙 정렬 */
+  text-align: center;
+  vertical-align: middle;
 }
 
-/* ✅ 숫자열은 별도 클래스 지정 시 오른쪽 정렬 */
-.number-cell {
-  text-align: right !important;
-}
+.number-cell { text-align: right !important; }
 
-/* ✅ Hover 효과 */
 tbody tr:hover {
   background-color: #f9fafb;
   transition: background 0.2s;
 }
 
-/* ✅ 클릭 가능한 행 */
 .clickable-row {
   cursor: pointer;
   transition: background 0.2s;
 }
 .clickable-row:hover { background: #f1f5f9; }
 
-@media (max-width: 768px) {
-  .table-container { max-height: 400px; }
-  table { font-size: 12px; }
-  th, td { padding: 8px; }
+/* ===============================
+   🌐 BUTTON STYLE (GLOBAL)
+================================ */
+button {
+  padding: 6px 12px;
+  font-size: 10px;
+  font-weight: 500;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #f8f8f8;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
+
+button:hover { background-color: #e2e8f0; border-color: #999; }
+button.active { background-color: #2563eb; color: #fff; border-color: #2563eb; }
+
+/* ===============================
+   📌 PATTERN FILTER BUTTONS
+================================ */
+.pattern-filter {
+  margin: 16px 0;
+  text-align: center;
+}
+.pattern-filter button {
+  margin: 0 4px;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background:#f8f8f8;
+  cursor:pointer;
+  font-weight:500;
+  transition: all 0.2s ease;
+}
+.pattern-filter button.active {
+  background:#007bff;
+  color:#fff;
+  border-color:#007bff;
+}
+.pattern-filter button:hover {
+  background:#007bff20;
+}
+
+/* ===============================
+   📌 TABLE FIXED COLUMN
+================================ */
+.fixed-name th:first-child,
+.fixed-name td:first-child {
+  position: sticky;
+  left: 0;
+  background: #f8fafc;
+  z-index: 3;
+}
+
+.fixed-rank-name th:first-child,
+.fixed-rank-name td:first-child {
+  position: sticky;
+  left: 0;
+  width: 20px;
+  background: #f8fafc;
+  z-index: 3;
+}
+
+.fixed-rank-name th:nth-child(2),
+.fixed-rank-name td:nth-child(2) {
+  position: sticky;
+  left: 20px;
+  background: #f8fafc;
+  z-index: 2;
+}
+
+.table-wrapper { overflow-x: auto; }
 
 /* ===============================
    📄 DETAIL / CHART
@@ -290,10 +319,7 @@ tbody tr:hover {
   touch-action: pan-y !important;
   pointer-events: auto !important;
 }
-#chart * {
-  touch-action: pan-y !important;
-  -ms-touch-action: pan-y !important;
-}
+
 .chart-back {
   position: absolute;
   top: 10px;
@@ -335,12 +361,12 @@ tbody tr:hover {
 @media (max-width: 768px) {
   .header-inner { padding: 0 8px; }
   .logo { font-size: 0.95rem; }
-  .login-btn button {
-    font-size: 0.8rem;
-    padding: 5px 10px;
-  }
+  .login-btn button { font-size: 0.8rem; padding: 5px 10px; }
   .cards { grid-template-columns: repeat(2, 1fr); }
   main.content { padding: 10px; }
+  .table-container { max-height: 400px; }
+  table { font-size: 8px; }
+  th, td { padding: 8px; }
 }
 
 /* ===============================
@@ -354,73 +380,3 @@ footer {
   background: #f1f5f9;
   border-top: 1px solid #e5e7eb;
 }
-.gnb-inner {
-  max-width: 1100px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: center;
-  flex-wrap: nowrap;
-}
-/* ===============================
-   🌐 GLOBAL BUTTON STYLE
-================================ */
-button {
-  padding: 6px 12px;
-  font-size: 10px;        /* 모든 버튼 폰트 크기 */
-  font-weight: 500;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background-color: #f8f8f8;
-  color: #333;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-/* 호버 시 */
-button:hover {
-  background-color: #e2e8f0;
-  border-color: #999;
-}
-
-/* 활성(active) 버튼 */
-button.active {
-  background-color: #2563eb;
-  color: #fff;
-  border-color: #2563eb;
-}
-/* ===============================
-   테이블 첫 번째 열 고정
-================================ */
-
-/* 종목명만 고정 */
-.fixed-name th:first-child,
-.fixed-name td:first-child {
-  position: sticky;
-  left: 0;
-  background: #f8fafc;
-  z-index: 3;
-}
-
-/* 순위+종목명 두 열 고정 */
-.fixed-rank-name th:first-child,
-.fixed-rank-name td:first-child {
-  position: sticky;
-  left: 0;
-  width: 20px; /* 순위 열 너비 */
-  background: #f8fafc;
-  z-index: 3;
-}
-
-.fixed-rank-name th:nth-child(2),
-.fixed-rank-name td:nth-child(2) {
-  position: sticky;
-  left: 20px; /* 첫 번째 열 너비만큼 밀림 */
-  background: #f8fafc;
-  z-index: 2;
-}
-
-/* 테이블 전체 스크롤 가능하게 */
-.table-wrapper {
-  overflow-x: auto;
-}
-
