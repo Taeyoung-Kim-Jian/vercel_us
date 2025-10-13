@@ -111,7 +111,6 @@ main.content {
   padding: 20px 16px 100px;
   overflow-y: auto;
 }
-
 /* ===============================
    💳 CARD SECTION
 ================================ */
@@ -169,34 +168,50 @@ main.content {
   text-align: center;
 }
 
+.top5-content {
+  display: flex;
+  flex-direction: row; /* 기본은 가로 배치 */
+  justify-content: space-between;
+  width: 100%;
+}
+
 .rate {
   font-weight: 600;
   min-width: 70px;
   text-align: right;
 }
 
-/* 모바일 2열 레이아웃 */
+/* ===============================
+   모바일: 순위 아래 종목명 / 수익률 세로 배치
+================================ */
 @media (max-width: 600px) {
-  .cards { grid-template-columns: 1fr; }
-
   .top5-list li {
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 12px;
-    padding: 6px 0;
+    flex-direction: column; /* 세로 배치 */
+    align-items: flex-start; /* 왼쪽 정렬 */
+    gap: 4px;
+    padding: 8px 0;
   }
 
-  .rank { width: 30px; text-align: center; }
+  .rank {
+    width: 30px;
+    text-align: center;
+    margin-bottom: 2px;
+  }
 
-  .top5-content { display: flex; flex-direction: column; }
+  .top5-content {
+    display: flex;
+    flex-direction: column; /* 종목명 아래 수익률 */
+    width: 100%;
+  }
 
   .rate {
     min-width: auto;
     text-align: left;
-    margin-top: 2px;
+    font-size: 13px;
+    color: #2563eb;
   }
 }
+
 
 /* ===============================
    📊 TABLE (모든 페이지 통합)
