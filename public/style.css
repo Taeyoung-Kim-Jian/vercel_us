@@ -455,7 +455,7 @@ button.active { background-color: #2563eb; color: #fff; border-color: #2563eb; }
   .cards { grid-template-columns: repeat(2, 1fr); }
   main.content { padding: 10px; }
   .table-container { max-height: 400px; }
-  table { font-size: 8px; }
+  table { font-size: 10px; }
   th, td { padding: 8px; }
 }
 
