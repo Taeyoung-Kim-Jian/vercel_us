@@ -216,7 +216,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   table-layout: auto; /* 글자수에 맞게 자동 조정 */
-  font-size: 12px;
+  font-size: 14px;
   color: #1f2937;
 }
 
