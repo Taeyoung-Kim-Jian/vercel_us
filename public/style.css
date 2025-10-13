@@ -55,27 +55,26 @@ body {
 .sub-menu {
   background: #fff;
   border-bottom: 1px solid #e5e7eb;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow-x: auto; /* 모바일 가로 스크롤 허용 */
+  -webkit-overflow-scrolling: touch; /* 부드러운 스크롤 */
 }
 
 .sub-menu::-webkit-scrollbar { display: none; }
 
 .sub-menu-inner {
+  display: flex;
   max-width: 1100px;
   margin: 0 auto;
   padding: 0 16px;
-  display: flex;
 }
 
 .sub-menu ul {
   display: flex;
-  gap: 18px;
   list-style: none;
   margin: 0;
   padding: 10px 0;
+  gap: 18px;
   white-space: nowrap;
-  justify-content: flex-start;
 }
 
 .sub-menu li {
@@ -94,11 +93,22 @@ body {
 
 .sub-menu li:hover { color: #1e3a8a; }
 
-/* 모바일 화면에서 스크롤 가능하도록 강제 */
+/* ===============================
+   모바일 대응
+================================ */
 @media (max-width: 768px) {
+  .sub-menu-inner {
+    max-width: 100%; /* 화면 폭에 맞춤 */
+  }
+
   .sub-menu ul {
+    min-width: 600px; /* 메뉴 항목 줄어들지 않도록 최소 너비 */
     gap: 12px;
     padding: 8px 0;
+  }
+
+  .sub-menu li {
+    font-size: 0.85rem;
   }
 }
 
@@ -145,59 +155,6 @@ main.content {
   text-align: center;
 }
 
-.top5-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.top5-list li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #f3f4f6;
-  font-size: 14px;
-}
-
-.top5-list li:last-child { border-bottom: none; }
-
-.rank {
-  font-weight: 600;
-  color: #2563eb;
-  width: 30px;
-  text-align: center;
-}
-
-.rate {
-  font-weight: 600;
-  min-width: 70px;
-  text-align: right;
-}
-
-/* 모바일 2열 레이아웃 */
-@media (max-width: 600px) {
-  .cards { grid-template-columns: 1fr; }
-
-  .top5-list li {
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 12px;
-    padding: 6px 0;
-  }
-
-  .rank { width: 30px; text-align: center; }
-
-  .top5-content { display: flex; flex-direction: column; }
-
-  .rate {
-    min-width: auto;
-    text-align: left;
-    margin-top: 2px;
-  }
-}
-
 /* ===============================
    📊 TABLE (모든 페이지 통합)
 ================================ */
@@ -215,7 +172,7 @@ main.content {
 table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: auto; /* 글자 수에 맞게 자동 조정 */
+  table-layout: auto;
   font-size: 12px;
   color: #1f2937;
 }
@@ -237,20 +194,11 @@ th, td {
 
 .number-cell { text-align: right !important; }
 
-tbody tr:hover {
-  background-color: #f9fafb;
-  transition: background 0.2s;
-}
-
-.clickable-row {
-  cursor: pointer;
-  transition: background 0.2s;
-}
+tbody tr:hover { background-color: #f9fafb; }
+.clickable-row { cursor: pointer; }
 .clickable-row:hover { background: #f1f5f9; }
 
-/* ===============================
-   PC: 첫 2컬럼 고정
-================================ */
+/* PC: 첫 2컬럼 고정 */
 @media (min-width: 769px) {
   .fixed-rank-name th:first-child,
   .fixed-rank-name td:first-child {
@@ -260,7 +208,6 @@ tbody tr:hover {
     background: #f8fafc;
     z-index: 3;
   }
-
   .fixed-rank-name th:nth-child(2),
   .fixed-rank-name td:nth-child(2) {
     position: sticky;
@@ -270,25 +217,11 @@ tbody tr:hover {
   }
 }
 
-/* ===============================
-   모바일: 첫 2컬럼 고정 해제 + 가로 스크롤
-================================ */
+/* 모바일: 첫 2컬럼 고정 해제 + 글자수에 따라 너비 자동 */
 @media (max-width: 768px) {
-  .table-container {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  table {
-    table-layout: auto; /* 글자수에 맞게 너비 자동 조정 */
-    font-size: 11px;
-  }
-
-  th, td {
-    white-space: nowrap;
-    min-width: 80px;
-    padding: 6px 8px;
-  }
+  .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { table-layout: auto; font-size: 11px; }
+  th, td { white-space: nowrap; min-width: 80px; padding: 6px 8px; }
 
   .fixed-rank-name th:first-child,
   .fixed-rank-name td:first-child,
@@ -340,25 +273,14 @@ button.active { background-color: #2563eb; color: #fff; border-color: #2563eb; }
   color:#fff;
   border-color:#007bff;
 }
-.pattern-filter button:hover {
-  background:#007bff20;
-}
+.pattern-filter button:hover { background:#007bff20; }
 
 /* ===============================
    📄 DETAIL / CHART
 ================================ */
-.page-header {
-  text-align: center;
-  margin: 20px 0;
-}
-.page-header h2 {
-  margin-bottom: 4px;
-  font-size: 1.1rem;
-}
-.page-header p {
-  color: #555;
-  font-size: 0.85rem;
-}
+.page-header { text-align: center; margin: 20px 0; }
+.page-header h2 { margin-bottom: 4px; font-size: 1.1rem; }
+.page-header p { color: #555; font-size: 0.85rem; }
 
 #chart {
   position: relative;
@@ -388,10 +310,7 @@ button.active { background-color: #2563eb; color: #fff; border-color: #2563eb; }
   transition: 0.2s;
   z-index: 20;
 }
-.chart-back:hover {
-  background: #1d4ed8;
-  transform: translateY(-1px);
-}
+.chart-back:hover { background: #1d4ed8; transform: translateY(-1px); }
 
 /* ===============================
    ⚠️ ERROR BOX
