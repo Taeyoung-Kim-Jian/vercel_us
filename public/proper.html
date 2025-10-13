@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>스윙 종목 | SWING INVESTOR</title>
 
-  <!-- ✅ 통합 스타일 및 라이브러리 -->
+  <!-- ✅ 기본 스타일 -->
   <link rel="stylesheet" href="./style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./common.js"></script>
@@ -28,7 +28,16 @@
     <h2>💰 스윙 종목 리스트</h2>
     <p style="color:#555;">현재 적정 매수가 대비 괴리율이 낮은 종목들을 확인하세요.</p>
 
-    <!-- ✅ 스크롤 가능한 글로벌 테이블 -->
+    <!-- ✅ 패턴 필터 버튼 -->
+    <div class="pattern-filter">
+      <button class="active" data-pattern="전체">전체</button>
+      <button data-pattern="돌파">돌파</button>
+      <button data-pattern="돌파눌림">돌파눌림</button>
+      <button data-pattern="박스권">박스권</button>
+      <button data-pattern="이탈">이탈</button>
+    </div>
+
+    <!-- ✅ 테이블 -->
     <div class="table-container">
       <table>
         <thead>
@@ -37,11 +46,12 @@
             <th>적정 매수가</th>
             <th>현재가</th>
             <th>괴리율</th>
+            <th>패턴</th>
           </tr>
         </thead>
         <tbody id="swing-table-body">
           <tr>
-            <td colspan="4" style="text-align:center;">⏳ 데이터를 불러오는 중...</td>
+            <td colspan="5" style="text-align:center;">⏳ 데이터를 불러오는 중...</td>
           </tr>
         </tbody>
       </table>
@@ -50,7 +60,100 @@
 
   <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
 
-  <!-- ✅ 스크립트 -->
-  <script src="./proper.js"></script>
+  <!-- ✅ proper.js 통합 -->
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const tbody = document.getElementById("swing-table-body");
+      SWINGINV.showLoading(tbody);
+
+      try {
+        // ✅ Supabase에서 데이터 가져오기
+        const { data, error } = await SWINGINV.db
+          .from("swing_proper_view")
+          .select("*")
+          .order("괴리율", { ascending: true });
+
+        if (error) throw error;
+        if (!data || data.length === 0) {
+          SWINGINV.showError(tbody, "📭 표시할 종목이 없습니다.");
+          return;
+        }
+
+        // ✅ 데이터 렌더링 (패턴 포함)
+        tbody.innerHTML = data
+          .map(r => `
+            <tr class="clickable-row" data-code="${r.종목코드}" data-name="${r.종목명}">
+              <td>${SWINGINV.esc(r.종목명)}</td>
+              <td style="text-align:center;">${SWINGINV.nf(r.적정매수가)}</td>
+              <td style="text-align:center;">${SWINGINV.nf(r.현재가)}</td>
+              <td style="text-align:center;">${SWINGINV.fmtPct(r.괴리율)}</td>
+              <td style="text-align:center;">${r.pattern || "-"}</td>
+            </tr>
+          `)
+          .join("");
+
+        // ✅ 클릭 시 상세 페이지 이동
+        document.querySelectorAll(".clickable-row").forEach(row => {
+          row.addEventListener("click", () => {
+            const name = row.dataset.name;
+            const code = row.dataset.code;
+            location.href = `detail.html?name=${encodeURIComponent(name)}&code=${code}`;
+          });
+        });
+      } catch (err) {
+        console.error("❌ 데이터 로드 오류:", err);
+        SWINGINV.showError(tbody, "데이터를 불러오지 못했습니다.");
+      }
+
+      // ✅ 패턴 필터 동작
+      document.querySelectorAll('.pattern-filter button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.pattern-filter button').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          const pattern = btn.dataset.pattern;
+          const rows = document.querySelectorAll('#swing-table-body tr');
+
+          rows.forEach(row => {
+            const cell = row.querySelector('td:nth-child(5)');
+            if (!cell) return;
+
+            const rowPattern = cell.textContent.trim();
+            if (pattern === "전체" || rowPattern === pattern) {
+              row.style.display = "";
+            } else {
+              row.style.display = "none";
+            }
+          });
+        });
+      });
+    });
+  </script>
+
+  <!-- ✅ 필터 스타일 -->
+  <style>
+    .pattern-filter {
+      margin: 16px 0;
+      text-align: center;
+    }
+    .pattern-filter button {
+      margin: 0 4px;
+      padding: 6px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #f8f8f8;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    .pattern-filter button.active {
+      background: #007bff;
+      color: #fff;
+      border-color: #007bff;
+    }
+    .pattern-filter button:hover {
+      background: #007bff20;
+    }
+  </style>
 </body>
 </html>
