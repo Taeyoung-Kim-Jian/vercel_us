@@ -113,16 +113,17 @@
       background: #fafafa;
     }
 
+    /* PC 기본: 중앙 정렬, 스크롤 없음 */
     .gnb-inner {
       max-width: 1100px;
       margin: 0 auto;
       display: flex;
-      justify-content: center; /* PC 중앙 정렬 */
+      justify-content: center;
       align-items: center;
       gap: 22px;
       padding: 10px 0;
       flex-wrap: nowrap;
-      overflow-x: visible;    /* PC 스크롤 없음 */
+      overflow-x: visible;
     }
 
     .gnb-inner button {
@@ -141,7 +142,7 @@
       padding: 6px 10px;
     }
 
-    /* 모바일에서만 스크롤 */
+    /* 모바일에서만 스크롤, 좌측 정렬 */
     @media (max-width: 768px) {
       .header-top {
         padding: 6px 12px;
@@ -163,8 +164,8 @@
       }
 
       .gnb-inner {
-        justify-content: flex-start;   /* 모바일 왼쪽 정렬 */
-        overflow-x: auto;              /* 가로 스크롤 허용 */
+        justify-content: flex-start;
+        overflow-x: auto;
         -webkit-overflow-scrolling: touch;
       }
 
