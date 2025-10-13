@@ -202,7 +202,7 @@ main.content {
   }
 
   .top5-content {
-    flex-direction: column; /* 종목명 아래 수익률 */
+    flex-direction: row; /* 종목명 아래 수익률 */
     width: 100%;
   }
 
