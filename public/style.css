@@ -65,6 +65,7 @@ body {
   max-width: 1100px;
   margin: 0 auto;
   padding: 0 16px;
+  display: flex;
 }
 
 .sub-menu ul {
@@ -93,50 +94,6 @@ body {
 
 .sub-menu li:hover { color: #1e3a8a; }
 
-/* ===============================
-   🗂️ HEADER / SUB MENU
-================================ */
-.sub-menu {
-  background: #fff;
-  border-bottom: 1px solid #e5e7eb;
-  overflow-x: auto;           /* 가로 스크롤 허용 */
-  -webkit-overflow-scrolling: touch; /* 모바일 스크롤 부드럽게 */
-}
-
-.sub-menu-inner {
-  max-width: 1100px;  /* main.content 폭과 동일 */
-  margin: 0 auto;
-  padding: 0 16px;
-  display: flex;
-}
-
-.sub-menu ul {
-  display: flex;
-  gap: 18px;
-  list-style: none;
-  margin: 0;
-  padding: 10px 0;
-  white-space: nowrap;  /* 한 줄에 유지, 줄바꿈 방지 */
-}
-
-.sub-menu li {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #444;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: 0.2s;
-}
-
-.sub-menu li.active {
-  color: #1e40af;
-  border-bottom: 2px solid #1e40af;
-}
-
-.sub-menu li:hover {
-  color: #1e3a8a;
-}
-
 /* 모바일 화면에서 스크롤 가능하도록 강제 */
 @media (max-width: 768px) {
   .sub-menu ul {
@@ -144,7 +101,6 @@ body {
     padding: 8px 0;
   }
 }
-
 
 /* ===============================
    🧱 CONTENT LAYOUT
@@ -219,39 +175,26 @@ main.content {
   text-align: right;
 }
 
-/* ===============================
-   💳 CARD SECTION - MOBILE 2열 레이아웃
-================================ */
+/* 모바일 2열 레이아웃 */
 @media (max-width: 600px) {
-  .cards {
-    grid-template-columns: 1fr; /* 카드 전체는 1열 */
-  }
+  .cards { grid-template-columns: 1fr; }
 
   .top5-list li {
-    display: flex;
-    flex-direction: row; /* 2열 구조 유지 */
+    flex-direction: row;
     align-items: center;
     justify-content: flex-start;
-    gap: 12px; /* 컬럼 간 간격 */
+    gap: 12px;
     padding: 6px 0;
   }
 
-  /* 왼쪽: 순위 고정 */
-  .rank {
-    width: 30px;  /* 그대로 */
-    text-align: center;
-  }
+  .rank { width: 30px; text-align: center; }
 
-  /* 오른쪽: 종목명과 수익률 세로 배치 */
-  .top5-content {
-    display: flex;
-    flex-direction: column;
-  }
+  .top5-content { display: flex; flex-direction: column; }
 
   .rate {
     min-width: auto;
     text-align: left;
-    margin-top: 2px; /* 종목명과 수익률 간 간격 */
+    margin-top: 2px;
   }
 }
 
@@ -272,7 +215,7 @@ main.content {
 table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;
+  table-layout: auto; /* 글자 수에 맞게 자동 조정 */
   font-size: 12px;
   color: #1f2937;
 }
@@ -306,25 +249,56 @@ tbody tr:hover {
 .clickable-row:hover { background: #f1f5f9; }
 
 /* ===============================
-   📱 MOBILE TABLE ADJUSTMENTS
+   PC: 첫 2컬럼 고정
 ================================ */
-@media (max-width: 768px) {
-  .table-container {
-    overflow-x: auto; /* 모바일에서 가로 스크롤 */
+@media (min-width: 769px) {
+  .fixed-rank-name th:first-child,
+  .fixed-rank-name td:first-child {
+    position: sticky;
+    left: 0;
+    width: 40px;
+    background: #f8fafc;
+    z-index: 3;
   }
 
-  table {
-    table-layout: auto; /* 글자수에 따라 셀 너비 자동 조정 */
-    font-size: 11px;    /* 모바일용 글자크기 */
-  }
-
-  th, td {
-    padding: 6px 8px;
-    white-space: nowrap; /* 줄바꿈 방지 */
-    min-width: 80px;     /* 최소 너비 지정 */
+  .fixed-rank-name th:nth-child(2),
+  .fixed-rank-name td:nth-child(2) {
+    position: sticky;
+    left: 40px;
+    background: #f8fafc;
+    z-index: 2;
   }
 }
 
+/* ===============================
+   모바일: 첫 2컬럼 고정 해제 + 가로 스크롤
+================================ */
+@media (max-width: 768px) {
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    table-layout: auto; /* 글자수에 맞게 너비 자동 조정 */
+    font-size: 11px;
+  }
+
+  th, td {
+    white-space: nowrap;
+    min-width: 80px;
+    padding: 6px 8px;
+  }
+
+  .fixed-rank-name th:first-child,
+  .fixed-rank-name td:first-child,
+  .fixed-rank-name th:nth-child(2),
+  .fixed-rank-name td:nth-child(2) {
+    position: static;
+    left: auto;
+    z-index: auto;
+  }
+}
 
 /* ===============================
    🌐 BUTTON STYLE (GLOBAL)
@@ -369,36 +343,6 @@ button.active { background-color: #2563eb; color: #fff; border-color: #2563eb; }
 .pattern-filter button:hover {
   background:#007bff20;
 }
-
-/* ===============================
-   📌 TABLE FIXED COLUMN
-================================ */
-.fixed-name th:first-child,
-.fixed-name td:first-child {
-  position: sticky;
-  left: 0;
-  background: #f8fafc;
-  z-index: 3;
-}
-
-.fixed-rank-name th:first-child,
-.fixed-rank-name td:first-child {
-  position: sticky;
-  left: 0;
-  width: 20px;
-  background: #f8fafc;
-  z-index: 3;
-}
-
-.fixed-rank-name th:nth-child(2),
-.fixed-rank-name td:nth-child(2) {
-  position: sticky;
-  left: 20px;
-  background: #f8fafc;
-  z-index: 2;
-}
-
-.table-wrapper { overflow-x: auto; }
 
 /* ===============================
    📄 DETAIL / CHART
