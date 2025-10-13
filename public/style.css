@@ -170,7 +170,7 @@ main.content {
 
 .top5-content {
   display: flex;
-  flex-direction: row; /* 기본은 가로 배치 */
+  flex-direction: row;
   justify-content: space-between;
   width: 100%;
 }
@@ -186,11 +186,11 @@ main.content {
 ================================ */
 @media (max-width: 600px) {
   .cards {
-    grid-template-columns: 1fr; /* 모든 카드를 1단으로 */
+    grid-template-columns: 1fr; /* 모든 카드 1열 */
   }
 
   .rank {
-    display: none; /* 순위 숨기기 */
+    display: none; /* 순위 숨김 */
   }
 
   .top5-list li {
@@ -212,7 +212,6 @@ main.content {
     color: #2563eb;
   }
 }
-
 
 /* ===============================
    📊 TABLE (모든 페이지 통합)
