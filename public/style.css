@@ -94,6 +94,59 @@ body {
 .sub-menu li:hover { color: #1e3a8a; }
 
 /* ===============================
+   🗂️ HEADER / SUB MENU
+================================ */
+.sub-menu {
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  overflow-x: auto;           /* 가로 스크롤 허용 */
+  -webkit-overflow-scrolling: touch; /* 모바일 스크롤 부드럽게 */
+}
+
+.sub-menu-inner {
+  max-width: 1100px;  /* main.content 폭과 동일 */
+  margin: 0 auto;
+  padding: 0 16px;
+  display: flex;
+}
+
+.sub-menu ul {
+  display: flex;
+  gap: 18px;
+  list-style: none;
+  margin: 0;
+  padding: 10px 0;
+  white-space: nowrap;  /* 한 줄에 유지, 줄바꿈 방지 */
+}
+
+.sub-menu li {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #444;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: 0.2s;
+}
+
+.sub-menu li.active {
+  color: #1e40af;
+  border-bottom: 2px solid #1e40af;
+}
+
+.sub-menu li:hover {
+  color: #1e3a8a;
+}
+
+/* 모바일 화면에서 스크롤 가능하도록 강제 */
+@media (max-width: 768px) {
+  .sub-menu ul {
+    gap: 12px;
+    padding: 8px 0;
+  }
+}
+
+
+/* ===============================
    🧱 CONTENT LAYOUT
 ================================ */
 main.content {
