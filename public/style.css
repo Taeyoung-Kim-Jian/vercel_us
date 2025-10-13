@@ -220,6 +220,43 @@ main.content {
 }
 
 /* ===============================
+   💳 CARD SECTION - MOBILE 2열 레이아웃
+================================ */
+@media (max-width: 600px) {
+  .cards {
+    grid-template-columns: 1fr; /* 카드 전체는 1열 */
+  }
+
+  .top5-list li {
+    display: flex;
+    flex-direction: row; /* 2열 구조 유지 */
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px; /* 컬럼 간 간격 */
+    padding: 6px 0;
+  }
+
+  /* 왼쪽: 순위 고정 */
+  .rank {
+    width: 30px;  /* 그대로 */
+    text-align: center;
+  }
+
+  /* 오른쪽: 종목명과 수익률 세로 배치 */
+  .top5-content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .rate {
+    min-width: auto;
+    text-align: left;
+    margin-top: 2px; /* 종목명과 수익률 간 간격 */
+  }
+}
+
+
+/* ===============================
    📊 TABLE (모든 페이지 통합)
 ================================ */
 .table-container {
