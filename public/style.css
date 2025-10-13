@@ -361,3 +361,31 @@ footer {
   justify-content: center;
   flex-wrap: nowrap;
 }
+/* ===============================
+   🌐 GLOBAL BUTTON STYLE
+================================ */
+button {
+  padding: 6px 12px;
+  font-size: 10px;        /* 모든 버튼 폰트 크기 */
+  font-weight: 500;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #f8f8f8;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* 호버 시 */
+button:hover {
+  background-color: #e2e8f0;
+  border-color: #999;
+}
+
+/* 활성(active) 버튼 */
+button.active {
+  background-color: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+
