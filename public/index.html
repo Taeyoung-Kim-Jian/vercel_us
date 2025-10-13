@@ -5,7 +5,235 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SWING INVESTOR Dashboard</title>
 
+  <!-- ===============================
+       🌐 STYLE.CSS 통합
+  ================================== -->
+  <style>
+    /* ===============================
+       🌐 GLOBAL BASE STYLE
+    ================================= */
+    body {
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #f9fafb;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
 
+    /* ===============================
+       🧭 HEADER (상단 고정)
+    ================================= */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #1e3a8a;
+      color: white;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 0.8rem 1rem;
+    }
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      overflow-x: auto; /* 화면 작을 때 스크롤 */
+    }
+    .logo {
+      font-size: 1rem;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+    }
+    .login-btn button {
+      background: white;
+      color: #1e3a8a;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .login-btn button:hover { background: #e2e8f0; }
+
+    /* ===============================
+       🗂️ NAV MENU
+    ================================= */
+    .sub-menu {
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .sub-menu::-webkit-scrollbar { display: none; }
+    .sub-menu-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+    .sub-menu ul {
+      display: flex;
+      gap: 18px;
+      list-style: none;
+      margin: 0;
+      padding: 10px 0;
+      white-space: nowrap;
+      justify-content: flex-start;
+    }
+    .sub-menu li {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #444;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: 0.2s;
+    }
+    .sub-menu li.active { color: #1e40af; border-bottom: 2px solid #1e40af; }
+    .sub-menu li:hover { color: #1e3a8a; }
+
+    /* ===============================
+       🧱 CONTENT LAYOUT
+    ================================= */
+    main.content {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px 16px 100px;
+      overflow-y: auto;
+    }
+
+    /* ===============================
+       💳 CARD SECTION
+    ================================= */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+      margin: 10px 0 10px;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 18px 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      transition: all 0.25s ease;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      background: #fafafa;
+    }
+    .card h4 {
+      font-size: 15px;
+      font-weight: 700;
+      margin: 10px 0;
+      color: #111827;
+      text-align: center;
+    }
+
+    .top5-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .top5-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 14px;
+    }
+    .top5-list li:last-child { border-bottom: none; }
+
+    .rank {
+      font-weight: 600;
+      color: #2563eb;
+      width: 30px;
+      text-align: center;
+    }
+    .top5-content {
+      display: flex;
+      flex-direction: column;
+    }
+    .rate {
+      font-weight: 600;
+      min-width: 70px;
+      text-align: right;
+    }
+
+    /* ===============================
+       📊 TABLE
+    ================================= */
+    .table-wrap {
+      width: 100%;
+      margin: 20px 0;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 10px;
+      color: #1f2937;
+    }
+    thead {
+      background-color: #f1f5f9 !important;
+      color: #111827 !important;
+      font-weight: 600;
+      border-bottom: 2px solid #2563eb;
+    }
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #e5e7eb;
+      white-space: nowrap;
+      text-align: center;
+      vertical-align: middle;
+    }
+    .number-cell { text-align: right !important; }
+    tbody tr:hover { background-color: #f9fafb; transition: background 0.2s; }
+    .clickable-row { cursor: pointer; transition: background 0.2s; }
+    .clickable-row:hover { background: #f1f5f9; }
+
+    /* ===============================
+       ⚙️ BUTTON
+    ================================= */
+    button {
+      padding: 6px 12px;
+      font-size: 10px;
+      font-weight: 500;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background-color: #f8f8f8;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    button:hover { background-color: #e2e8f0; border-color: #999; }
+    button.active { background-color: #2563eb; color: #fff; border-color: #2563eb; }
+
+    /* ===============================
+       📱 MOBILE TOP5 LAYOUT
+    ================================= */
+    @media (max-width: 600px) {
+      .top5-list li {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 12px;
+        padding: 6px 0;
+      }
+      .top5-content {
+        flex-direction: column;
+      }
+      .rate { min-width: auto; text-align: left; margin-top: 2px; }
+    }
+
+  </style>
+</head>
 
 <body>
   <!-- ✅ HEADER -->
@@ -116,4 +344,78 @@
           swingRes
         ] = await Promise.all([
           SWINGINV.db.from("total_return").select("종목명, 종목코드, 시작가격, 현재가격, 수익률").order("수익률", { ascending: false }),
-          SWINGINV.db.from("watchlist_with_return").select("종목명, 종
+          SWINGINV.db.from("watchlist_with_return").select("종목명, 종목코드, 수익률").eq("공개여부", true).order("수익률", { ascending: false }).limit(5),
+          SWINGINV.db.from("monthly_performance_view").select("종목명, 종목코드, 측정일대비수익률, 월구분").order("측정일대비수익률", { ascending: false }).limit(5),
+          SWINGINV.db.from("swing_proper_view").select("종목명, 종목코드, 적정매수가, 현재가, 괴리율").order("괴리율", { ascending: true })
+        ]);
+
+        totalData = totalRes.data || [];
+        const watchData = watchRes.data || [];
+        const monthAll = monthAllRes.data || [];
+        swingData = swingRes.data || [];
+
+        renderTop5(cards[0], "📈 전체 수익률 Top5", totalData, "수익률");
+        renderTop5(cards[1], "⭐ 관심종목 수익률 Top5", watchData, "수익률");
+
+        const sorted = [...monthAll].sort((a,b) => (parseFloat(b.측정일대비수익률) || 0) - (parseFloat(a.측정일대비수익률)||0));
+        renderTop5(cards[2], "🌍 기준가 수익률 Top5", sorted, "측정일대비수익률");
+
+        const now = new Date();
+        const ym = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-01`;
+        const monthLabel = `${now.getMonth()+1}월`;
+
+        try {
+          const { data: monthNow, error: monthErr } = await SWINGINV.db.from("monthly_performance_view").select("종목명, 종목코드, 측정일대비수익률, 월구분").eq("월구분", ym).order("측정일대비수익률",{ascending:false}).limit(5);
+          if(monthErr){ console.error(monthErr); renderTop5(cards[3], `📆 ${monthLabel} 수익률 Top5`, []); }
+          else renderTop5(cards[3], `📆 ${monthLabel} 수익률 Top5`, monthNow, "측정일대비수익률");
+        } catch(err){ console.error(err); renderTop5(cards[3], `📆 ${monthLabel} 수익률 Top5`, []); }
+
+        // 전체 수익률 테이블
+        const renderTotalPage = () => {
+          const start = totalPage*PAGE_SIZE;
+          const end = start+PAGE_SIZE;
+          const pageData = totalData.slice(start,end);
+          const rows = pageData.map(r => `
+            <tr>
+              <td class="clickable-name" data-code="${r.종목코드}" data-name="${r.종목명}">${SWINGINV.esc(r.종목명)}</td>
+              <td>${SWINGINV.nf(r.시작가격)}</td>
+              <td>${SWINGINV.nf(r.현재가격)}</td>
+              <td>${SWINGINV.fmtPct(r.수익률)}</td>
+            </tr>`).join("");
+          if(totalPage===0) totalBody.innerHTML=rows;
+          else totalBody.insertAdjacentHTML("beforeend", rows);
+          totalPage++;
+          if(end>=totalData.length) loadMoreTotalBtn.style.display="none";
+        };
+        renderTotalPage();
+        loadMoreTotalBtn.addEventListener("click",()=>{location.href="total.html"});
+
+        // 스윙 적정가 테이블
+        const renderSwingPage = () => {
+          const start = swingPage*PAGE_SIZE;
+          const end = start+PAGE_SIZE;
+          const pageData = swingData.slice(start,end);
+          const rows = pageData.map(r=>`
+            <tr>
+              <td class="clickable-name" data-code="${r.종목코드}" data-name="${r.종목명}">${SWINGINV.esc(r.종목명)}</td>
+              <td>${SWINGINV.nf(r.적정매수가)}</td>
+              <td>${SWINGINV.nf(r.현재가)}</td>
+              <td>${SWINGINV.fmtPct(r.괴리율)}</td>
+            </tr>`).join("");
+          if(swingPage===0) swingBody.innerHTML=rows;
+          else swingBody.insertAdjacentHTML("beforeend",rows);
+          swingPage++;
+          if(end>=swingData.length) loadMoreSwingBtn.style.display="none";
+        };
+        renderSwingPage();
+        loadMoreSwingBtn.addEventListener("click",()=>{location.href="proper.html"});
+
+      } catch(err){
+        console.error(err);
+        SWINGINV.showError(totalBody,"전체 수익률 데이터를 불러오지 못했습니다.");
+        SWINGINV.showError(swingBody,"스윙 적정가격 데이터를 불러오지 못했습니다.");
+      }
+    });
+  </script>
+</body>
+</html>
