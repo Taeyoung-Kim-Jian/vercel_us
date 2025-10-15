@@ -3,16 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>운영자 게시판</title>
+  <title>운영자 게시판 | SWING INVESTOR</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="common.js"></script>
+  <script src="../common.js"></script>
   <style>
-    body { font-family: 'Pretendard', sans-serif; padding: 20px; }
-    h1 { font-size: 24px; margin-bottom: 20px; }
-    table { width: 100%; border-collapse: collapse; }
+    body { font-family: 'Pretendard', sans-serif; padding: 20px; background: #fafafa; }
+    h1 { font-size: 22px; margin-bottom: 20px; }
+    #header-container { margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
     th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
     a { color: #0077cc; text-decoration: none; }
     a:hover { text-decoration: underline; }
+
+    .action-btn {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .action-btn:hover { background: #1d4ed8; }
+
+    .delete-btn { background: #dc2626; }
+    .delete-btn:hover { background: #b91c1c; }
+
     #addPostBtn { 
       margin-bottom: 20px; 
       padding: 10px 16px; 
@@ -21,45 +37,55 @@
       border: none; 
       border-radius: 6px; 
       cursor: pointer;
+      display: none;
     }
     #addPostBtn:hover { background-color: #005fa3; }
   </style>
 </head>
 <body>
+  <!-- ✅ 공통 헤더 -->
+  <div id="header-container"></div>
+
   <h1>📢 운영자 게시판</h1>
+  <button id="addPostBtn">+ 글 추가</button>
 
-  <!-- 글 추가 버튼 (운영자만 보임) -->
-  <button id="addPostBtn" style="display:none;">+ 글 추가</button>
-
-  <!-- 게시글 목록 -->
   <table>
     <thead>
-      <tr><th>제목</th><th>등록일</th></tr>
+      <tr><th>제목</th><th>등록일</th><th>관리</th></tr>
     </thead>
     <tbody id="postList"></tbody>
   </table>
 
   <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-      // ✅ Supabase 초기화 (common.js에서 전역 객체로 설정되어 있어야 함)
+    // ✅ 공통 헤더 로드
+    async function loadHeader() {
+      const res = await fetch("../header.html");
+      const html = await res.text();
+      document.getElementById("header-container").innerHTML = html;
+    }
+
+    loadHeader().then(initBoard);
+
+    async function initBoard() {
       if (typeof SWINGINV === 'undefined' || !SWINGINV.db) {
-        console.error("❌ Supabase 초기화 실패: common.js를 확인하세요.");
+        console.error("❌ Supabase 초기화 실패 (common.js 확인)");
         return;
       }
-      const supabase = SWINGINV.db;
 
+      const supabase = SWINGINV.db;
       const { data: { user } } = await supabase.auth.getUser();
       const addPostBtn = document.getElementById("addPostBtn");
       const postList = document.getElementById("postList");
 
-      // ✅ 운영자인지 확인
       let isAdmin = false;
+
+      // ✅ 운영자 확인
       if (user) {
         const { data: adminCheck } = await supabase
           .from("admins")
           .select("*")
           .eq("user_id", user.id)
-          .single();
+          .maybeSingle();
 
         if (adminCheck) {
           isAdmin = true;
@@ -85,14 +111,52 @@
           tr.innerHTML = `
             <td><a href="${post.url}" target="_blank">${post.title}</a></td>
             <td>${new Date(post.created_at).toLocaleString()}</td>
+            <td>
+              ${isAdmin ? `
+                <button class="action-btn edit-btn" data-id="${post.id}">수정</button>
+                <button class="action-btn delete-btn" data-id="${post.id}">삭제</button>
+              ` : ""}
+            </td>
           `;
           postList.appendChild(tr);
+        });
+
+        // ✅ 수정 버튼 클릭
+        document.querySelectorAll(".edit-btn").forEach(btn => {
+          btn.addEventListener("click", async e => {
+            const id = e.target.dataset.id;
+            const { data: post } = await supabase.from("posts").select("*").eq("id", id).single();
+            const newTitle = prompt("새 제목:", post.title);
+            if (!newTitle) return;
+            const newUrl = prompt("새 링크 (https://...):", post.url);
+            if (!newUrl.startsWith("http")) return alert("URL 형식이 잘못되었습니다.");
+            const { error } = await supabase.from("posts").update({ title: newTitle, url: newUrl }).eq("id", id);
+            if (error) alert("❌ 수정 실패: " + error.message);
+            else {
+              alert("✅ 수정 완료");
+              loadPosts();
+            }
+          });
+        });
+
+        // ✅ 삭제 버튼 클릭
+        document.querySelectorAll(".delete-btn").forEach(btn => {
+          btn.addEventListener("click", async e => {
+            const id = e.target.dataset.id;
+            if (!confirm("정말 삭제하시겠습니까?")) return;
+            const { error } = await supabase.from("posts").delete().eq("id", id);
+            if (error) alert("❌ 삭제 실패: " + error.message);
+            else {
+              alert("🗑️ 삭제 완료");
+              loadPosts();
+            }
+          });
         });
       }
 
       await loadPosts();
 
-      // ✅ 글 추가 버튼 클릭 (운영자만 가능)
+      // ✅ 글 추가
       addPostBtn.addEventListener("click", async () => {
         if (!isAdmin) {
           alert("운영자만 글을 작성할 수 있습니다.");
@@ -102,7 +166,7 @@
         const title = prompt("게시글 제목을 입력하세요:");
         if (!title) return;
 
-        const url = prompt("이동할 블로그 URL을 입력하세요 (https://...):");
+        const url = prompt("이동할 블로그 URL을 입력하세요 (https://...)");
         if (!url || !url.startsWith("http")) {
           alert("올바른 URL을 입력하세요.");
           return;
@@ -110,13 +174,13 @@
 
         const { error } = await supabase.from("posts").insert([{ title, url }]);
         if (error) {
-          alert("글 추가 중 오류 발생: " + error.message);
+          alert("글 추가 실패: " + error.message);
         } else {
-          alert("글이 추가되었습니다!");
+          alert("✅ 글이 추가되었습니다!");
           await loadPosts();
         }
       });
-    });
+    }
   </script>
 </body>
 </html>
