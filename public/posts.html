@@ -8,9 +8,6 @@
   <!-- ✅ Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
-  <!-- ✅ 공통 스타일 추가 (이 부분만 새로 추가됨) -->
-  <link rel="stylesheet" href="../style.css" />
-
   <!-- ✅ 공통 스크립트 -->
   <script src="../common.js"></script>
 
@@ -69,6 +66,9 @@
     }
     #addPostBtn:hover { background-color: #005fa3; }
   </style>
+
+  <!-- ✅ style.css를 맨 마지막에 불러서 우선순위 최상으로 -->
+  <link rel="stylesheet" href="../style.css" />
 </head>
 <body>
   <!-- ✅ 공통 헤더 -->
