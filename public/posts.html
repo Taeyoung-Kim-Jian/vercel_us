@@ -1,95 +1,153 @@
-<!DOCTYPE html>
+ㅍ<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>블로그 링크 게시판 | SWING INVESTOR</title>
-
-  <!-- Tabulator CSS -->
-  <link href="https://unpkg.com/tabulator-tables@5.5.1/dist/css/tabulator.min.css" rel="stylesheet">
-
-  <!-- Supabase JS -->
+  <title>게시판 | SWING INVESTOR</title>
+  <link rel="stylesheet" href="../style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- Tabulator JS -->
-  <script src="https://unpkg.com/tabulator-tables@5.5.1/dist/js/tabulator.min.js"></script>
+  <script src="../common.js"></script>
 
   <style>
-    body { font-family: "Pretendard", sans-serif; background:#f8fafc; margin:0; padding:20px; }
+    body { font-family: "Pretendard", sans-serif; background:#f8fafc; margin:0; padding:0; }
+    main { max-width: 900px; margin: 30px auto; background: #fff; padding:20px; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.05);}
     h2 { text-align:center; color:#1e293b; }
-    #table-container { max-width:900px; margin:20px auto; }
-    #add-post { margin:10px auto; display:block; }
+    table { width:100%; border-collapse: collapse; margin-top:20px;}
+    th, td { padding:10px; border-bottom:1px solid #ddd; text-align:left; }
+    th { background:#f1f5f9; cursor:pointer; }
+    tr:hover { background:#f9fafb; }
+    .btn { padding:6px 12px; background:#2563eb; color:#fff; border:none; border-radius:5px; cursor:pointer; }
+    .btn:hover { background:#1d4ed8; }
+    #error-box { color:red; text-align:center; margin-top:10px; }
+    #addForm { display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; }
+    #addForm input { flex:1; padding:6px; border:1px solid #ccc; border-radius:5px; }
+    #addForm button { flex:none; }
   </style>
 </head>
 
 <body>
-  <h2>📋 블로그 링크 게시판</h2>
+  <div id="header-container"></div>
+  <script>
+    fetch("../header.html")
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById("header-container").innerHTML = html;
+        if (typeof SWINGINV_updateHeaderAuthUI === "function") SWINGINV_updateHeaderAuthUI();
+      });
+  </script>
 
-  <button id="add-post">➕ 글 추가</button>
-  <div id="table-container"></div>
+  <main>
+    <h2>게시판</h2>
+    <div id="error-box"></div>
+
+    <!-- 글 추가 폼 -->
+    <form id="addForm">
+      <input type="text" id="titleInput" placeholder="글 제목" required />
+      <input type="url" id="linkInput" placeholder="외부 블로그 링크(URL)" required />
+      <button type="submit" class="btn">글 추가</button>
+    </form>
+
+    <!-- 게시판 테이블 -->
+    <table>
+      <thead>
+        <tr>
+          <th>번호</th>
+          <th>제목</th>
+          <th>링크</th>
+          <th>작성일</th>
+          <th>삭제</th>
+        </tr>
+      </thead>
+      <tbody id="posts-body">
+        <tr><td colspan="5" style="text-align:center;">⏳ 로딩 중...</td></tr>
+      </tbody>
+    </table>
+  </main>
 
   <script>
-    // -------------------------------
-    // 1️⃣ Supabase 초기화
-    // -------------------------------
-    const SUPABASE_URL = "https://sssmldmhcfuodutvvcqf.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1b2R1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4"; // 여기에 Supabase anon key 넣기
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    document.addEventListener("DOMContentLoaded", async () => {
+      const tbody = document.getElementById("posts-body");
+      const errorBox = document.getElementById("error-box");
+      const addForm = document.getElementById("addForm");
+      const titleInput = document.getElementById("titleInput");
+      const linkInput = document.getElementById("linkInput");
 
-    // -------------------------------
-    // 2️⃣ Tabulator 초기화
-    // -------------------------------
-    const table = new Tabulator("#table-container", {
-      layout: "fitColumns",
-      placeholder: "⏳ 데이터 로딩 중...",
-      reactiveData: true, // 수정사항 바로 반영
-      columns: [
-        { title: "제목", field: "title", editor: "input", formatter: function(cell){
-          return `<a href="${cell.getRow().getData().url}" target="_blank">${cell.getValue()}</a>`;
-        }},
-        { title: "블로그 URL", field: "url", editor: "input" },
-        { title: "생성일", field: "created_at", formatter: "datetime", sorter: "datetime" },
-        { title: "삭제", formatter:"buttonCross", width:80, align:"center", cellClick: async (e, cell) => {
-          const id = cell.getRow().getData().id;
-          await supabase.from("posts").delete().eq("id", id);
-          cell.getRow().delete();
-        }}
-      ],
-    });
+      // Supabase 준비
+      let db;
+      for (let i = 0; i < 25; i++) {
+        if (window.SWINGINV?.db) { db = SWINGINV.db; break; }
+        await new Promise(r => setTimeout(r, 200));
+      }
+      if (!db) {
+        errorBox.textContent = "❌ Supabase 초기화 실패";
+        return;
+      }
 
-    // -------------------------------
-    // 3️⃣ 데이터 로드
-    // -------------------------------
-    async function loadPosts() {
-      const { data, error } = await supabase.from("posts").select("*").order("created_at", { ascending: false });
-      if(error) return alert("❌ 데이터 로드 실패: " + error.message);
-      table.setData(data);
-    }
+      const user = SWINGINV.user;
 
-    loadPosts();
+      // 게시판 로드
+      const loadPosts = async () => {
+        try {
+          const { data, error } = await db.from("posts").select("*").order("created_at", { ascending: false });
+          if (error) throw error;
 
-    // -------------------------------
-    // 4️⃣ 글 추가 버튼
-    // -------------------------------
-    document.getElementById("add-post").addEventListener("click", async () => {
-      const title = prompt("글 제목을 입력하세요:");
-      if(!title) return;
-      const url = prompt("블로그 URL을 입력하세요:");
-      if(!url) return;
+          if (!data.length) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">📭 글이 없습니다.</td></tr>`;
+            return;
+          }
 
-      const { data, error } = await supabase.from("posts").insert([{ title, url, created_at: new Date().toISOString() }]).select().single();
-      if(error) return alert("❌ 추가 실패: " + error.message);
+          tbody.innerHTML = data.map((post, idx) => `
+            <tr>
+              <td>${idx + 1}</td>
+              <td><a href="${post.link}" target="_blank">${post.title}</a></td>
+              <td>${post.link}</td>
+              <td>${new Date(post.created_at).toLocaleString()}</td>
+              <td><button class="btn" data-id="${post.id}">삭제</button></td>
+            </tr>
+          `).join("");
 
-      table.addData([data], { addToTop: true });
-    });
+          // 삭제 버튼 이벤트
+          tbody.querySelectorAll("button").forEach(btn => {
+            btn.addEventListener("click", async () => {
+              if (!confirm("정말 삭제하시겠습니까?")) return;
+              const id = btn.dataset.id;
+              const { error } = await db.from("posts").delete().eq("id", id);
+              if (error) alert("❌ 삭제 실패: " + error.message);
+              else loadPosts();
+            });
+          });
+        } catch (err) {
+          errorBox.textContent = "❌ 데이터 로드 실패: " + err.message;
+        }
+      };
 
-    // -------------------------------
-    // 5️⃣ 행 수정 이벤트
-    // -------------------------------
-    table.on("cellEdited", async (cell) => {
-      const row = cell.getRow().getData();
-      const { error } = await supabase.from("posts").update({ title: row.title, url: row.url }).eq("id", row.id);
-      if(error) alert("❌ 수정 실패: " + error.message);
+      await loadPosts();
+
+      // 글 추가 이벤트
+      addForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!user) { alert("🔐 로그인 후 글을 추가하세요."); return; }
+
+        const title = titleInput.value.trim();
+        const link = linkInput.value.trim();
+        if (!title || !link) return;
+
+        try {
+          const { error } = await db.from("posts").insert({
+            title,
+            link,
+            user_id: user.id,
+            created_at: new Date().toISOString()
+          });
+          if (error) throw error;
+
+          titleInput.value = "";
+          linkInput.value = "";
+          await loadPosts();
+        } catch (err) {
+          alert("❌ 글 추가 실패: " + err.message);
+        }
+      });
     });
   </script>
 </body>
