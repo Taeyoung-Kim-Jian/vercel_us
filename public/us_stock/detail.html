@@ -112,7 +112,7 @@
     try {
       // 가격 데이터 로드
       const { data, error } = await db
-        .from("prices")
+        .from("us_prices")
         .select("날짜, 종가")
         .eq("종목코드", code)
         .order("날짜", { ascending:true });
