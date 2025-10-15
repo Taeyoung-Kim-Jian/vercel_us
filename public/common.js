@@ -201,7 +201,7 @@ if (window.SWINGINV?.db) {
 }
 
 // ------------------------------------------------------------
-// ✅ 8. 모든 테이블 컬럼 클릭 정렬 기능 (오름/내림 토글 + 화살표 표시)
+// ✅ 8. 모든 테이블 컬럼 클릭 정렬 기능 (오름/내림 토글, 화살표 표시 제거)
 // ------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
   const tables = document.querySelectorAll("table");
@@ -211,7 +211,6 @@ document.addEventListener("DOMContentLoaded", () => {
       th.style.cursor = "pointer";
       let asc = true;
 
-      // 초기 화살표 제거
       th.innerHTML = th.textContent.trim();
 
       th.addEventListener("click", () => {
@@ -236,10 +235,6 @@ document.addEventListener("DOMContentLoaded", () => {
         tbody.innerHTML = "";
         sortedRows.forEach((row) => tbody.appendChild(row));
 
-        // 화살표 표시
-        headers.forEach(h => h.innerHTML = h.textContent.trim());
-        th.innerHTML = `${th.textContent.trim()} ${asc ? "▲" : "▼"}`;
-
         asc = !asc;
       });
     });
@@ -250,7 +245,6 @@ console.log("✅ SWINGINV common_auth.js fully initialized.");
 
 function applyTableFixes() {
   document.querySelectorAll('table').forEach(table => {
-    // 테이블을 감싸서 가로 스크롤 가능하게
     if (!table.parentElement.classList.contains('table-wrapper')) {
       const wrapper = document.createElement('div');
       wrapper.className = 'table-wrapper';
@@ -263,7 +257,6 @@ function applyTableFixes() {
 
     const firstColName = firstTh.innerText.trim();
 
-    // 기존 클래스 제거
     table.classList.remove('fixed-name', 'fixed-rank-name');
 
     if (firstColName === '순위') {
@@ -274,6 +267,4 @@ function applyTableFixes() {
   });
 }
 
-// DOM 로드 후 자동 적용
 document.addEventListener('DOMContentLoaded', applyTableFixes);
-
