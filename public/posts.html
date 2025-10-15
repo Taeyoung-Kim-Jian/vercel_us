@@ -131,7 +131,7 @@
           .from("admins")
           .select("uid")
           .eq("uid", user.id)
-          .maybeSingle();
+          .single();
 
         if (adminData) {
           isAdmin = true;
