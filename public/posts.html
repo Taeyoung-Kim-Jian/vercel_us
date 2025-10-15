@@ -89,51 +89,44 @@
     </table>
   </main>
 
-  <!-- ✅ Supabase와 공통 스크립트 -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- ✅ 공통 스크립트 -->
   <script src="../common.js"></script>
 
   <script>
-    // ✅ 공통 Supabase 로딩 대기 (다른 페이지와 동일)
-    function waitForSwingInv() {
-      return new Promise((resolve, reject) => {
-        let tries = 0;
-        const check = () => {
-          tries++;
-          if (window.SWINGINV?.db) resolve();
-          else if (tries > 50) reject(new Error("SWINGINV 초기화 실패"));
-          else setTimeout(check, 100);
-        };
-        check();
-      });
-    }
-
     document.addEventListener("DOMContentLoaded", async () => {
-      const header = document.getElementById("header-container");
-      const postList = document.getElementById("postList");
-      const addPostBtn = document.getElementById("addPostBtn");
-
       // ✅ 공통 헤더 로드
-      const headerHTML = await fetch("../header.html").then(r => r.text());
-      header.innerHTML = headerHTML;
+      const header = document.getElementById("header-container");
+      const r = await fetch("../header.html");
+      header.innerHTML = await r.text();
 
-      // ✅ Supabase 준비 대기
-      await waitForSwingInv();
+      // ✅ 공통 auth UI 업데이트 (common.js 함수 활용)
+      if (typeof SWINGINV_updateHeaderAuthUI === "function") {
+        SWINGINV_updateHeaderAuthUI();
+      }
+
+      // ✅ Supabase 객체 확인
+      if (!window.SWINGINV?.db || !window.SWINGINV?.auth) {
+        console.error("SWINGINV가 초기화되지 않았습니다.");
+        return;
+      }
+
       const db = SWINGINV.db;
-      console.log("✅ Supabase 연결 완료");
+      const auth = SWINGINV.auth;
 
       // ✅ 로그인 유저 가져오기
-      const { data: { user } } = await db.auth.getUser();
+      const { data: { user } } = await auth.getUser();
+      const postList = document.getElementById("postList");
+      const addPostBtn = document.getElementById("addPostBtn");
       let isAdmin = false;
 
       if (user) {
-        const { data: adminData } = await db
+        const { data: adminData, error: adminErr } = await db
           .from("admins")
           .select("uid")
-          .eq("uid", String(user.id))
-          .single();
+          .eq("uid", user.id)
+          .maybeSingle();
 
-        if (adminData) {
+        if (!adminErr && adminData) {
           isAdmin = true;
           addPostBtn.style.display = "block";
         }
@@ -147,6 +140,7 @@
           .order("created_at", { ascending: false });
 
         if (error) {
+          console.error("게시글 로드 오류:", error);
           postList.innerHTML = `<tr><td colspan="3">데이터 로드 오류</td></tr>`;
           return;
         }
