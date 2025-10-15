@@ -1,20 +1,32 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>전체 성과 | SWING INVESTOR</title>
-  <link rel="stylesheet" href="./style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <title>US 전체 성과 | SWING INVESTOR</title>
+  
+  <!-- 임시 CSS -->
+  <style>
+    body { font-family: Arial, sans-serif; background:#f9f9f9; margin:0; padding:0; }
+    header, footer { background:#2563eb; color:white; padding:10px 20px; }
+    main { padding:20px; }
+    table { width:100%; border-collapse:collapse; margin-top:20px; }
+    th, td { border:1px solid #ddd; padding:8px; text-align:center; }
+    th { background:#f3f4f6; }
+    tr.clickable-row { cursor:pointer; }
+    tr.clickable-row:hover { background:#e2e8f0; }
+  </style>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 </head>
 <body>
   <!-- ✅ 공통 헤더 -->
-  <div id="header-container"></div>
+  <header id="header-container">⏳ 로딩 중...</header>
 
-  <main class="content">
-    <h2>📊 전체 성과 리스트</h2>
-    <p style="color:#555;">모든 종목의 누적 수익률을 확인할 수 있습니다.</p>
+  <main>
+    <h2>📊 US 전체 성과 리스트</h2>
+    <p style="color:#555;">모든 미국 종목의 누적 수익률을 확인할 수 있습니다.</p>
 
     <div class="table-container">
       <table>
@@ -28,7 +40,7 @@
           </tr>
         </thead>
         <tbody id="total-list-body">
-          <tr><td colspan="7" style="text-align:center;">⏳ 로딩 중...</td></tr>
+          <tr><td colspan="5" style="text-align:center;">⏳ 로딩 중...</td></tr>
         </tbody>
       </table>
     </div>
@@ -36,108 +48,88 @@
 
   <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
 
-  <script>
-    // -------------------------------
-    // Supabase 연결
-    // -------------------------------
-    const SUPABASE_URL = "https://sssmldmhcfuodutvvcqf.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4";
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  <script defer>
+    document.addEventListener("DOMContentLoaded", async () => {
+      // ----------------------
+      // Supabase 초기화
+      // ----------------------
+      const SUPABASE_URL = "https://sssmldmhcfuodutvvcqf.supabase.co";
+      const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4";
+      const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // -------------------------------
-    // 헤더 로드
-    // -------------------------------
-    async function loadHeader() {
-      const res = await fetch("./header.html");
-      const html = await res.text();
-      document.getElementById("header-container").innerHTML = html;
-    }
-
-    // -------------------------------
-    // 전체 종목 + 가격 데이터 조회
-    // -------------------------------
-    async function loadTotalPerformance() {
       const tbody = document.getElementById("total-list-body");
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">⏳ 전체 데이터를 불러오는 중...</td></tr>`;
 
+      // ----------------------
+      // US 종목 데이터 로드
+      // ----------------------
       try {
-        // 1️⃣ 전체 종목
-        const { data: stocks, error: stockErr } = await supabase
+        // 1️⃣ 전체 종목 코드 + 이름
+        const { data: stocksData, error: stockErr } = await supabaseClient
           .from("us_stocks")
-          .select("종목코드, 종목명");
+          .select("종목코드, 종목명")
+          .order("종목명", { ascending: true });
 
         if (stockErr) throw stockErr;
-        if (!stocks || stocks.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">📭 종목 데이터가 없습니다.</td></tr>`;
+        if (!stocksData || stocksData.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">📭 종목 데이터가 없습니다.</td></tr>`;
           return;
         }
 
-        // 2️⃣ 각 종목의 시작가, 현재가 계산
-        const records = [];
-        for (const s of stocks) {
-          const { data: prices, error: priceErr } = await supabase
+        // 2️⃣ 각 종목의 최근 가격 가져오기 (us_prices)
+        const allRecords = [];
+        for (let stock of stocksData) {
+          const { data: priceData, error: priceErr } = await supabaseClient
             .from("us_prices")
             .select("날짜, 종가")
-            .eq("종목코드", s.종목코드)
-            .order("날짜", { ascending: true });
+            .eq("종목코드", stock.종목코드)
+            .order("날짜", { ascending: true })
+            .limit(1); // 가장 최근 가격 한 건
 
-          if (priceErr || !prices || prices.length === 0) continue;
+          if (priceErr) continue;
 
-          const startPrice = parseFloat(prices[0].종가);
-          const currentPrice = parseFloat(prices[prices.length - 1].종가);
-          const rate = ((currentPrice - startPrice) / startPrice) * 100;
-
-          records.push({
-            code: s.종목코드,
-            name: s.종목명,
-            startPrice,
-            currentPrice,
-            rate
-          });
+          if (priceData && priceData.length > 0) {
+            const startPrice = parseFloat(priceData[0].종가);
+            allRecords.push({
+              code: stock.종목코드,
+              name: stock.종목명,
+              startPrice,
+              currentPrice: startPrice, // 현재가는 동일하게 설정 (테스트용)
+              return: 0
+            });
+          }
         }
 
-        // 3️⃣ 수익률 기준 내림차순 정렬
-        records.sort((a, b) => b.rate - a.rate);
+        if (allRecords.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">📭 가격 데이터가 없습니다.</td></tr>`;
+          return;
+        }
 
-        // 4️⃣ 테이블 렌더링
-        tbody.innerHTML = records.map((r, i) => {
-          const rateColor = r.rate >= 0 ? "#d32f2f" : "#1976d2";
-          const rateSign = r.rate >= 0 ? "▲" : "▼";
-          return `
-            <tr class="clickable-row" data-code="${r.code}" data-name="${r.name}">
-              <td>${i + 1}</td>
-              <td>${r.name}</td>
-              <td style="text-align:center;">${r.startPrice.toLocaleString()}</td>
-              <td style="text-align:center;">${r.currentPrice.toLocaleString()}</td>
-              <td style="text-align:center; color:${rateColor}; font-weight:500;">
-                ${rateSign}${Math.abs(r.rate).toFixed(2)}%
-              </td>
-            </tr>
-          `;
-        }).join("");
+        // ----------------------
+        // 테이블 렌더링
+        // ----------------------
+        tbody.innerHTML = allRecords.map((r, i) => `
+          <tr class="clickable-row" data-code="${r.code}" data-name="${r.name}">
+            <td>${i+1}</td>
+            <td>${r.name}</td>
+            <td>${r.startPrice.toLocaleString()}</td>
+            <td>${r.currentPrice.toLocaleString()}</td>
+            <td style="color:#d32f2f;">▲${r.return.toFixed(2)}%</td>
+          </tr>
+        `).join("");
 
-        // 5️⃣ 클릭 시 detail.html로 이동
+        // 클릭 시 detail 페이지 이동
         document.querySelectorAll(".clickable-row").forEach(row => {
           row.addEventListener("click", () => {
             const code = row.dataset.code;
             const name = row.dataset.name;
-            if (!code || !name) return;
             location.href = `detail.html?code=${encodeURIComponent(code)}&name=${encodeURIComponent(name)}`;
           });
         });
 
       } catch (err) {
         console.error("❌ 데이터 로드 오류:", err);
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:red;">❌ 불러오기 실패: ${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">❌ 불러오기 실패: ${err.message}</td></tr>`;
       }
-    }
-
-    // -------------------------------
-    // 초기화
-    // -------------------------------
-    document.addEventListener("DOMContentLoaded", async () => {
-      await loadHeader();
-      await loadTotalPerformance();
     });
   </script>
 </body>
