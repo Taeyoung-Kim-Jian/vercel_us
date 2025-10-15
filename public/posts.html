@@ -1,30 +1,26 @@
-ㅍ<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>게시판 | SWING INVESTOR</title>
+  <title>운영자 게시판 | SWING INVESTOR</title>
   <link rel="stylesheet" href="../style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../common.js"></script>
-
   <style>
-    body { font-family: "Pretendard", sans-serif; background:#f8fafc; margin:0; padding:0; }
-    main { max-width: 900px; margin: 30px auto; background: #fff; padding:20px; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.05);}
-    h2 { text-align:center; color:#1e293b; }
-    table { width:100%; border-collapse: collapse; margin-top:20px;}
-    th, td { padding:10px; border-bottom:1px solid #ddd; text-align:left; }
-    th { background:#f1f5f9; cursor:pointer; }
-    tr:hover { background:#f9fafb; }
-    .btn { padding:6px 12px; background:#2563eb; color:#fff; border:none; border-radius:5px; cursor:pointer; }
-    .btn:hover { background:#1d4ed8; }
-    #error-box { color:red; text-align:center; margin-top:10px; }
-    #addForm { display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; }
-    #addForm input { flex:1; padding:6px; border:1px solid #ccc; border-radius:5px; }
-    #addForm button { flex:none; }
+    body { font-family: "Pretendard", sans-serif; background: #f8fafc; margin:0; padding:0; }
+    main { max-width:900px; margin:30px auto; background:#fff; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.05); padding:20px; }
+    h2 { text-align:center; color:#1e293b; margin-bottom:20px; }
+    table { width:100%; border-collapse:collapse; margin-top:20px; }
+    th, td { padding:12px; border-bottom:1px solid #e5e7eb; text-align:left; }
+    th { background:#f1f5f9; }
+    tr:hover { background:#f0f9ff; cursor:pointer; }
+    #adminToolbar { margin-bottom:15px; text-align:right; }
+    #adminToolbar button { background:#2563eb; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; }
+    #adminToolbar button:hover { background:#1d4ed8; }
+    footer { text-align:center; padding:16px; font-size:0.8rem; color:#777; background:#f1f5f9; border-top:1px solid #e5e7eb; margin-top:50px; }
   </style>
 </head>
-
 <body>
   <div id="header-container"></div>
   <script>
@@ -32,120 +28,104 @@
       .then(r => r.text())
       .then(html => {
         document.getElementById("header-container").innerHTML = html;
-        if (typeof SWINGINV_updateHeaderAuthUI === "function") SWINGINV_updateHeaderAuthUI();
+        if (typeof SWINGINV_updateHeaderAuthUI === "function")
+          SWINGINV_updateHeaderAuthUI();
       });
   </script>
 
   <main>
-    <h2>게시판</h2>
-    <div id="error-box"></div>
-
-    <!-- 글 추가 폼 -->
-    <form id="addForm">
-      <input type="text" id="titleInput" placeholder="글 제목" required />
-      <input type="url" id="linkInput" placeholder="외부 블로그 링크(URL)" required />
-      <button type="submit" class="btn">글 추가</button>
-    </form>
-
-    <!-- 게시판 테이블 -->
-    <table>
+    <h2>📋 운영자 게시판</h2>
+    <div id="adminToolbar" style="display:none;">
+      <button id="addPostBtn">➕ 글 추가</button>
+    </div>
+    <table id="postsTable">
       <thead>
         <tr>
           <th>번호</th>
           <th>제목</th>
-          <th>링크</th>
+          <th>작성자</th>
           <th>작성일</th>
-          <th>삭제</th>
         </tr>
       </thead>
-      <tbody id="posts-body">
-        <tr><td colspan="5" style="text-align:center;">⏳ 로딩 중...</td></tr>
+      <tbody id="postsBody">
+        <tr><td colspan="4" style="text-align:center;">⏳ 로딩 중...</td></tr>
       </tbody>
     </table>
   </main>
 
+  <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
+
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
-      const tbody = document.getElementById("posts-body");
-      const errorBox = document.getElementById("error-box");
-      const addForm = document.getElementById("addForm");
-      const titleInput = document.getElementById("titleInput");
-      const linkInput = document.getElementById("linkInput");
-
-      // Supabase 준비
       let db;
-      for (let i = 0; i < 25; i++) {
-        if (window.SWINGINV?.db) { db = SWINGINV.db; break; }
-        await new Promise(r => setTimeout(r, 200));
+      for (let i=0;i<25;i++){
+        if(window.SWINGINV?.db){ db=SWINGINV.db; break; }
+        await new Promise(r=>setTimeout(r,200));
       }
-      if (!db) {
-        errorBox.textContent = "❌ Supabase 초기화 실패";
-        return;
-      }
+      if(!db){ alert("Supabase 초기화 실패"); return; }
 
       const user = SWINGINV.user;
 
-      // 게시판 로드
-      const loadPosts = async () => {
-        try {
-          const { data, error } = await db.from("posts").select("*").order("created_at", { ascending: false });
-          if (error) throw error;
+      // 운영자 체크
+      let isAdmin = false;
+      if(user){
+        const { data: admin } = await db.from("admins").select("user_id").eq("user_id", user.id).maybeSingle();
+        if(admin) isAdmin = true;
+      }
 
-          if (!data.length) {
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">📭 글이 없습니다.</td></tr>`;
+      if(isAdmin) document.getElementById("adminToolbar").style.display="block";
+
+      const postsBody = document.getElementById("postsBody");
+
+      // 게시글 로드
+      const loadPosts = async () => {
+        postsBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">⏳ 로딩 중...</td></tr>`;
+        try{
+          const { data, error } = await db.from("posts").select("*").order("created_at",{ascending:false});
+          if(error) throw error;
+          if(!data?.length){
+            postsBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">📭 게시글이 없습니다.</td></tr>`;
             return;
           }
 
-          tbody.innerHTML = data.map((post, idx) => `
-            <tr>
-              <td>${idx + 1}</td>
-              <td><a href="${post.link}" target="_blank">${post.title}</a></td>
-              <td>${post.link}</td>
-              <td>${new Date(post.created_at).toLocaleString()}</td>
-              <td><button class="btn" data-id="${post.id}">삭제</button></td>
+          postsBody.innerHTML = data.map((p,i)=>`
+            <tr data-link="${p.link}">
+              <td>${i+1}</td>
+              <td>${p.title}</td>
+              <td>${p.author||"-"}</td>
+              <td>${new Date(p.created_at).toLocaleString()}</td>
             </tr>
           `).join("");
 
-          // 삭제 버튼 이벤트
-          tbody.querySelectorAll("button").forEach(btn => {
-            btn.addEventListener("click", async () => {
-              if (!confirm("정말 삭제하시겠습니까?")) return;
-              const id = btn.dataset.id;
-              const { error } = await db.from("posts").delete().eq("id", id);
-              if (error) alert("❌ 삭제 실패: " + error.message);
-              else loadPosts();
+          // 제목 클릭 → 블로그 링크 이동
+          document.querySelectorAll("#postsBody tr").forEach(row=>{
+            row.addEventListener("click", ()=>{
+              const link = row.dataset.link;
+              if(link) window.open(link,"_blank");
             });
           });
-        } catch (err) {
-          errorBox.textContent = "❌ 데이터 로드 실패: " + err.message;
+        }catch(err){
+          console.error("게시글 로드 오류:", err);
+          postsBody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:red;">❌ 로드 실패</td></tr>`;
         }
       };
 
       await loadPosts();
 
-      // 글 추가 이벤트
-      addForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        if (!user) { alert("🔐 로그인 후 글을 추가하세요."); return; }
-
-        const title = titleInput.value.trim();
-        const link = linkInput.value.trim();
-        if (!title || !link) return;
-
-        try {
+      // 글 추가 버튼
+      document.getElementById("addPostBtn")?.addEventListener("click", async ()=>{
+        const title = prompt("글 제목 입력");
+        const link = prompt("블로그 URL 입력");
+        if(!title||!link) return alert("제목과 링크는 필수입니다.");
+        try{
           const { error } = await db.from("posts").insert({
-            title,
-            link,
-            user_id: user.id,
-            created_at: new Date().toISOString()
+            title, link, author: user?.email||"운영자", created_at: new Date().toISOString()
           });
-          if (error) throw error;
-
-          titleInput.value = "";
-          linkInput.value = "";
+          if(error) throw error;
+          alert("✅ 글이 등록되었습니다!");
           await loadPosts();
-        } catch (err) {
-          alert("❌ 글 추가 실패: " + err.message);
+        }catch(err){
+          alert("❌ 등록 실패: "+err.message);
         }
       });
     });
