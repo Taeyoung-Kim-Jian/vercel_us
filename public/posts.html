@@ -3,129 +3,117 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>운영자 게시판 | SWING INVESTOR</title>
-  <link rel="stylesheet" href="../style.css" />
+  <title>운영자 게시판</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="../common.js"></script>
+  <script src="common.js"></script>
   <style>
-    body { font-family: "Pretendard", sans-serif; background: #f8fafc; margin:0; padding:0; }
-    main { max-width:900px; margin:30px auto; background:#fff; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.05); padding:20px; }
-    h2 { text-align:center; color:#1e293b; margin-bottom:20px; }
-    table { width:100%; border-collapse:collapse; margin-top:20px; }
-    th, td { padding:12px; border-bottom:1px solid #e5e7eb; text-align:left; }
-    th { background:#f1f5f9; }
-    tr:hover { background:#f0f9ff; cursor:pointer; }
-    #adminToolbar { margin-bottom:15px; text-align:right; }
-    #adminToolbar button { background:#2563eb; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; }
-    #adminToolbar button:hover { background:#1d4ed8; }
-    footer { text-align:center; padding:16px; font-size:0.8rem; color:#777; background:#f1f5f9; border-top:1px solid #e5e7eb; margin-top:50px; }
+    body { font-family: 'Pretendard', sans-serif; padding: 20px; }
+    h1 { font-size: 24px; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
+    a { color: #0077cc; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    #addPostBtn { 
+      margin-bottom: 20px; 
+      padding: 10px 16px; 
+      background-color: #0077cc; 
+      color: white; 
+      border: none; 
+      border-radius: 6px; 
+      cursor: pointer;
+    }
+    #addPostBtn:hover { background-color: #005fa3; }
   </style>
 </head>
 <body>
-  <div id="header-container"></div>
-  <script>
-    fetch("../header.html")
-      .then(r => r.text())
-      .then(html => {
-        document.getElementById("header-container").innerHTML = html;
-        if (typeof SWINGINV_updateHeaderAuthUI === "function")
-          SWINGINV_updateHeaderAuthUI();
-      });
-  </script>
+  <h1>📢 운영자 게시판</h1>
 
-  <main>
-    <h2>📋 운영자 게시판</h2>
-    <div id="adminToolbar" style="display:none;">
-      <button id="addPostBtn">➕ 글 추가</button>
-    </div>
-    <table id="postsTable">
-      <thead>
-        <tr>
-          <th>번호</th>
-          <th>제목</th>
-          <th>작성자</th>
-          <th>작성일</th>
-        </tr>
-      </thead>
-      <tbody id="postsBody">
-        <tr><td colspan="4" style="text-align:center;">⏳ 로딩 중...</td></tr>
-      </tbody>
-    </table>
-  </main>
+  <!-- 글 추가 버튼 (운영자만 보임) -->
+  <button id="addPostBtn" style="display:none;">+ 글 추가</button>
 
-  <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
+  <!-- 게시글 목록 -->
+  <table>
+    <thead>
+      <tr><th>제목</th><th>등록일</th></tr>
+    </thead>
+    <tbody id="postList"></tbody>
+  </table>
 
   <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      let db;
-      for (let i=0;i<25;i++){
-        if(window.SWINGINV?.db){ db=SWINGINV.db; break; }
-        await new Promise(r=>setTimeout(r,200));
+    document.addEventListener('DOMContentLoaded', async () => {
+      // ✅ Supabase 초기화 (common.js에서 전역 객체로 설정되어 있어야 함)
+      if (typeof SWINGINV === 'undefined' || !SWINGINV.db) {
+        console.error("❌ Supabase 초기화 실패: common.js를 확인하세요.");
+        return;
       }
-      if(!db){ alert("Supabase 초기화 실패"); return; }
+      const supabase = SWINGINV.db;
 
-      const user = SWINGINV.user;
+      const { data: { user } } = await supabase.auth.getUser();
+      const addPostBtn = document.getElementById("addPostBtn");
+      const postList = document.getElementById("postList");
 
-      // 운영자 체크
+      // ✅ 운영자인지 확인
       let isAdmin = false;
-      if(user){
-        const { data: admin } = await db.from("admins").select("user_id").eq("user_id", user.id).maybeSingle();
-        if(admin) isAdmin = true;
+      if (user) {
+        const { data: adminCheck } = await supabase
+          .from("admins")
+          .select("*")
+          .eq("user_id", user.id)
+          .single();
+
+        if (adminCheck) {
+          isAdmin = true;
+          addPostBtn.style.display = "inline-block";
+        }
       }
 
-      if(isAdmin) document.getElementById("adminToolbar").style.display="block";
+      // ✅ 게시글 불러오기
+      async function loadPosts() {
+        const { data: posts, error } = await supabase
+          .from("posts")
+          .select("*")
+          .order("created_at", { ascending: false });
 
-      const postsBody = document.getElementById("postsBody");
-
-      // 게시글 로드
-      const loadPosts = async () => {
-        postsBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">⏳ 로딩 중...</td></tr>`;
-        try{
-          const { data, error } = await db.from("posts").select("*").order("created_at",{ascending:false});
-          if(error) throw error;
-          if(!data?.length){
-            postsBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">📭 게시글이 없습니다.</td></tr>`;
-            return;
-          }
-
-          postsBody.innerHTML = data.map((p,i)=>`
-            <tr data-link="${p.link}">
-              <td>${i+1}</td>
-              <td>${p.title}</td>
-              <td>${p.author||"-"}</td>
-              <td>${new Date(p.created_at).toLocaleString()}</td>
-            </tr>
-          `).join("");
-
-          // 제목 클릭 → 블로그 링크 이동
-          document.querySelectorAll("#postsBody tr").forEach(row=>{
-            row.addEventListener("click", ()=>{
-              const link = row.dataset.link;
-              if(link) window.open(link,"_blank");
-            });
-          });
-        }catch(err){
-          console.error("게시글 로드 오류:", err);
-          postsBody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:red;">❌ 로드 실패</td></tr>`;
+        if (error) {
+          console.error("❌ 게시글 불러오기 실패:", error.message);
+          return;
         }
-      };
+
+        postList.innerHTML = "";
+        posts.forEach(post => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><a href="${post.url}" target="_blank">${post.title}</a></td>
+            <td>${new Date(post.created_at).toLocaleString()}</td>
+          `;
+          postList.appendChild(tr);
+        });
+      }
 
       await loadPosts();
 
-      // 글 추가 버튼
-      document.getElementById("addPostBtn")?.addEventListener("click", async ()=>{
-        const title = prompt("글 제목 입력");
-        const link = prompt("블로그 URL 입력");
-        if(!title||!link) return alert("제목과 링크는 필수입니다.");
-        try{
-          const { error } = await db.from("posts").insert({
-            title, link, author: user?.email||"운영자", created_at: new Date().toISOString()
-          });
-          if(error) throw error;
-          alert("✅ 글이 등록되었습니다!");
+      // ✅ 글 추가 버튼 클릭 (운영자만 가능)
+      addPostBtn.addEventListener("click", async () => {
+        if (!isAdmin) {
+          alert("운영자만 글을 작성할 수 있습니다.");
+          return;
+        }
+
+        const title = prompt("게시글 제목을 입력하세요:");
+        if (!title) return;
+
+        const url = prompt("이동할 블로그 URL을 입력하세요 (https://...):");
+        if (!url || !url.startsWith("http")) {
+          alert("올바른 URL을 입력하세요.");
+          return;
+        }
+
+        const { error } = await supabase.from("posts").insert([{ title, url }]);
+        if (error) {
+          alert("글 추가 중 오류 발생: " + error.message);
+        } else {
+          alert("글이 추가되었습니다!");
           await loadPosts();
-        }catch(err){
-          alert("❌ 등록 실패: "+err.message);
         }
       });
     });
