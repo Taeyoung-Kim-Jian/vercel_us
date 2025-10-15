@@ -11,10 +11,32 @@
   <!-- ✅ 공통 스크립트 -->
   <script src="../common.js"></script>
 
+  <!-- ✅ 페이지 전용 스타일 -->
   <style>
-    body { font-family: 'Pretendard', sans-serif; padding: 20px; background: #fafafa; }
-    h1 { font-size: 22px; margin-bottom: 20px; }
-    #header-container { margin-bottom: 20px; }
+    /* ✅ 페이지 스타일 */
+    body { 
+      font-family: 'Pretendard', sans-serif;
+      padding: 20px; 
+      background: #fafafa; 
+      margin: 0; 
+      width: 100%; 
+      min-height: 100vh; /* 전체 높이 채우기 */
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* 중앙정렬 방지용이 아니라, header 포함 위아래 배치용 */
+    }
+
+    main.board-container {
+      width: 100%;
+      max-width: 1100px; /* 중앙에 내용만 제한 */
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      padding: 30px;
+    }
+
+    h1 { font-size: 22px; margin-bottom: 20px; text-align: left; }
+    #header-container { margin-bottom: 20px; width: 100%; }
 
     table { 
       width: 100%; 
@@ -22,7 +44,7 @@
       background: white; 
       border-radius: 8px; 
       overflow: hidden; 
-      font-size: 14px; /* ✅ 테이블 내 글자 크기 줄이기 */
+      font-size: 14px;
     }
 
     th, td { 
@@ -34,7 +56,6 @@
     a { color: #0077cc; text-decoration: none; }
     a:hover { text-decoration: underline; }
 
-    /* ✅ 컬럼 비율 조정 */
     th:nth-child(1), td:nth-child(1) { width: 70%; }
     th:nth-child(2), td:nth-child(2) { width: 15%; }
     th:nth-child(3), td:nth-child(3) { width: 15%; }
@@ -67,26 +88,27 @@
     #addPostBtn:hover { background-color: #005fa3; }
   </style>
 
-  <!-- ✅ style.css를 맨 마지막에 불러서 우선순위 최상으로 -->
+  <!-- ✅ style.css 최우선 -->
   <link rel="stylesheet" href="../style.css" />
 </head>
 <body>
-  <!-- ✅ 공통 헤더 -->
   <div id="header-container"></div>
 
-  <h1>📢 운영자 게시판</h1>
-  <button id="addPostBtn">+ 글 추가</button>
+  <main class="board-container">
+    <h1>📢 운영자 게시판</h1>
+    <button id="addPostBtn">+ 글 추가</button>
 
-  <table>
-    <thead>
-      <tr>
-        <th>제목</th>
-        <th>등록일</th>
-        <th>관리</th>
-      </tr>
-    </thead>
-    <tbody id="postList"></tbody>
-  </table>
+    <table>
+      <thead>
+        <tr>
+          <th>제목</th>
+          <th>등록일</th>
+          <th>관리</th>
+        </tr>
+      </thead>
+      <tbody id="postList"></tbody>
+    </table>
+  </main>
 
   <script>
     // ✅ 공통 헤더 로드
@@ -153,7 +175,6 @@
           postList.appendChild(tr);
         });
 
-        // ✅ 수정 버튼 클릭
         document.querySelectorAll(".edit-btn").forEach(btn => {
           btn.addEventListener("click", async e => {
             const id = e.target.dataset.id;
@@ -171,7 +192,6 @@
           });
         });
 
-        // ✅ 삭제 버튼 클릭
         document.querySelectorAll(".delete-btn").forEach(btn => {
           btn.addEventListener("click", async e => {
             const id = e.target.dataset.id;
