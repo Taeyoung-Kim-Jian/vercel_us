@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>종목 상세 | SWING INVESTOR</title>
+  <link rel="stylesheet" href="./style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5"></script>
+  <script src="./common.js"></script>
+
+  <style>
+    body {
+      font-family: "Pretendard", sans-serif;
+      background: #f8fafc;
+      margin: 0;
+      padding: 0;
+      overflow-y: auto; /* ✅ 스크롤 허용 */
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 30px auto;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+      padding: 20px;
+    }
+
+    h2 {
+      color: #1e293b;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    p#subtitle {
+      text-align: center;
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+
+    #toolbar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin: 15px 0 25px 0;
+      font-size: 14px;
+    }
+
+    #toolbar label {
+      cursor: pointer;
+    }
+
+    #toolbar input[type="checkbox"] {
+      transform: scale(1.1);
+      margin-right: 5px;
+    }
+
+    #chart {
+      width: 100%;
+      height: 500px;
+      margin-top: 20px;
+      touch-action: pan-y;
+    }
+
+    #backBtn {
+      display: inline-block;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      margin-bottom: 15px;
+    }
+    #backBtn:hover {
+      background: #1d4ed8;
+    }
+
+    #error-box {
+      margin-top: 20px;
+      color: red;
+      text-align: center;
+    }
+
+    footer {
+      text-align: center;
+      padding: 16px;
+      font-size: 0.8rem;
+      color: #777;
+      background: #f1f5f9;
+      border-top: 1px solid #e5e7eb;
+      margin-top: 50px;
+    }
+
+    @media (max-width: 768px) {
+      #chart {
+        height: 400px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="header-container"></div>
+  <script>
+    fetch("./header.html")
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById("header-container").innerHTML = html;
+        if (typeof SWINGINV_updateHeaderAuthUI === "function")
+          SWINGINV_updateHeaderAuthUI();
+      });
+  </script>
+
+  <main>
+    <button id="backBtn">← 뒤로가기</button>
+    <h2 id="chart-title">📈 종목 상세</h2>
+    <p id="subtitle">데이터를 불러오는 중...</p>
+
+    <div id="toolbar">
+      <label><input type="checkbox" id="toggleB" checked> B가격 표시</label>
+      <label><input type="checkbox" id="watchToggle"> ⭐ 관심종목 등록</label>
+    </div>
+
+    <div id="chart"></div>
+    <div id="error-box" style="display:none;"></div>
+  </main>
+
+  <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
+  <script src="./detail.js"></script>
+</body>
+</html>
