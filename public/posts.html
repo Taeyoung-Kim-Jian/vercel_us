@@ -15,6 +15,11 @@
     a { color: #0077cc; text-decoration: none; }
     a:hover { text-decoration: underline; }
 
+    /* ✅ 컬럼 비율 조정 */
+    th:nth-child(1), td:nth-child(1) { width: 70%; }
+    th:nth-child(2), td:nth-child(2) { width: 15%; }
+    th:nth-child(3), td:nth-child(3) { width: 15%; }
+
     .action-btn {
       background: #2563eb;
       color: #fff;
@@ -51,7 +56,11 @@
 
   <table>
     <thead>
-      <tr><th>제목</th><th>등록일</th><th>관리</th></tr>
+      <tr>
+        <th>제목</th>
+        <th>등록일</th>
+        <th>관리</th>
+      </tr>
     </thead>
     <tbody id="postList"></tbody>
   </table>
