@@ -3,185 +3,213 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>월별 성과 | SWING INVESTOR</title>
-  <link rel="stylesheet" href="./style.css" />
+  <title>운영자 게시판</title>
 
-  <!-- ✅ Supabase 및 공통 스크립트는 반드시 head 안에서 동기 로드 -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./common.js"></script>
+  <!-- ✅ 공통 스타일 -->
+  <link rel="stylesheet" href="../style.css" />
+  <style>
+    h1 {
+      text-align: center;
+      font-size: 1.4rem;
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+    #addPostBtn {
+      display: block;
+      margin: 0 auto 20px;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      border: none;
+      background-color: #0066cc;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #addPostBtn:hover {
+      background-color: #004a99;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      background-color: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+    td a {
+      color: #0077cc;
+      text-decoration: none;
+    }
+    td a:hover {
+      text-decoration: underline;
+    }
+    .action-btn {
+      margin-right: 6px;
+      padding: 4px 8px;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .edit-btn {
+      background-color: #ffaa00;
+      color: white;
+    }
+    .delete-btn {
+      background-color: #e74c3c;
+      color: white;
+    }
+  </style>
 </head>
-
 <body>
-  <!-- 공통 헤더 -->
+  <!-- ✅ 공통 헤더 -->
   <div id="header-container"></div>
 
+  <main class="content">
+    <h1>📢 운영자 게시판</h1>
+    <button id="addPostBtn" style="display:none;">+ 글 추가</button>
+    <table>
+      <thead>
+        <tr>
+          <th>제목</th>
+          <th>등록일</th>
+          <th>관리</th>
+        </tr>
+      </thead>
+      <tbody id="postList"></tbody>
+    </table>
+  </main>
+
+  <!-- ✅ Supabase와 공통 스크립트 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../common.js"></script>
+
   <script>
-    async function loadHeaderAndInit() {
-      try {
-        const r = await fetch("./header.html");
-        const html = await r.text();
-        document.getElementById("header-container").innerHTML = html;
-        if (typeof SWINGINV_updateHeaderAuthUI === "function") SWINGINV_updateHeaderAuthUI();
-
-        // ✅ Supabase 클라이언트 준비 대기
-        await waitForSwingInv();
-
-        // ✅ Supabase 연결 확인 후 테이블 로드
-        console.log("✅ Supabase 연결 확인 완료, loadMonthTable 실행");
-        await loadMonthTable();
-      } catch (e) {
-        console.error("❌ 헤더 로드 또는 초기화 오류:", e);
-      }
-    }
-
-    // ✅ SWINGINV 준비 대기 함수
+    // ✅ 공통 Supabase 로딩 대기 (다른 페이지와 동일)
     function waitForSwingInv() {
       return new Promise((resolve, reject) => {
         let tries = 0;
         const check = () => {
           tries++;
-          if (window.SWINGINV?.db) {
-            console.log("✅ SWINGINV.db 초기화 감지");
-            resolve();
-          } else if (tries > 50) {
-            reject(new Error("SWINGINV 초기화 실패"));
-          } else {
-            setTimeout(check, 100);
-          }
+          if (window.SWINGINV?.db) resolve();
+          else if (tries > 50) reject(new Error("SWINGINV 초기화 실패"));
+          else setTimeout(check, 100);
         };
         check();
       });
     }
 
-    document.addEventListener("DOMContentLoaded", loadHeaderAndInit);
-  </script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const header = document.getElementById("header-container");
+      const postList = document.getElementById("postList");
+      const addPostBtn = document.getElementById("addPostBtn");
 
-  <main class="content">
-    <h2>📅 월별 성과</h2>
-    <p style="color:#555;">월별로 측정된 주요 종목의 수익률과 패턴을 확인하고 상세 차트로 이동하세요.</p>
+      // ✅ 공통 헤더 로드
+      const headerHTML = await fetch("../header.html").then(r => r.text());
+      header.innerHTML = headerHTML;
 
-    <!-- 월 탭 -->
-    <div id="month-tabs"></div>
+      // ✅ Supabase 준비 대기
+      await waitForSwingInv();
+      const db = SWINGINV.db;
+      console.log("✅ Supabase 연결 완료");
 
-    <!-- 패턴 필터 -->
-    <div class="pattern-filter">
-      <button class="active" data-pattern="전체">전체</button>
-      <button data-pattern="돌파">돌파</button>
-      <button data-pattern="돌파눌림">돌파눌림</button>
-      <button data-pattern="박스권">박스권</button>
-      <button data-pattern="이탈">이탈</button>
-      <button data-pattern="기타">기타</button>
-    </div>
+      // ✅ 로그인 유저 가져오기
+      const { data: { user } } = await db.auth.getUser();
+      let isAdmin = false;
 
-    <!-- 테이블 -->
-    <div class="table-container">
-      <table class="month-table">
-        <thead>
-          <tr>
-            <th>종목명</th>
-            <th>측정일</th>
-            <th>측정일 종가</th>
-            <th>현재가</th>
-            <th>측정일 대비 수익률</th>
-            <th>최고 수익률</th>
-            <th>최저 수익률</th>
-            <th>패턴</th>
-          </tr>
-        </thead>
-        <tbody id="month-table-body">
-          <tr><td colspan="8" style="text-align:center;">⏳ 데이터를 불러오는 중...</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </main>
+      if (user) {
+        const { data: adminData } = await db
+          .from("admins")
+          .select("uid")
+          .eq("uid", user.id)
+          .maybeSingle();
 
-  <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
+        if (adminData) {
+          isAdmin = true;
+          addPostBtn.style.display = "block";
+        }
+      }
 
-  <script>
-    async function loadMonthTable() {
-      const tbody = document.getElementById("month-table-body");
-      const monthTabs = document.getElementById("month-tabs");
-      const patternButtons = document.querySelectorAll('.pattern-filter button');
-      let allData = [];
+      // ✅ 게시글 불러오기
+      async function loadPosts() {
+        const { data: posts, error } = await db
+          .from("posts")
+          .select("*")
+          .order("created_at", { ascending: false });
 
-      try {
-        console.log("🔄 Supabase 데이터 불러오는 중...");
-        const { data, error } = await SWINGINV.db
-          .from("monthly_performance_view")
-          .select("종목명, 종목코드, 측정일, 측정일종가, 현재가, 측정일대비수익률, 최고수익률, 최저수익률, pattern, 월구분")
-          .order("측정일", { ascending: false });
-
-        if (error) throw error;
-
-        if (!data || data.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;">📭 표시할 데이터가 없습니다.</td></tr>`;
+        if (error) {
+          postList.innerHTML = `<tr><td colspan="3">데이터 로드 오류</td></tr>`;
           return;
         }
 
-        allData = data;
-
-        // ✅ 월 탭 생성
-        const months = [...new Set(data.map(d => d.월구분))].sort((a, b) => b.localeCompare(a));
-        monthTabs.innerHTML = months
-          .map(m => `<button data-month="${m}" ${m === months[0] ? 'class="active"' : ''}>${m}</button>`)
-          .join('');
-
-        function renderTable() {
-          const activeMonth = document.querySelector('#month-tabs button.active')?.dataset.month;
-          const activePattern = document.querySelector('.pattern-filter button.active')?.dataset.pattern;
-
-          tbody.innerHTML = allData
-            .filter(d =>
-              (activeMonth === '전체' || d.월구분 === activeMonth) &&
-              (activePattern === '전체' || (d.pattern || "기타") === activePattern)
-            )
-            .map(d => `
-              <tr class="clickable-row" data-name="${d.종목명}" data-code="${d.종목코드}">
-                <td>${SWINGINV.esc(d.종목명)}</td>
-                <td>${d.측정일}</td>
-                <td>${SWINGINV.nf(d.측정일종가)}</td>
-                <td>${SWINGINV.nf(d.현재가)}</td>
-                <td>${SWINGINV.fmtPct(d.측정일대비수익률)}</td>
-                <td>${SWINGINV.fmtPct(d.최고수익률)}</td>
-                <td>${SWINGINV.fmtPct(d.최저수익률)}</td>
-                <td>${d.pattern || "기타"}</td>
-              </tr>
-            `).join('');
-
-          document.querySelectorAll(".clickable-row").forEach(row => {
-            row.addEventListener("click", () => {
-              const name = encodeURIComponent(row.dataset.name);
-              const code = encodeURIComponent(row.dataset.code);
-              location.href = `detail.html?name=${name}&code=${code}`;
-            });
-          });
-        }
-
-        renderTable();
-
-        // ✅ 월 탭 클릭 이벤트
-        document.querySelectorAll('#month-tabs button').forEach(btn => {
-          btn.addEventListener('click', () => {
-            document.querySelectorAll('#month-tabs button').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            renderTable();
-          });
+        postList.innerHTML = "";
+        posts.forEach((post) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><a href="${post.url}" target="_blank">${post.title}</a></td>
+            <td>${new Date(post.created_at).toLocaleString()}</td>
+            <td>
+              ${
+                isAdmin
+                  ? `<button class="action-btn edit-btn" data-id="${post.id}">수정</button>
+                     <button class="action-btn delete-btn" data-id="${post.id}">삭제</button>`
+                  : "-"
+              }
+            </td>
+          `;
+          postList.appendChild(tr);
         });
-
-        // ✅ 패턴 필터 클릭 이벤트
-        patternButtons.forEach(btn => {
-          btn.addEventListener('click', () => {
-            patternButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            renderTable();
-          });
-        });
-
-      } catch (err) {
-        console.error("❌ 데이터 로드 오류:", err);
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;">데이터를 불러오지 못했습니다.</td></tr>`;
       }
-    }
+
+      await loadPosts();
+
+      // ✅ 글 추가
+      addPostBtn.addEventListener("click", async () => {
+        const title = prompt("제목을 입력하세요:");
+        if (!title) return;
+
+        const url = prompt("링크(URL)를 입력하세요 (예: https://blog.naver.com/...):");
+        if (!url) return;
+
+        const { error } = await db
+          .from("posts")
+          .insert([{ title, url, author_id: user.id }]);
+
+        if (error) alert("등록 실패: " + error.message);
+        else await loadPosts();
+      });
+
+      // ✅ 수정 / 삭제 (이벤트 위임)
+      postList.addEventListener("click", async (e) => {
+        if (!isAdmin) return;
+        const id = e.target.dataset.id;
+
+        if (e.target.classList.contains("edit-btn")) {
+          const title = prompt("새 제목:");
+          if (!title) return;
+
+          const url = prompt("새 URL:");
+          if (!url) return;
+
+          await db.from("posts").update({ title, url }).eq("id", id);
+          await loadPosts();
+        } else if (e.target.classList.contains("delete-btn")) {
+          if (confirm("정말 삭제하시겠습니까?")) {
+            await db.from("posts").delete().eq("id", id);
+            await loadPosts();
+          }
+        }
+      });
+    });
   </script>
 </body>
 </html>
