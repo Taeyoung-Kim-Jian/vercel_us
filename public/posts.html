@@ -3,164 +3,178 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>운영자 게시판</title>
-
-  <!-- ✅ 공통 스타일 -->
-  <link rel="stylesheet" href="../style.css" />
+  <title>운영자 게시판 | SWING INVESTOR</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../common.js"></script>
   <style>
-    h1 {
-      text-align: center;
-      font-size: 1.4rem;
-      margin-top: 20px;
-      margin-bottom: 20px;
+    body { font-family: 'Pretendard', sans-serif; padding: 20px; background: #fafafa; }
+    h1 { font-size: 22px; margin-bottom: 20px; }
+    #header-container { margin-bottom: 20px; }
+
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      background: white; 
+      border-radius: 8px; 
+      overflow: hidden; 
+      font-size: 14px; /* ✅ 테이블 내 글자 크기 줄이기 */
     }
-    #addPostBtn {
-      display: block;
-      margin: 0 auto 20px;
-      padding: 8px 16px;
-      font-size: 0.9rem;
-      border: none;
-      background-color: #0066cc;
-      color: white;
-      border-radius: 6px;
-      cursor: pointer;
+
+    th, td { 
+      padding: 10px; 
+      border-bottom: 1px solid #ddd; 
+      text-align: left; 
     }
-    #addPostBtn:hover {
-      background-color: #004a99;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-      background-color: white;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
-    }
-    th, td {
-      padding: 10px;
-      border-bottom: 1px solid #ddd;
-      text-align: left;
-    }
-    th {
-      background-color: #f4f4f4;
-    }
-    td a {
-      color: #0077cc;
-      text-decoration: none;
-    }
-    td a:hover {
-      text-decoration: underline;
-    }
+
+    a { color: #0077cc; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ✅ 컬럼 비율 조정 */
+    th:nth-child(1), td:nth-child(1) { width: 70%; }
+    th:nth-child(2), td:nth-child(2) { width: 15%; }
+    th:nth-child(3), td:nth-child(3) { width: 15%; }
+
     .action-btn {
-      margin-right: 6px;
-      padding: 4px 8px;
+      background: #2563eb;
+      color: #fff;
       border: none;
+      padding: 4px 8px;
       border-radius: 4px;
-      font-size: 0.8rem;
+      font-size: 12px;
       cursor: pointer;
     }
-    .edit-btn {
-      background-color: #ffaa00;
-      color: white;
+    .action-btn:hover { background: #1d4ed8; }
+
+    .delete-btn { background: #dc2626; }
+    .delete-btn:hover { background: #b91c1c; }
+
+    #addPostBtn { 
+      margin-bottom: 20px; 
+      padding: 8px 14px; 
+      background-color: #0077cc; 
+      color: white; 
+      border: none; 
+      border-radius: 6px; 
+      cursor: pointer;
+      display: none;
+      font-size: 14px;
     }
-    .delete-btn {
-      background-color: #e74c3c;
-      color: white;
-    }
+    #addPostBtn:hover { background-color: #005fa3; }
   </style>
 </head>
 <body>
   <!-- ✅ 공통 헤더 -->
   <div id="header-container"></div>
 
-  <main class="content">
-    <h1>📢 운영자 게시판</h1>
-    <button id="addPostBtn" style="display:none;">+ 글 추가</button>
-    <table>
-      <thead>
-        <tr>
-          <th>제목</th>
-          <th>등록일</th>
-          <th>관리</th>
-        </tr>
-      </thead>
-      <tbody id="postList"></tbody>
-    </table>
-  </main>
+  <h1>📢 운영자 게시판</h1>
+  <button id="addPostBtn">+ 글 추가</button>
 
-  <!-- ✅ 공통 스크립트 -->
-  <script src="../common.js"></script>
+  <table>
+    <thead>
+      <tr>
+        <th>제목</th>
+        <th>등록일</th>
+        <th>관리</th>
+      </tr>
+    </thead>
+    <tbody id="postList"></tbody>
+  </table>
 
   <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      // ✅ 공통 헤더 로드
-      const header = document.getElementById("header-container");
-      const r = await fetch("../header.html");
-      header.innerHTML = await r.text();
+    // ✅ 공통 헤더 로드
+    async function loadHeader() {
+      const res = await fetch("../header.html");
+      const html = await res.text();
+      document.getElementById("header-container").innerHTML = html;
+    }
 
-      // ✅ 공통 auth UI 업데이트 (common.js 함수 활용)
-      if (typeof SWINGINV_updateHeaderAuthUI === "function") {
-        SWINGINV_updateHeaderAuthUI();
-      }
+    loadHeader().then(initBoard);
 
-      // ✅ Supabase 객체 확인
-      if (!window.SWINGINV?.db || !window.SWINGINV?.auth) {
-        console.error("SWINGINV가 초기화되지 않았습니다.");
+    async function initBoard() {
+      if (typeof SWINGINV === 'undefined' || !SWINGINV.db) {
+        console.error("❌ Supabase 초기화 실패 (common.js 확인)");
         return;
       }
 
-      const db = SWINGINV.db;
-      const auth = SWINGINV.auth;
-
-      // ✅ 로그인 유저 가져오기
-      const { data: { user } } = await auth.getUser();
-      const postList = document.getElementById("postList");
+      const supabase = SWINGINV.db;
+      const { data: { user } } = await supabase.auth.getUser();
       const addPostBtn = document.getElementById("addPostBtn");
+      const postList = document.getElementById("postList");
+
       let isAdmin = false;
 
+      // ✅ 운영자 확인
       if (user) {
-        const { data: adminData, error: adminErr } = await db
+        const { data: adminCheck } = await supabase
           .from("admins")
-          .select("uid")
-          .eq("uid", user.id)
+          .select("*")
+          .eq("user_id", user.id)
           .maybeSingle();
 
-        if (!adminErr && adminData) {
+        if (adminCheck) {
           isAdmin = true;
-          addPostBtn.style.display = "block";
+          addPostBtn.style.display = "inline-block";
         }
       }
 
       // ✅ 게시글 불러오기
       async function loadPosts() {
-        const { data: posts, error } = await db
+        const { data: posts, error } = await supabase
           .from("posts")
           .select("*")
           .order("created_at", { ascending: false });
 
         if (error) {
-          console.error("게시글 로드 오류:", error);
-          postList.innerHTML = `<tr><td colspan="3">데이터 로드 오류</td></tr>`;
+          console.error("❌ 게시글 불러오기 실패:", error.message);
           return;
         }
 
         postList.innerHTML = "";
-        posts.forEach((post) => {
+        posts.forEach(post => {
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td><a href="${post.url}" target="_blank">${post.title}</a></td>
             <td>${new Date(post.created_at).toLocaleString()}</td>
             <td>
-              ${
-                isAdmin
-                  ? `<button class="action-btn edit-btn" data-id="${post.id}">수정</button>
-                     <button class="action-btn delete-btn" data-id="${post.id}">삭제</button>`
-                  : "-"
-              }
+              ${isAdmin ? `
+                <button class="action-btn edit-btn" data-id="${post.id}">수정</button>
+                <button class="action-btn delete-btn" data-id="${post.id}">삭제</button>
+              ` : ""}
             </td>
           `;
           postList.appendChild(tr);
+        });
+
+        // ✅ 수정 버튼 클릭
+        document.querySelectorAll(".edit-btn").forEach(btn => {
+          btn.addEventListener("click", async e => {
+            const id = e.target.dataset.id;
+            const { data: post } = await supabase.from("posts").select("*").eq("id", id).single();
+            const newTitle = prompt("새 제목:", post.title);
+            if (!newTitle) return;
+            const newUrl = prompt("새 링크 (https://...):", post.url);
+            if (!newUrl.startsWith("http")) return alert("URL 형식이 잘못되었습니다.");
+            const { error } = await supabase.from("posts").update({ title: newTitle, url: newUrl }).eq("id", id);
+            if (error) alert("❌ 수정 실패: " + error.message);
+            else {
+              alert("✅ 수정 완료");
+              loadPosts();
+            }
+          });
+        });
+
+        // ✅ 삭제 버튼 클릭
+        document.querySelectorAll(".delete-btn").forEach(btn => {
+          btn.addEventListener("click", async e => {
+            const id = e.target.dataset.id;
+            if (!confirm("정말 삭제하시겠습니까?")) return;
+            const { error } = await supabase.from("posts").delete().eq("id", id);
+            if (error) alert("❌ 삭제 실패: " + error.message);
+            else {
+              alert("🗑️ 삭제 완료");
+              loadPosts();
+            }
+          });
         });
       }
 
@@ -168,42 +182,29 @@
 
       // ✅ 글 추가
       addPostBtn.addEventListener("click", async () => {
-        const title = prompt("제목을 입력하세요:");
+        if (!isAdmin) {
+          alert("운영자만 글을 작성할 수 있습니다.");
+          return;
+        }
+
+        const title = prompt("게시글 제목을 입력하세요:");
         if (!title) return;
 
-        const url = prompt("링크(URL)를 입력하세요 (예: https://blog.naver.com/...):");
-        if (!url) return;
+        const url = prompt("이동할 블로그 URL을 입력하세요 (https://...)");
+        if (!url || !url.startsWith("http")) {
+          alert("올바른 URL을 입력하세요.");
+          return;
+        }
 
-        const { error } = await db
-          .from("posts")
-          .insert([{ title, url, author_id: user.id }]);
-
-        if (error) alert("등록 실패: " + error.message);
-        else await loadPosts();
-      });
-
-      // ✅ 수정 / 삭제 (이벤트 위임)
-      postList.addEventListener("click", async (e) => {
-        if (!isAdmin) return;
-        const id = e.target.dataset.id;
-
-        if (e.target.classList.contains("edit-btn")) {
-          const title = prompt("새 제목:");
-          if (!title) return;
-
-          const url = prompt("새 URL:");
-          if (!url) return;
-
-          await db.from("posts").update({ title, url }).eq("id", id);
+        const { error } = await supabase.from("posts").insert([{ title, url }]);
+        if (error) {
+          alert("글 추가 실패: " + error.message);
+        } else {
+          alert("✅ 글이 추가되었습니다!");
           await loadPosts();
-        } else if (e.target.classList.contains("delete-btn")) {
-          if (confirm("정말 삭제하시겠습니까?")) {
-            await db.from("posts").delete().eq("id", id);
-            await loadPosts();
-          }
         }
       });
-    });
+    }
   </script>
 </body>
 </html>
