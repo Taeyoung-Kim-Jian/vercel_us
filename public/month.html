@@ -87,9 +87,10 @@
       let allData = [];
 
       try {
+        // ✅ 종목명 + 종목코드 동시 불러오기
         const { data, error } = await SWINGINV.db
           .from("monthly_performance_view")
-          .select("종목명, 측정일, 측정일종가, 현재가, 측정일대비수익률, 최고수익률, 최저수익률, pattern, 월구분")
+          .select("종목명, 종목코드, 측정일, 측정일종가, 현재가, 측정일대비수익률, 최고수익률, 최저수익률, pattern, 월구분")
           .order("측정일",{ascending:false});
         if(error) throw error;
         if(!data || data.length===0) {
@@ -110,7 +111,7 @@
           tbody.innerHTML = allData
             .filter(d=> (activeMonth==='전체' || d.월구분===activeMonth) && (activePattern==='전체' || (d.pattern || "기타")===activePattern))
             .map(d=>`
-              <tr class="clickable-row" data-name="${d.종목명}">
+              <tr class="clickable-row" data-name="${d.종목명}" data-code="${d.종목코드}">
                 <td>${SWINGINV.esc(d.종목명)}</td>
                 <td>${d.측정일}</td>
                 <td>${SWINGINV.nf(d.측정일종가)}</td>
@@ -122,8 +123,13 @@
               </tr>
             `).join('');
 
+          // ✅ 클릭 시 name + code 함께 전달
           document.querySelectorAll(".clickable-row").forEach(row=>{
-            row.addEventListener("click",()=>{ location.href=`detail.html?name=${encodeURIComponent(row.dataset.name)}`; });
+            row.addEventListener("click",()=>{
+              const name = encodeURIComponent(row.dataset.name);
+              const code = encodeURIComponent(row.dataset.code);
+              location.href=`detail.html?name=${name}&code=${code}`;
+            });
           });
         }
 
