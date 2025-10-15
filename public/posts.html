@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>블로그 링크 게시판 | SWING INVESTOR</title>
+
+  <!-- Tabulator CSS -->
+  <link href="https://unpkg.com/tabulator-tables@5.5.1/dist/css/tabulator.min.css" rel="stylesheet">
+
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Tabulator JS -->
+  <script src="https://unpkg.com/tabulator-tables@5.5.1/dist/js/tabulator.min.js"></script>
+
+  <style>
+    body { font-family: "Pretendard", sans-serif; background:#f8fafc; margin:0; padding:20px; }
+    h2 { text-align:center; color:#1e293b; }
+    #table-container { max-width:900px; margin:20px auto; }
+    #add-post { margin:10px auto; display:block; }
+  </style>
+</head>
+
+<body>
+  <h2>📋 블로그 링크 게시판</h2>
+
+  <button id="add-post">➕ 글 추가</button>
+  <div id="table-container"></div>
+
+  <script>
+    // -------------------------------
+    // 1️⃣ Supabase 초기화
+    // -------------------------------
+    const SUPABASE_URL = "https://sssmldmhcfuodutvvcqf.supabase.co";
+    const SUPABASE_KEY = ""; // 여기에 Supabase anon key 넣기
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // -------------------------------
+    // 2️⃣ Tabulator 초기화
+    // -------------------------------
+    const table = new Tabulator("#table-container", {
+      layout: "fitColumns",
+      placeholder: "⏳ 데이터 로딩 중...",
+      reactiveData: true, // 수정사항 바로 반영
+      columns: [
+        { title: "제목", field: "title", editor: "input", formatter: function(cell){
+          return `<a href="${cell.getRow().getData().url}" target="_blank">${cell.getValue()}</a>`;
+        }},
+        { title: "블로그 URL", field: "url", editor: "input" },
+        { title: "생성일", field: "created_at", formatter: "datetime", sorter: "datetime" },
+        { title: "삭제", formatter:"buttonCross", width:80, align:"center", cellClick: async (e, cell) => {
+          const id = cell.getRow().getData().id;
+          await supabase.from("posts").delete().eq("id", id);
+          cell.getRow().delete();
+        }}
+      ],
+    });
+
+    // -------------------------------
+    // 3️⃣ 데이터 로드
+    // -------------------------------
+    async function loadPosts() {
+      const { data, error } = await supabase.from("posts").select("*").order("created_at", { ascending: false });
+      if(error) return alert("❌ 데이터 로드 실패: " + error.message);
+      table.setData(data);
+    }
+
+    loadPosts();
+
+    // -------------------------------
+    // 4️⃣ 글 추가 버튼
+    // -------------------------------
+    document.getElementById("add-post").addEventListener("click", async () => {
+      const title = prompt("글 제목을 입력하세요:");
+      if(!title) return;
+      const url = prompt("블로그 URL을 입력하세요:");
+      if(!url) return;
+
+      const { data, error } = await supabase.from("posts").insert([{ title, url, created_at: new Date().toISOString() }]).select().single();
+      if(error) return alert("❌ 추가 실패: " + error.message);
+
+      table.addData([data], { addToTop: true });
+    });
+
+    // -------------------------------
+    // 5️⃣ 행 수정 이벤트
+    // -------------------------------
+    table.on("cellEdited", async (cell) => {
+      const row = cell.getRow().getData();
+      const { error } = await supabase.from("posts").update({ title: row.title, url: row.url }).eq("id", row.id);
+      if(error) alert("❌ 수정 실패: " + error.message);
+    });
+  </script>
+</body>
+</html>
