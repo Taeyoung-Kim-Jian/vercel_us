@@ -130,7 +130,7 @@
         const { data: adminData } = await db
           .from("admins")
           .select("uid")
-          .eq("uid", user.id)
+          .eq("uid", String(user.id))
           .single();
 
         if (adminData) {
