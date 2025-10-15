@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>US 전체 성과 | SWING INVESTOR</title>
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="../style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./common.js"></script>
+  <script src="../common.js"></script>
 </head>
 
 <body>
@@ -14,7 +14,7 @@
   <div id="header-container"></div>
   <script>
     async function loadHeader() {
-      const r = await fetch("./header.html");
+      const r = await fetch("../header.html");
       const html = await r.text();
       document.getElementById("header-container").innerHTML = html;
       if(typeof SWINGINV_updateHeaderAuthUI === "function") SWINGINV_updateHeaderAuthUI();
@@ -94,8 +94,7 @@
           });
         }
 
-        // 3️⃣ 수익률 계산 (예시: 시작가 대비)
-        // 여기서는 단순히 시작가가 100이라고 가정, 필요시 실제 시작가 컬럼 사용
+        // 3️⃣ 수익률 계산 (예시: 시작가 100)
         tbody.innerHTML = allRecords.map((r,i)=>{
           const startPrice = 100; 
           const rate = r.price ? ((r.price - startPrice)/startPrice*100) : null;
