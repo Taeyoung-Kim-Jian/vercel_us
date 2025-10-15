@@ -4,29 +4,27 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>US 전체 성과 | SWING INVESTOR</title>
-  
-  <!-- 임시 CSS -->
-  <style>
-    body { font-family: Arial, sans-serif; background:#f9f9f9; margin:0; padding:0; }
-    header, footer { background:#2563eb; color:white; padding:10px 20px; }
-    main { padding:20px; }
-    table { width:100%; border-collapse:collapse; margin-top:20px; }
-    th, td { border:1px solid #ddd; padding:8px; text-align:center; }
-    th { background:#f3f4f6; }
-    tr.clickable-row { cursor:pointer; }
-    tr.clickable-row:hover { background:#e2e8f0; }
-  </style>
-
-  <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <link rel="stylesheet" href="./style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./common.js"></script>
 </head>
+
 <body>
   <!-- ✅ 공통 헤더 -->
-  <header id="header-container">⏳ 로딩 중...</header>
+  <div id="header-container"></div>
+  <script>
+    async function loadHeader() {
+      const r = await fetch("./header.html");
+      const html = await r.text();
+      document.getElementById("header-container").innerHTML = html;
+      if(typeof SWINGINV_updateHeaderAuthUI === "function") SWINGINV_updateHeaderAuthUI();
+    }
+    loadHeader();
+  </script>
 
-  <main>
-    <h2>📊 US 전체 성과 리스트</h2>
-    <p style="color:#555;">모든 미국 종목의 누적 수익률을 확인할 수 있습니다.</p>
+  <main class="content">
+    <h2>📊 US 전체 종목 성과</h2>
+    <p style="color:#555;">모든 US 종목의 누적 수익률을 확인하고 상세 차트로 이동하세요.</p>
 
     <div class="table-container">
       <table>
@@ -34,12 +32,12 @@
           <tr>
             <th>순위</th>
             <th>종목명</th>
-            <th>시작가</th>
+            <th>종목코드</th>
             <th>현재가</th>
             <th>수익률</th>
           </tr>
         </thead>
-        <tbody id="total-list-body">
+        <tbody id="us-total-body">
           <tr><td colspan="5" style="text-align:center;">⏳ 로딩 중...</td></tr>
         </tbody>
       </table>
@@ -48,87 +46,84 @@
 
   <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
 
-  <script defer>
+  <script>
+    async function waitForSwingInv() {
+      return new Promise(resolve => {
+        const check = () => {
+          if(window.SWINGINV?.db) resolve();
+          else setTimeout(check, 100);
+        };
+        check();
+      });
+    }
+
     document.addEventListener("DOMContentLoaded", async () => {
-      // ----------------------
-      // Supabase 초기화
-      // ----------------------
-      const SUPABASE_URL = "https://sssmldmhcfuodutvvcqf.supabase.co";
-      const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzc21sZG1oY2Z1dHZ2Y3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDc2MjUsImV4cCI6MjA3NTA4MzYyNX0.zxw9Hr9Mz9fuV9VIpFcISe-62kary1WABTrOnYZiIN4";
-      const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      await waitForSwingInv();
+      const tbody = document.getElementById("us-total-body");
 
-      const tbody = document.getElementById("total-list-body");
-
-      // ----------------------
-      // US 종목 데이터 로드
-      // ----------------------
       try {
-        // 1️⃣ 전체 종목 코드 + 이름
-        const { data: stocksData, error: stockErr } = await supabaseClient
+        // 1️⃣ us_stocks 전체 조회
+        const { data: stocks, error: stockErr } = await SWINGINV.db
           .from("us_stocks")
           .select("종목코드, 종목명")
           .order("종목명", { ascending: true });
-
-        if (stockErr) throw stockErr;
-        if (!stocksData || stocksData.length === 0) {
+        if(stockErr) throw stockErr;
+        if(!stocks || stocks.length===0){
           tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">📭 종목 데이터가 없습니다.</td></tr>`;
           return;
         }
 
-        // 2️⃣ 각 종목의 최근 가격 가져오기 (us_prices)
+        // 2️⃣ 각 종목별 현재가 조회(us_prices 최신 가격)
         const allRecords = [];
-        for (let stock of stocksData) {
-          const { data: priceData, error: priceErr } = await supabaseClient
+        for(const s of stocks){
+          const { data: priceData, error: priceErr } = await SWINGINV.db
             .from("us_prices")
-            .select("날짜, 종가")
-            .eq("종목코드", stock.종목코드)
-            .order("날짜", { ascending: true })
-            .limit(1); // 가장 최근 가격 한 건
-
-          if (priceErr) continue;
-
-          if (priceData && priceData.length > 0) {
-            const startPrice = parseFloat(priceData[0].종가);
-            allRecords.push({
-              code: stock.종목코드,
-              name: stock.종목명,
-              startPrice,
-              currentPrice: startPrice, // 현재가는 동일하게 설정 (테스트용)
-              return: 0
-            });
+            .select("종가, 날짜")
+            .eq("종목코드", s.종목코드)
+            .order("날짜", { ascending: false })
+            .limit(1); // 최신 1개
+          if(priceErr){
+            console.warn("가격 조회 실패:", s.종목코드, priceErr.message);
+            continue;
           }
+          const currentPrice = priceData && priceData.length>0 ? parseFloat(priceData[0].종가) : null;
+          allRecords.push({
+            code: s.종목코드,
+            name: s.종목명,
+            price: currentPrice
+          });
         }
 
-        if (allRecords.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">📭 가격 데이터가 없습니다.</td></tr>`;
-          return;
-        }
+        // 3️⃣ 수익률 계산 (예시: 시작가 대비)
+        // 여기서는 단순히 시작가가 100이라고 가정, 필요시 실제 시작가 컬럼 사용
+        tbody.innerHTML = allRecords.map((r,i)=>{
+          const startPrice = 100; 
+          const rate = r.price ? ((r.price - startPrice)/startPrice*100) : null;
+          const rateColor = rate>=0 ? "#d32f2f" : "#1976d2";
+          const rateSign = rate>=0 ? "▲" : "▼";
+          return `
+            <tr class="clickable-row" data-code="${r.code}" data-name="${r.name}">
+              <td>${i+1}</td>
+              <td>${r.name}</td>
+              <td>${r.code}</td>
+              <td>${r.price ? r.price.toLocaleString() : "-"}</td>
+              <td style="color:${rateColor}; font-weight:500;">${rate!=null ? rateSign + Math.abs(rate).toFixed(2) + "%" : "-"}</td>
+            </tr>
+          `;
+        }).join("");
 
-        // ----------------------
-        // 테이블 렌더링
-        // ----------------------
-        tbody.innerHTML = allRecords.map((r, i) => `
-          <tr class="clickable-row" data-code="${r.code}" data-name="${r.name}">
-            <td>${i+1}</td>
-            <td>${r.name}</td>
-            <td>${r.startPrice.toLocaleString()}</td>
-            <td>${r.currentPrice.toLocaleString()}</td>
-            <td style="color:#d32f2f;">▲${r.return.toFixed(2)}%</td>
-          </tr>
-        `).join("");
-
-        // 클릭 시 detail 페이지 이동
-        document.querySelectorAll(".clickable-row").forEach(row => {
-          row.addEventListener("click", () => {
+        // 4️⃣ 클릭 시 detail.html 이동
+        document.querySelectorAll(".clickable-row").forEach(row=>{
+          row.addEventListener("click",()=>{
             const code = row.dataset.code;
             const name = row.dataset.name;
             location.href = `detail.html?code=${encodeURIComponent(code)}&name=${encodeURIComponent(name)}`;
           });
         });
 
-      } catch (err) {
+      } catch(err){
         console.error("❌ 데이터 로드 오류:", err);
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">❌ 불러오기 실패: ${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:red;">❌ 불러오기 실패: ${err.message}</td></tr>`;
       }
     });
   </script>
