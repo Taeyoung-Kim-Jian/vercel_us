@@ -91,7 +91,11 @@
       }
     }
 
-    // ✅ 차트 그리기 함수
+    // ------------------------------
+    // ✅ 변경된 부분: showChart
+    //    - 다른 코드는 손대지 않았습니다.
+    //    - btData의 모든 b가격을 각각 수평선(dataset)으로 그림
+    // ------------------------------
     async function showChart(code, name) {
       openModal();
       document.getElementById('modalTitle').textContent = `${name} (${code})`;
@@ -135,51 +139,65 @@
           return;
         }
 
-        // ✅ 차트 데이터 준비
+        // ✅ 차트 데이터 준비 (원본 방식 유지)
         const labels = priceData.map(d => d.날짜);
         const prices = priceData.map(d => d.종가);
 
-        // bt_points를 날짜별로 매핑
-        const btMap = {};
-        if (btData) {
-          btData.forEach(bt => {
-            btMap[bt.b날짜] = bt.b가격;
-          });
+        // ------------------------------
+        // btData의 모든 b가격을 각각의 수평선 dataset으로 생성
+        // ------------------------------
+        const datasets = [];
+
+        // 메인 라인: 종가
+        datasets.push({
+          label: '종가',
+          data: prices,
+          borderColor: '#007bff',
+          backgroundColor: 'rgba(0, 123, 255, 0.1)',
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.1
+        });
+
+        // helper: 색상 생성 (HSL 기반)
+        function hslColor(i, total) {
+          const hue = Math.round((i / Math.max(total,1)) * 360);
+          return `hsl(${hue} 85% 45%)`;
         }
 
-        // 각 날짜에 대응하는 b가격 (없으면 null)
-        const btPrices = labels.map(date => btMap[date] || null);
+        if (btData && btData.length > 0) {
+          // 중복 b가격(같은 값 여러번)도 모두 그리길 원하시면 그대로 순회
+          // 만약 동일값은 하나로 묶고 싶으면 Set을 사용하세요.
+          for (let i = 0; i < btData.length; i++) {
+            const b = btData[i];
+            // 수평선 데이터: labels 길이만큼 같은 값 반복
+            const lineData = labels.map(() => b.b가격);
+
+            datasets.push({
+              label: `B가격 ${b.b날짜}`, // 날짜 포함해서 어떤 라인인지 알 수 있게
+              data: lineData,
+              borderColor: hslColor(i, btData.length),
+              borderWidth: 2,
+              borderDash: [6, 4],
+              pointRadius: 0,
+              showLine: true,
+              tension: 0,
+              // 시각적으로 약간 연하게 표시
+              backgroundColor: 'transparent'
+            });
+          }
+        }
 
         // ✅ Chart.js로 차트 그리기
         chartInstance = new Chart(ctx, {
           type: 'line',
           data: {
             labels: labels,
-            datasets: [
-              {
-                label: '종가',
-                data: prices,
-                borderColor: '#007bff',
-                backgroundColor: 'rgba(0, 123, 255, 0.1)',
-                borderWidth: 2,
-                pointRadius: 0,
-                tension: 0.1
-              },
-              {
-                label: 'B가격',
-                data: btPrices,
-                borderColor: '#ff4444',
-                backgroundColor: '#ff4444',
-                borderWidth: 0,
-                pointRadius: 5,
-                pointStyle: 'circle',
-                showLine: true
-              }
-            ]
+            datasets: datasets
           },
           options: {
-            responsive: false,
-            maintainAspectRatio: false,
+            responsive: true,
+            maintainAspectRatio: true,
             interaction: {
               intersect: false,
               mode: 'index'
@@ -207,25 +225,22 @@
             scales: {
               x: {
                 display: true,
-                grid: { display: true }, // 축선도 숨김
                 title: {
                   display: false,
                   text: '날짜'
                 },
                 ticks: {
-                  display: false // 라벨(날짜) 숨김
- 
+                  maxRotation: 45,
+                  minRotation: 45
                 }
               },
               y: {
                 display: true,
-                grid: { display: true }, // 축선도 숨김
                 title: {
                   display: false,
                   text: '가격 (원)'
                 },
                 ticks: {
-                  display: false, // 라벨(날짜) 숨김
                   callback: function(value) {
                     return new Intl.NumberFormat('ko-KR').format(value);
                   }
