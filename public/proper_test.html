@@ -199,6 +199,62 @@
               intersect: false,
               mode: 'index'
             },
+            options: {
+  responsive: true,
+  maintainAspectRatio: true,
+  interaction: {
+    intersect: false,
+    mode: 'index'
+  },
+  plugins: {
+    legend: {
+      display: false // ✅ 상단 범례 숨기기
+    },
+    title: {
+      display: true, // ✅ 설명문 추가
+      text: "파란선: 종가 / 붉은선: B가격 기준선",
+      color: "#333",
+      font: {
+        size: 14,
+        weight: "normal"
+      },
+      padding: {
+        top: 10,
+        bottom: 10
+      }
+    },
+    tooltip: {
+      callbacks: {
+        label: function(context) {
+          let label = context.dataset.label || '';
+          if (label) label += ': ';
+          if (context.parsed.y !== null)
+            label += new Intl.NumberFormat('ko-KR').format(context.parsed.y) + '원';
+          return label;
+        }
+      }
+    }
+  },
+  scales: {
+    x: {
+      display: false, // ✅ 날짜 라벨 숨기기 (원하면 true)
+      grid: { display: false }
+    },
+    y: {
+      display: true,
+      title: {
+        display: true,
+        text: '가격 (원)'
+      },
+      ticks: {
+        callback: function(value) {
+          return new Intl.NumberFormat('ko-KR').format(value);
+        }
+      }
+    }
+  }
+}
+
             plugins: {
               legend: {
                 display: true,
