@@ -225,6 +225,7 @@
                   text: '가격 (원)'
                 },
                 ticks: {
+                  display: false, // 라벨(날짜) 숨김
                   callback: function(value) {
                     return new Intl.NumberFormat('ko-KR').format(value);
                   }
