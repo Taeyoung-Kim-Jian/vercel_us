@@ -150,7 +150,6 @@
 
         // 메인 라인: 종가
         datasets.push({
-          label: '종가',
           data: prices,
           borderColor: '#007bff',
           backgroundColor: 'rgba(0, 123, 255, 0.1)',
@@ -174,7 +173,6 @@
             const lineData = labels.map(() => b.b가격);
 
             datasets.push({
-              label: `B가격 ${b.b날짜}`, // 날짜 포함해서 어떤 라인인지 알 수 있게
               data: lineData,
               borderColor: hslColor(i, btData.length),
               borderWidth: 2,
