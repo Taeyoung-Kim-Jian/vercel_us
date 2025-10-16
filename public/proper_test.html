@@ -131,18 +131,20 @@
         const labels = priceData.map(d => d.날짜);
         const prices = priceData.map(d => d.종가);
 
-        // ✅ 모든 b가격을 수평선(LineAnnotation)으로 표시
-        const annotations = {};
+        // ✅ b가격 데이터만 따로 라인으로 추가
+        const bLines = [];
         if (btData && btData.length > 0) {
-          btData.forEach((bt, idx) => {
-            annotations[`bLine${idx}`] = {
-              type: 'line',
-              yMin: bt.b가격,
-              yMax: bt.b가격,
+          btData.forEach(bt => {
+            bLines.push({
+              label: 'b가격',
+              data: labels.map(() => bt.b가격),
               borderColor: 'rgba(255, 68, 68, 0.8)',
-              borderWidth: 1.5,
+              borderWidth: 1.2,
               borderDash: [], // 실선
-            };
+              pointRadius: 0,
+              fill: false,
+              tension: 0,
+            });
           });
         }
 
@@ -161,6 +163,7 @@
                 pointRadius: 0,
                 tension: 0.1,
               },
+              ...bLines,
             ],
           },
           options: {
@@ -169,10 +172,9 @@
             interaction: {
               intersect: false,
               mode: 'index',
-            }, // ✅ 콤마 추가 (중요)
+            },
             plugins: {
               legend: { display: false }, // 상단 설명 숨김
-              annotation: { annotations },
               tooltip: {
                 callbacks: {
                   label: function (context) {
@@ -199,7 +201,6 @@
               },
             },
           },
-          plugins: [Chart.registry.getPlugin('annotation')],
         });
       } catch (err) {
         console.error('❌ 차트 로드 오류:', err);
