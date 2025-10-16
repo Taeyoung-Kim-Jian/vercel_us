@@ -78,7 +78,6 @@
   <script>
     let chartInstance = null;
 
-    // ✅ 모달 열기/닫기 함수
     function openModal() {
       document.getElementById('chartModal').style.display = 'flex';
     }
@@ -91,11 +90,7 @@
       }
     }
 
-    // ------------------------------
-    // ✅ 변경된 부분: showChart
-    //    - 다른 코드는 손대지 않았습니다.
-    //    - btData의 모든 b가격을 각각 수평선(dataset)으로 그림
-    // ------------------------------
+    // ✅ 차트 그리기 함수
     async function showChart(code, name) {
       openModal();
       document.getElementById('modalTitle').textContent = `${name} (${code})`;
@@ -103,12 +98,8 @@
       const canvas = document.getElementById('priceChart');
       const ctx = canvas.getContext('2d');
 
-      // 기존 차트 제거
-      if (chartInstance) {
-        chartInstance.destroy();
-      }
+      if (chartInstance) chartInstance.destroy();
 
-      // 로딩 표시
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.font = '16px Arial';
       ctx.fillStyle = '#666';
@@ -116,7 +107,6 @@
       ctx.fillText('차트를 불러오는 중...', canvas.width / 2, canvas.height / 2);
 
       try {
-        // ✅ prices 테이블에서 종가 데이터 가져오기
         const { data: priceData, error: priceError } = await SWINGINV.db
           .from('prices')
           .select('날짜, 종가')
@@ -125,7 +115,6 @@
 
         if (priceError) throw priceError;
 
-        // ✅ bt_points 테이블에서 b가격 데이터 가져오기
         const { data: btData, error: btError } = await SWINGINV.db
           .from('bt_points')
           .select('b날짜, b가격')
@@ -139,170 +128,79 @@
           return;
         }
 
-        // ✅ 차트 데이터 준비 (원본 방식 유지)
         const labels = priceData.map(d => d.날짜);
         const prices = priceData.map(d => d.종가);
 
-        // ------------------------------
-        // btData의 모든 b가격을 각각의 수평선 dataset으로 생성
-        // ------------------------------
-        const datasets = [];
-
-        // 메인 라인: 종가
-        datasets.push({
-          data: prices,
-          borderColor: '#007bff',
-          backgroundColor: 'rgba(0, 123, 255, 0.1)',
-          borderWidth: 2,
-          pointRadius: 0,
-          tension: 0.1
-        });
-
-        // helper: 색상 생성 (HSL 기반)
-        function hslColor(i, total) {
-          const hue = Math.round((i / Math.max(total,1)) * 360);
-          return `hsl(${hue} 85% 45%)`;
-        }
-
+        // ✅ 모든 b가격을 수평선(LineAnnotation)으로 표시
+        const annotations = {};
         if (btData && btData.length > 0) {
-          // 중복 b가격(같은 값 여러번)도 모두 그리길 원하시면 그대로 순회
-          // 만약 동일값은 하나로 묶고 싶으면 Set을 사용하세요.
-          for (let i = 0; i < btData.length; i++) {
-            const b = btData[i];
-            // 수평선 데이터: labels 길이만큼 같은 값 반복
-            const lineData = labels.map(() => b.b가격);
-
-            datasets.push({
-              data: lineData,
-              borderColor: hslColor(i, btData.length),
-              borderWidth: 2,
-              pointRadius: 0,
-              showLine: true,
-              tension: 0,
-              // 시각적으로 약간 연하게 표시
-              backgroundColor: 'transparent'
-            });
-          }
+          btData.forEach((bt, idx) => {
+            annotations[`bLine${idx}`] = {
+              type: 'line',
+              yMin: bt.b가격,
+              yMax: bt.b가격,
+              borderColor: 'rgba(255, 68, 68, 0.8)',
+              borderWidth: 1.5,
+              borderDash: [], // 실선
+            };
+          });
         }
 
-        // ✅ Chart.js로 차트 그리기
+        // ✅ 차트 생성
         chartInstance = new Chart(ctx, {
           type: 'line',
           data: {
-            labels: labels,
-            datasets: datasets
+            labels,
+            datasets: [
+              {
+                label: '종가',
+                data: prices,
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0,123,255,0.1)',
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.1,
+              },
+            ],
           },
           options: {
             responsive: true,
             maintainAspectRatio: true,
             interaction: {
               intersect: false,
-              mode: 'index'
-            },
-            options: {
-  responsive: true,
-  maintainAspectRatio: true,
-  interaction: {
-    intersect: false,
-    mode: 'index'
-  },
-  plugins: {
-    legend: {
-      display: false // ✅ 상단 범례 숨기기
-    },
-    title: {
-      display: true, // ✅ 설명문 추가
-      text: "파란선: 종가 / 붉은선: B가격 기준선",
-      color: "#333",
-      font: {
-        size: 14,
-        weight: "normal"
-      },
-      padding: {
-        top: 10,
-        bottom: 10
-      }
-    },
-    tooltip: {
-  callbacks: {
-    label: function (context) {
-      // ✅ "종가" 데이터셋만 툴팁 표시
-      if (context.dataset.label === "종가") {
-        return "종가: " + new Intl.NumberFormat("ko-KR").format(context.parsed.y) + "원";
-      } else {
-        return null; // ✅ B가격 툴팁 숨김
-      }
-    }
-  }
-},
-  scales: {
-    x: {
-      display: false, // ✅ 날짜 라벨 숨기기 (원하면 true)
-      grid: { display: false }
-    },
-    y: {
-      display: true,
-      title: {
-        display: true,
-        text: '가격 (원)'
-      },
-      ticks: {
-        callback: function(value) {
-          return new Intl.NumberFormat('ko-KR').format(value);
-        }
-      }
-    }
-  }
-}
-
+              mode: 'index',
+            }, // ✅ 콤마 추가 (중요)
             plugins: {
-              legend: {
-                display: true,
-                position: 'top'
-              },
+              legend: { display: false }, // 상단 설명 숨김
+              annotation: { annotations },
               tooltip: {
                 callbacks: {
-                  label: function(context) {
-                    let label = context.dataset.label || '';
-                    if (label) {
-                      label += ': ';
+                  label: function (context) {
+                    if (context.dataset.label === '종가') {
+                      return (
+                        '종가: ' +
+                        new Intl.NumberFormat('ko-KR').format(context.parsed.y) +
+                        '원'
+                      );
                     }
-                    if (context.parsed.y !== null) {
-                      label += new Intl.NumberFormat('ko-KR').format(context.parsed.y) + '원';
-                    }
-                    return label;
-                  }
-                }
-              }
+                    return null;
+                  },
+                },
+              },
             },
             scales: {
               x: {
-                display: true,
-                title: {
-                  display: false,
-                  text: '날짜'
-                },
-                ticks: {
-                  maxRotation: 45,
-                  minRotation: 45
-                }
+                display: false, // 날짜 축 숨김
+                grid: { display: false },
               },
               y: {
-                display: true,
-                title: {
-                  display: false,
-                  text: '가격 (원)'
-                },
-                ticks: {
-                  callback: function(value) {
-                    return new Intl.NumberFormat('ko-KR').format(value);
-                  }
-                }
-              }
-            }
-          }
+                display: false, // 가격 축 숨김
+                grid: { display: false },
+              },
+            },
+          },
+          plugins: [Chart.registry.getPlugin('annotation')],
         });
-
       } catch (err) {
         console.error('❌ 차트 로드 오류:', err);
         ctx.fillStyle = '#ff4444';
@@ -310,58 +208,55 @@
       }
     }
 
-    document.addEventListener("DOMContentLoaded", async () => {
-      const tbody = document.getElementById("swing-table-body");
+    document.addEventListener('DOMContentLoaded', async () => {
+      const tbody = document.getElementById('swing-table-body');
       SWINGINV.showLoading(tbody);
 
-      // ✅ 모달 닫기 이벤트
       document.querySelector('.modal-close').addEventListener('click', closeModal);
-      document.getElementById('chartModal').addEventListener('click', (e) => {
+      document.getElementById('chartModal').addEventListener('click', e => {
         if (e.target.id === 'chartModal') closeModal();
       });
 
       try {
-        // ✅ Supabase에서 pattern 포함 데이터 가져오기
         const { data, error } = await SWINGINV.db
-          .from("swing_proper_view")
-          .select("종목코드, 종목명, 적정매수가, 현재가, 괴리율, pattern")
-          .order("괴리율", { ascending: true });
+          .from('swing_proper_view')
+          .select('종목코드, 종목명, 적정매수가, 현재가, 괴리율, pattern')
+          .order('괴리율', { ascending: true });
 
         if (error) throw error;
 
         if (!data || data.length === 0) {
-          SWINGINV.showError(tbody, "📭 표시할 종목이 없습니다.");
+          SWINGINV.showError(tbody, '📭 표시할 종목이 없습니다.');
           return;
         }
 
-        // ✅ 데이터 렌더링 (pattern 포함)
         tbody.innerHTML = data
           .map(
-            (r) => `
+            r => `
               <tr class="clickable-row" data-code="${r.종목코드}" data-name="${r.종목명}">
                 <td>${SWINGINV.esc(r.종목명)}</td>
                 <td style="text-align:center;">${SWINGINV.nf(r.적정매수가)}</td>
                 <td style="text-align:center;">${SWINGINV.nf(r.현재가)}</td>
                 <td style="text-align:center;">${SWINGINV.fmtPct(r.괴리율)}</td>
-                <td style="text-align:center;">${r.pattern ? r.pattern : "기타"}</td>
+                <td style="text-align:center;">${r.pattern ? r.pattern : '기타'}</td>
               </tr>
-            `
+            `,
           )
-          .join("");
+          .join('');
 
-        // ✅ 클릭 시 모달 차트 표시
-        document.querySelectorAll(".clickable-row").forEach((row) => {
-          row.addEventListener("click", () => {
+        document.querySelectorAll('.clickable-row').forEach(row => {
+          row.addEventListener('click', () => {
             const name = row.dataset.name;
             const code = row.dataset.code;
             showChart(code, name);
           });
         });
 
-        // ✅ 패턴 필터 기능
         document.querySelectorAll('.pattern-filter button').forEach(btn => {
           btn.addEventListener('click', () => {
-            document.querySelectorAll('.pattern-filter button').forEach(b => b.classList.remove('active'));
+            document
+              .querySelectorAll('.pattern-filter button')
+              .forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
             const pattern = btn.dataset.pattern;
@@ -371,18 +266,17 @@
               const cell = row.querySelector('td:nth-child(5)');
               if (!cell) return;
               const rowPattern = cell.textContent.trim();
-              if (pattern === "전체" || rowPattern === pattern) {
-                row.style.display = "";
+              if (pattern === '전체' || rowPattern === pattern) {
+                row.style.display = '';
               } else {
-                row.style.display = "none";
+                row.style.display = 'none';
               }
             });
           });
         });
-
       } catch (err) {
-        console.error("❌ 데이터 로드 오류:", err);
-        SWINGINV.showError(tbody, "데이터를 불러오지 못했습니다.");
+        console.error('❌ 데이터 로드 오류:', err);
+        SWINGINV.showError(tbody, '데이터를 불러오지 못했습니다.');
       }
     });
   </script>
