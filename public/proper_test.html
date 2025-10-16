@@ -224,17 +224,17 @@
       }
     },
     tooltip: {
-      callbacks: {
-        label: function(context) {
-          let label = context.dataset.label || '';
-          if (label) label += ': ';
-          if (context.parsed.y !== null)
-            label += new Intl.NumberFormat('ko-KR').format(context.parsed.y) + '원';
-          return label;
-        }
+  callbacks: {
+    label: function (context) {
+      // ✅ "종가" 데이터셋만 툴팁 표시
+      if (context.dataset.label === "종가") {
+        return "종가: " + new Intl.NumberFormat("ko-KR").format(context.parsed.y) + "원";
+      } else {
+        return null; // ✅ B가격 툴팁 숨김
       }
     }
-  },
+  }
+},
   scales: {
     x: {
       display: false, // ✅ 날짜 라벨 숨기기 (원하면 true)
