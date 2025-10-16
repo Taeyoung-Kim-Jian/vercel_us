@@ -8,6 +8,7 @@
   <!-- ✅ 기본 스타일 -->
   <link rel="stylesheet" href="./style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script src="./common.js"></script>
 </head>
 
@@ -59,13 +60,194 @@
     </div>
   </main>
 
+  <!-- ✅ 모달 창 -->
+  <div id="chartModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle">종목 차트</h3>
+        <span class="modal-close">&times;</span>
+      </div>
+      <div class="modal-body">
+        <canvas id="priceChart"></canvas>
+      </div>
+    </div>
+  </div>
+
   <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
 
-  <!-- ✅ proper.js 통합 -->
   <script>
+    let chartInstance = null;
+
+    // ✅ 모달 열기/닫기 함수
+    function openModal() {
+      document.getElementById('chartModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('chartModal').style.display = 'none';
+      if (chartInstance) {
+        chartInstance.destroy();
+        chartInstance = null;
+      }
+    }
+
+    // ✅ 차트 그리기 함수
+    async function showChart(code, name) {
+      openModal();
+      document.getElementById('modalTitle').textContent = `${name} (${code})`;
+
+      const canvas = document.getElementById('priceChart');
+      const ctx = canvas.getContext('2d');
+
+      // 기존 차트 제거
+      if (chartInstance) {
+        chartInstance.destroy();
+      }
+
+      // 로딩 표시
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = '16px Arial';
+      ctx.fillStyle = '#666';
+      ctx.textAlign = 'center';
+      ctx.fillText('차트를 불러오는 중...', canvas.width / 2, canvas.height / 2);
+
+      try {
+        // ✅ prices 테이블에서 종가 데이터 가져오기
+        const { data: priceData, error: priceError } = await SWINGINV.db
+          .from('prices')
+          .select('날짜, 종가')
+          .eq('종목코드', code)
+          .order('날짜', { ascending: true });
+
+        if (priceError) throw priceError;
+
+        // ✅ bt_points 테이블에서 b가격 데이터 가져오기
+        const { data: btData, error: btError } = await SWINGINV.db
+          .from('bt_points')
+          .select('b날짜, b가격')
+          .eq('종목코드', code)
+          .order('b날짜', { ascending: true });
+
+        if (btError) throw btError;
+
+        if (!priceData || priceData.length === 0) {
+          ctx.fillText('가격 데이터가 없습니다.', canvas.width / 2, canvas.height / 2);
+          return;
+        }
+
+        // ✅ 차트 데이터 준비
+        const labels = priceData.map(d => d.날짜);
+        const prices = priceData.map(d => d.종가);
+
+        // bt_points를 날짜별로 매핑
+        const btMap = {};
+        if (btData) {
+          btData.forEach(bt => {
+            btMap[bt.b날짜] = bt.b가격;
+          });
+        }
+
+        // 각 날짜에 대응하는 b가격 (없으면 null)
+        const btPrices = labels.map(date => btMap[date] || null);
+
+        // ✅ Chart.js로 차트 그리기
+        chartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: '종가',
+                data: prices,
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.1
+              },
+              {
+                label: 'B가격',
+                data: btPrices,
+                borderColor: '#ff4444',
+                backgroundColor: '#ff4444',
+                borderWidth: 0,
+                pointRadius: 5,
+                pointStyle: 'circle',
+                showLine: false
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            interaction: {
+              intersect: false,
+              mode: 'index'
+            },
+            plugins: {
+              legend: {
+                display: true,
+                position: 'top'
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    let label = context.dataset.label || '';
+                    if (label) {
+                      label += ': ';
+                    }
+                    if (context.parsed.y !== null) {
+                      label += new Intl.NumberFormat('ko-KR').format(context.parsed.y) + '원';
+                    }
+                    return label;
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                display: true,
+                title: {
+                  display: true,
+                  text: '날짜'
+                },
+                ticks: {
+                  maxRotation: 45,
+                  minRotation: 45
+                }
+              },
+              y: {
+                display: true,
+                title: {
+                  display: true,
+                  text: '가격 (원)'
+                },
+                ticks: {
+                  callback: function(value) {
+                    return new Intl.NumberFormat('ko-KR').format(value);
+                  }
+                }
+              }
+            }
+          }
+        });
+
+      } catch (err) {
+        console.error('❌ 차트 로드 오류:', err);
+        ctx.fillStyle = '#ff4444';
+        ctx.fillText('차트를 불러올 수 없습니다.', canvas.width / 2, canvas.height / 2);
+      }
+    }
+
     document.addEventListener("DOMContentLoaded", async () => {
       const tbody = document.getElementById("swing-table-body");
       SWINGINV.showLoading(tbody);
+
+      // ✅ 모달 닫기 이벤트
+      document.querySelector('.modal-close').addEventListener('click', closeModal);
+      document.getElementById('chartModal').addEventListener('click', (e) => {
+        if (e.target.id === 'chartModal') closeModal();
+      });
 
       try {
         // ✅ Supabase에서 pattern 포함 데이터 가져오기
@@ -96,12 +278,12 @@
           )
           .join("");
 
-        // ✅ 클릭 시 detail.html로 이동
+        // ✅ 클릭 시 모달 차트 표시
         document.querySelectorAll(".clickable-row").forEach((row) => {
           row.addEventListener("click", () => {
             const name = row.dataset.name;
             const code = row.dataset.code;
-            location.href = `detail.html?name=${encodeURIComponent(name)}&code=${code}`;
+            showChart(code, name);
           });
         });
 
@@ -134,7 +316,7 @@
     });
   </script>
 
-  <!-- ✅ 필터 스타일 -->
+  <!-- ✅ 스타일 -->
   <style>
     .pattern-filter {
       margin: 16px 0;
@@ -157,6 +339,65 @@
     }
     .pattern-filter button:hover {
       background: #007bff20;
+    }
+
+    /* 모달 스타일 */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background-color: #fff;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 900px;
+      max-height: 90vh;
+      overflow: auto;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      font-size: 1.5rem;
+      color: #333;
+    }
+
+    .modal-close {
+      font-size: 28px;
+      font-weight: bold;
+      color: #aaa;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .modal-close:hover {
+      color: #000;
+    }
+
+    .modal-body {
+      padding: 20px;
+    }
+
+    #priceChart {
+      width: 100% !important;
+      height: 400px !important;
     }
   </style>
 </body>
