@@ -6,7 +6,9 @@
   <title>월별 성과 | SWING INVESTOR</title>
   <link rel="stylesheet" href="./style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5"></script>
   <script src="./common.js"></script>
+  <script src="./modal.js"></script>
 </head>
 
 <body>
@@ -123,14 +125,8 @@
               </tr>
             `).join('');
 
-          // ✅ 클릭 시 name + code 함께 전달
-          document.querySelectorAll(".clickable-row").forEach(row=>{
-            row.addEventListener("click",()=>{
-              const name = encodeURIComponent(row.dataset.name);
-              const code = encodeURIComponent(row.dataset.code);
-              location.href=`detail.html?name=${name}&code=${code}`;
-            });
-          });
+          // ✅ 모달창으로 상세 정보 표시
+          bindStockClickEvents();
         }
 
         renderTable();

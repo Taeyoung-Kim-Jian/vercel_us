@@ -6,7 +6,9 @@
   <title>랭킹 | SWING INVESTOR</title>
   <link rel="stylesheet" href="./style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5"></script>
   <script src="./common.js"></script>
+  <script src="./modal.js"></script>
 
   <style>
     body { font-family: 'Noto Sans KR', sans-serif; background: #f8fafc; margin: 0; padding: 0; }
@@ -137,9 +139,8 @@
         html+="</tbody></table>";
         container.innerHTML=html;
 
-        document.querySelectorAll(".clickable-name").forEach(el=>{
-          el.addEventListener("click",()=>{ const code=el.dataset.code; const name=encodeURIComponent(el.dataset.name); if(!code){alert("⚠️ 종목코드가 없습니다.");return;} window.location.href=`test.html?code=${code}&name=${name}`; });
-        });
+        // ✅ 모달창으로 상세 정보 표시
+        bindStockClickEvents();
         if(enableDelete) attachDeleteHandlers();
 
         const tableEl = container.querySelector("table");

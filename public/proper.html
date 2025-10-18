@@ -8,7 +8,9 @@
   <!-- ✅ 기본 스타일 -->
   <link rel="stylesheet" href="./style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5"></script>
   <script src="./common.js"></script>
+  <script src="./modal.js"></script>
 </head>
 
 <body>
@@ -119,6 +121,9 @@
             });
           });
         });
+
+        // ✅ 종목명 클릭 이벤트 - 모달로 표시
+        bindStockClickEvents();
 
       } catch (err) {
         console.error("❌ 데이터 로드 오류:", err);

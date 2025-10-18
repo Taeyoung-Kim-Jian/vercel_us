@@ -47,16 +47,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       })
       .join("");
 
-    // ✅ 차트 페이지(detail.html) 이동 이벤트
-    document.querySelectorAll(".clickable-row").forEach((row) => {
-      row.addEventListener("click", () => {
-        const code = row.dataset.code;
-        const name = row.dataset.name;
-        if (!code || !name) return;
-        // detail 페이지로 이동
-        location.href = `detail.html?code=${encodeURIComponent(code)}&name=${encodeURIComponent(name)}`;
-      });
-    });
+    // ✅ 모달창으로 상세 정보 표시
+    bindStockClickEvents();
   } catch (err) {
     console.error("❌ 데이터 로드 오류:", err);
     tbody.innerHTML = `

@@ -8,7 +8,9 @@
   <!-- 공통 스타일 & JS -->
   <link rel="stylesheet" href="./style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5"></script>
   <script src="./common.js"></script>
+  <script src="./modal.js"></script>
 </head>
 
 <body>
@@ -167,6 +169,9 @@
       renderTotalPage();
       loadMoreTotalBtn.addEventListener("click", ()=>{location.href="total.html";});
 
+      // 종목명 클릭 이벤트 바인딩
+      bindStockClickEvents();
+
       // 스윙 테이블
       const renderSwingPage = () => {
         const start = swingPage*PAGE_SIZE;
@@ -186,6 +191,9 @@
       };
       renderSwingPage();
       loadMoreSwingBtn.addEventListener("click", ()=>{location.href="proper.html";});
+
+      // 종목명 클릭 이벤트 바인딩
+      bindStockClickEvents();
 
     } catch(err){
       console.error("❌ 데이터 로딩 오류:",err);
