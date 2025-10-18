@@ -115,6 +115,9 @@ async function loadStockDetailData(code, name) {
     throw new Error('차트 데이터가 없습니다.');
   }
 
+  // 최신 종가 (관심종목 등록 시 사용)
+  const latestPrice = pricesData[pricesData.length - 1]?.종가 || 0;
+
   // ✅ bt_points 테이블에서 B가격 데이터 조회
   const { data: btData, error: btError } = await SWINGINV.db
     .from('bt_points')
@@ -171,16 +174,18 @@ async function loadStockDetailData(code, name) {
   // 관심종목 토글 이벤트
   const handleWatchToggle = async () => {
     if (!SWINGINV.user) {
-      alert('로그인이 필요합니다.');
+      alert('⚠️ 로그인이 필요합니다.\n\n관심종목 등록 기능은 로그인 후 사용 가능합니다.');
       watchToggle.checked = false;
       return;
     }
 
     if (watchToggle.checked) {
+      // ✅ 등록종가 추가
       const { error } = await SWINGINV.db.from('watchlist').insert({
         user_id: SWINGINV.user.id,
         종목코드: code,
         종목명: name,
+        등록종가: latestPrice,
       });
       if (error) {
         console.error('❌ 관심종목 등록 실패:', error);
@@ -233,33 +238,42 @@ function renderModalChart(data, name, showB, btData) {
     },
   ];
 
-  // B가격 처리: bt_points의 b날짜와 b가격을 이용하여 선으로 연결
+  // ✅ B가격을 각각 수평선(markLine)으로 표시
+  const markLines = [];
   if (showB && btData && btData.length > 0) {
-    // B가격 데이터를 날짜 인덱스별로 매핑
-    const bPriceData = new Array(dates.length).fill(null);
-
-    btData.forEach(bt => {
-      if (bt.b날짜 && bt.b가격) {
-        const bDateKey = new Date(bt.b날짜).toISOString().split('T')[0];
-        const index = dates.indexOf(bDateKey);
-        if (index !== -1) {
-          bPriceData[index] = bt.b가격;
-        }
+    btData.forEach((bt, index) => {
+      if (bt.b가격) {
+        markLines.push({
+          name: `B${index + 1}`,
+          yAxis: bt.b가격,
+          label: {
+            formatter: `B${index + 1}: {c}`,
+            position: 'end',
+            color: '#dc2626',
+            fontSize: 11,
+          },
+          lineStyle: {
+            color: '#dc2626',
+            width: 2,
+            type: 'dashed',
+          },
+        });
       }
     });
 
-    // null이 아닌 값들을 선으로 연결
-    series.push({
-      name: 'B가격',
-      type: 'line',
-      data: bPriceData,
-      smooth: false,
-      connectNulls: true, // null 값을 건너뛰고 선 연결
-      lineStyle: { color: '#dc2626', width: 2, type: 'dashed' },
-      itemStyle: { color: '#dc2626' },
-      symbol: 'circle',
-      symbolSize: 6,
-    });
+    // 종가 시리즈에 markLine 추가
+    if (markLines.length > 0) {
+      series[0].markLine = {
+        silent: false,
+        symbol: 'none',
+        data: markLines,
+      };
+    }
+  }
+
+  const legendData = ['종가'];
+  if (showB && markLines.length > 0) {
+    legendData.push('B가격');
   }
 
   const option = {
@@ -281,7 +295,7 @@ function renderModalChart(data, name, showB, btData) {
       },
     },
     legend: {
-      data: showB ? ['종가', 'B가격'] : ['종가'],
+      data: legendData,
       top: 30,
     },
     grid: { left: '3%', right: '4%', bottom: '10%', containLabel: true },
