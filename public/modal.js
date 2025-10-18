@@ -233,12 +233,28 @@ function renderModalChart(data, name, showB, btData) {
       type: 'line',
       data: prices,
       smooth: true,
-      lineStyle: { color: '#2563eb', width: 2 },
-      itemStyle: { color: '#2563eb' },
+      lineStyle: {
+        color: '#2563eb',
+        width: 3,
+        shadowColor: 'rgba(37, 99, 235, 0.3)',
+        shadowBlur: 4,
+        shadowOffsetY: 2,
+      },
+      itemStyle: {
+        color: '#2563eb',
+        borderWidth: 2,
+        borderColor: '#fff',
+      },
+      emphasis: {
+        focus: 'series',
+        lineStyle: {
+          width: 4,
+        },
+      },
     },
   ];
 
-  // ✅ B가격을 각각 수평선(markLine)으로 표시
+  // ✅ B가격을 각각 수평선(markLine)으로 표시 - 흐린 회색으로 배경처럼 표시
   const markLines = [];
   if (showB && btData && btData.length > 0) {
     btData.forEach((bt, index) => {
@@ -249,13 +265,17 @@ function renderModalChart(data, name, showB, btData) {
           label: {
             formatter: `B${index + 1}: {c}`,
             position: 'end',
-            color: '#dc2626',
-            fontSize: 11,
+            color: '#9ca3af',
+            fontSize: 10,
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            padding: [2, 4],
+            borderRadius: 3,
           },
           lineStyle: {
-            color: '#dc2626',
-            width: 2,
+            color: '#d1d5db',
+            width: 1.5,
             type: 'dashed',
+            opacity: 0.6,
           },
         });
       }
@@ -280,40 +300,104 @@ function renderModalChart(data, name, showB, btData) {
     title: {
       text: name,
       left: 'center',
-      textStyle: { fontSize: 18, fontWeight: 'bold' },
+      textStyle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#1f2937',
+      },
     },
     tooltip: {
       trigger: 'axis',
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      borderColor: '#e5e7eb',
+      borderWidth: 1,
+      textStyle: {
+        color: '#374151',
+        fontSize: 13,
+      },
       formatter: (params) => {
-        let res = `${params[0].axisValue}<br/>`;
+        let res = `<div style="font-weight:600;margin-bottom:6px;">${params[0].axisValue}</div>`;
         params.forEach((p) => {
           if (p.value !== null && p.value !== undefined) {
-            res += `${p.marker} ${p.seriesName}: ${p.value?.toLocaleString() || '-'}<br/>`;
+            res += `${p.marker} ${p.seriesName}: <span style="font-weight:600;">${p.value?.toLocaleString()}</span><br/>`;
           }
         });
         return res;
+      },
+      axisPointer: {
+        type: 'cross',
+        lineStyle: {
+          color: '#9ca3af',
+          type: 'dashed',
+        },
       },
     },
     legend: {
       data: legendData,
       top: 30,
+      textStyle: {
+        fontSize: 12,
+        color: '#6b7280',
+      },
     },
-    grid: { left: '3%', right: '4%', bottom: '10%', containLabel: true },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '10%',
+      top: '15%',
+      containLabel: true,
+      backgroundColor: '#fafafa',
+    },
     xAxis: {
       type: 'category',
       data: dates,
       boundaryGap: false,
+      axisLine: {
+        lineStyle: { color: '#d1d5db' },
+      },
+      axisLabel: {
+        color: '#6b7280',
+        fontSize: 11,
+      },
     },
     yAxis: {
       type: 'value',
       scale: true,
+      axisLine: {
+        lineStyle: { color: '#d1d5db' },
+      },
       axisLabel: {
         formatter: (v) => v.toLocaleString(),
+        color: '#6b7280',
+        fontSize: 11,
+      },
+      splitLine: {
+        lineStyle: {
+          color: '#e5e7eb',
+          type: 'solid',
+        },
       },
     },
     dataZoom: [
-      { type: 'inside', start: 0, end: 100 },
-      { start: 0, end: 100 },
+      {
+        type: 'inside',
+        start: 0,
+        end: 100,
+        zoomOnMouseWheel: 'ctrl',
+      },
+      {
+        start: 0,
+        end: 100,
+        height: 25,
+        bottom: 10,
+        borderColor: '#d1d5db',
+        textStyle: {
+          color: '#6b7280',
+        },
+        handleStyle: {
+          color: '#2563eb',
+        },
+      },
     ],
     series,
   };
