@@ -103,17 +103,46 @@ async function loadStockDetailData(code, name) {
 
   subtitle.textContent = `종목코드: ${code}`;
 
-  // 데이터 조회
-  const { data, error } = await SWINGINV.db
-    .from('daily_price')
-    .select('*')
+  // ✅ prices 테이블에서 종가 데이터 조회
+  const { data: pricesData, error: pricesError } = await SWINGINV.db
+    .from('prices')
+    .select('날짜, 종가, 시가, 고가, 저가, 거래량')
     .eq('종목코드', code)
     .order('날짜', { ascending: true });
 
-  if (error) throw error;
-  if (!data || data.length === 0) {
+  if (pricesError) throw pricesError;
+  if (!pricesData || pricesData.length === 0) {
     throw new Error('차트 데이터가 없습니다.');
   }
+
+  // ✅ bt_points 테이블에서 B가격 데이터 조회
+  const { data: btData, error: btError } = await SWINGINV.db
+    .from('bt_points')
+    .select('순번, b날짜, b가격, t날짜, t가격')
+    .eq('종목코드', code)
+    .order('순번', { ascending: true });
+
+  if (btError) console.warn('⚠️ B가격 데이터 조회 실패:', btError);
+
+  // B가격 데이터를 날짜별로 매핑 (b날짜 기준)
+  const bPriceMap = {};
+  if (btData && btData.length > 0) {
+    btData.forEach(bt => {
+      if (bt.b날짜 && bt.b가격) {
+        const dateKey = new Date(bt.b날짜).toISOString().split('T')[0];
+        bPriceMap[dateKey] = bt.b가격;
+      }
+    });
+  }
+
+  // prices 데이터에 B가격 정보 추가
+  const mergedData = pricesData.map(p => {
+    const dateKey = p.날짜;
+    return {
+      ...p,
+      B가격: bPriceMap[dateKey] || null
+    };
+  });
 
   // 관심종목 상태 확인
   if (SWINGINV.user) {
@@ -130,15 +159,17 @@ async function loadStockDetailData(code, name) {
   }
 
   // 차트 렌더링
-  renderModalChart(data, name, toggleB.checked);
+  renderModalChart(mergedData, name, toggleB.checked, btData);
 
   // B가격 토글 이벤트
-  toggleB.addEventListener('change', () => {
-    renderModalChart(data, name, toggleB.checked);
-  });
+  const handleToggleB = () => {
+    renderModalChart(mergedData, name, toggleB.checked, btData);
+  };
+  toggleB.removeEventListener('change', handleToggleB);
+  toggleB.addEventListener('change', handleToggleB);
 
   // 관심종목 토글 이벤트
-  watchToggle.addEventListener('change', async () => {
+  const handleWatchToggle = async () => {
     if (!SWINGINV.user) {
       alert('로그인이 필요합니다.');
       watchToggle.checked = false;
@@ -172,11 +203,13 @@ async function loadStockDetailData(code, name) {
         alert('✅ 관심종목에서 제거되었습니다.');
       }
     }
-  });
+  };
+  watchToggle.removeEventListener('change', handleWatchToggle);
+  watchToggle.addEventListener('change', handleWatchToggle);
 }
 
 // ECharts 차트 렌더링
-function renderModalChart(data, name, showB) {
+function renderModalChart(data, name, showB, btData) {
   const chartDiv = document.getElementById('modal-chart');
 
   if (window.modalChartInstance) {
@@ -188,7 +221,6 @@ function renderModalChart(data, name, showB) {
 
   const dates = data.map((r) => r.날짜);
   const prices = data.map((r) => r.종가);
-  const bPrices = showB ? data.map((r) => r.B가격) : [];
 
   const series = [
     {
@@ -201,14 +233,32 @@ function renderModalChart(data, name, showB) {
     },
   ];
 
-  if (showB) {
+  // B가격 처리: bt_points의 b날짜와 b가격을 이용하여 선으로 연결
+  if (showB && btData && btData.length > 0) {
+    // B가격 데이터를 날짜 인덱스별로 매핑
+    const bPriceData = new Array(dates.length).fill(null);
+
+    btData.forEach(bt => {
+      if (bt.b날짜 && bt.b가격) {
+        const bDateKey = new Date(bt.b날짜).toISOString().split('T')[0];
+        const index = dates.indexOf(bDateKey);
+        if (index !== -1) {
+          bPriceData[index] = bt.b가격;
+        }
+      }
+    });
+
+    // null이 아닌 값들을 선으로 연결
     series.push({
       name: 'B가격',
       type: 'line',
-      data: bPrices,
-      smooth: true,
-      lineStyle: { color: '#dc2626', width: 2 },
+      data: bPriceData,
+      smooth: false,
+      connectNulls: true, // null 값을 건너뛰고 선 연결
+      lineStyle: { color: '#dc2626', width: 2, type: 'dashed' },
       itemStyle: { color: '#dc2626' },
+      symbol: 'circle',
+      symbolSize: 6,
     });
   }
 
@@ -223,7 +273,9 @@ function renderModalChart(data, name, showB) {
       formatter: (params) => {
         let res = `${params[0].axisValue}<br/>`;
         params.forEach((p) => {
-          res += `${p.marker} ${p.seriesName}: ${p.value?.toLocaleString() || '-'}<br/>`;
+          if (p.value !== null && p.value !== undefined) {
+            res += `${p.marker} ${p.seriesName}: ${p.value?.toLocaleString() || '-'}<br/>`;
+          }
         });
         return res;
       },
@@ -255,7 +307,9 @@ function renderModalChart(data, name, showB) {
   chart.setOption(option);
 
   // 반응형 처리
-  window.addEventListener('resize', () => chart.resize());
+  const resizeHandler = () => chart.resize();
+  window.removeEventListener('resize', resizeHandler);
+  window.addEventListener('resize', resizeHandler);
 }
 
 // 페이지 로드 시 모달 초기화
