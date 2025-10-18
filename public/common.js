@@ -186,13 +186,6 @@ window.SWINGINV_updateHeaderAuthUI = async () => {
 };
 
 // ------------------------------------------------------------
-// ✅ 6. 페이지 로드 후 헤더 갱신
-// ------------------------------------------------------------
-document.addEventListener("DOMContentLoaded", () => {
-  setTimeout(window.SWINGINV_updateHeaderAuthUI, 500);
-});
-
-// ------------------------------------------------------------
 // ✅ 7. window.db 호환성 alias 추가
 // ------------------------------------------------------------
 if (window.SWINGINV?.db) {

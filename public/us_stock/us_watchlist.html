@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>US 관심종목 | SWING INVESTOR</title>
+  <link rel="stylesheet" href="../style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../common.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5"></script>
+</head>
+<body>
+  <!-- ✅ US 전용 헤더 -->
+  <div id="header-container"></div>
+  <script>
+    fetch("./us_header.html")
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById("header-container").innerHTML = html;
+        if (typeof SWINGINV_updateHeaderAuthUI === "function") SWINGINV_updateHeaderAuthUI();
+      });
+  </script>
+
+  <main class="content">
+    <h2>⭐ US 관심종목</h2>
+    <p style="color:#555;">나의 US 관심종목을 확인하고 관리하세요.</p>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>종목명</th>
+            <th>종목코드</th>
+            <th>등록일</th>
+            <th>등록 시 가격</th>
+            <th>현재가</th>
+            <th>수익률</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody id="us-watchlist-body">
+          <tr><td colspan="7" style="text-align:center;">⏳ 데이터를 불러오는 중...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      await new Promise(resolve => {
+        const interval = setInterval(() => {
+            if (window.SWINGINV?.db) { clearInterval(interval); resolve(); }
+        }, 100);
+      });
+
+      const tbody = document.getElementById("us-watchlist-body");
+      const user = SWINGINV.user;
+
+      if (!user) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">🔐 로그인 후 이용해주세요.</td></tr>`;
+        return;
+      }
+
+      // TODO: US 관심종목 데이터 로직 구현
+      // 1. watchlist에서 user_id로 종목 목록 조회
+      // 2. 각 종목의 최신 가격을 us_prices에서 조회
+      // 3. 수익률 계산 후 테이블 렌더링
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">🚧 이 페이지는 현재 개발 중입니다.</td></tr>`;
+    });
+  </script>
+  <script src="./us_modal.js"></script>
+</body>
+</html>

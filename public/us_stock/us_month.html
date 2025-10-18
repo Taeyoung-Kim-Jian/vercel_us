@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>US 월별 성과 | SWING INVESTOR</title>
+  <link rel="stylesheet" href="../style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../common.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5"></script>
+</head>
+<body>
+  <!-- ✅ US 전용 헤더 -->
+  <div id="header-container"></div>
+  <script>
+    fetch("./us_header.html")
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById("header-container").innerHTML = html;
+        if (typeof SWINGINV_updateHeaderAuthUI === "function") SWINGINV_updateHeaderAuthUI();
+      });
+  </script>
+
+  <main class="content">
+    <h2>📅 US 월별 성과</h2>
+    <p style="color:#555;">US 주식의 월별 성과를 확인합니다. (개발 중)</p>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>종목명</th>
+            <th>측정일</th>
+            <th>수익률</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="3" style="text-align:center;">🚧 이 페이지는 현재 개발 중입니다.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
+  <script src="./us_modal.js"></script>
+</body>
+</html>

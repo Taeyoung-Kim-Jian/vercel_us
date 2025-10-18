@@ -7,19 +7,19 @@
   <link rel="stylesheet" href="../style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../common.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5"></script>
 </head>
 
 <body>
   <!-- ✅ 공통 헤더 -->
   <div id="header-container"></div>
   <script>
-    async function loadHeader() {
-      const r = await fetch("../header.html");
-      const html = await r.text();
-      document.getElementById("header-container").innerHTML = html;
-      if(typeof SWINGINV_updateHeaderAuthUI === "function") SWINGINV_updateHeaderAuthUI();
-    }
-    loadHeader();
+    fetch("./us_header.html")
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById("header-container").innerHTML = html;
+        if (typeof SWINGINV_updateHeaderAuthUI === "function") SWINGINV_updateHeaderAuthUI();
+      });
   </script>
 
   <main class="content">
@@ -42,6 +42,9 @@
         </tbody>
       </table>
     </div>
+    <div class="load-more-container">
+      <button id="loadMoreBtn">더보기</button>
+    </div>
   </main>
 
   <footer>© 2025 SWING INVESTOR | 데이터 제공: Supabase</footer>
@@ -59,72 +62,81 @@
 
     document.addEventListener("DOMContentLoaded", async () => {
       await waitForSwingInv();
+
       const tbody = document.getElementById("us-total-body");
+      const loadMoreBtn = document.getElementById("loadMoreBtn");
+      const PAGE_SIZE = 30;
+      let currentPage = 0;
+      let isLoading = false;
 
-      try {
-        // 1️⃣ us_stocks 전체 조회
-        const { data: stocks, error: stockErr } = await SWINGINV.db
-          .from("us_stocks")
-          .select("종목코드, 종목명")
-          .order("종목명", { ascending: true });
-        if(stockErr) throw stockErr;
-        if(!stocks || stocks.length===0){
-          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">📭 종목 데이터가 없습니다.</td></tr>`;
-          return;
-        }
+      async function loadTotalReturn(page) {
+        if (isLoading) return;
+        isLoading = true;
+        loadMoreBtn.textContent = "⏳ 로딩 중...";
+        loadMoreBtn.disabled = true;
 
-        // 2️⃣ 각 종목별 현재가 조회(us_prices 최신 가격)
-        const allRecords = [];
-        for(const s of stocks){
-          const { data: priceData, error: priceErr } = await SWINGINV.db
-            .from("us_prices")
-            .select("종가, 날짜")
-            .eq("종목코드", s.종목코드)
-            .order("날짜", { ascending: false })
-            .limit(1); // 최신 1개
-          if(priceErr){
-            console.warn("가격 조회 실패:", s.종목코드, priceErr.message);
-            continue;
+        try {
+          const from = page * PAGE_SIZE;
+          const to = from + PAGE_SIZE - 1;
+
+          // 1. us_total_return 뷰에서 수익률 순으로 30개씩 데이터를 가져옵니다.
+          const { data, error } = await SWINGINV.db
+            .from("us_total_return")
+            .select("종목코드, 종목명, 현재가, 수익률")
+            .order("수익률", { ascending: false })
+            .range(from, to);
+
+          if (error) throw error;
+
+          if (page === 0 && (!data || data.length === 0)) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">📭 표시할 데이터가 없습니다.</td></tr>`;
+            loadMoreBtn.style.display = "none";
+            return;
           }
-          const currentPrice = priceData && priceData.length>0 ? parseFloat(priceData[0].종가) : null;
-          allRecords.push({
-            code: s.종목코드,
-            name: s.종목명,
-            price: currentPrice
-          });
+
+          // 2. 테이블에 데이터를 추가로 렌더링합니다.
+          const newRows = data.map((r, i) => {
+            const rank = from + i + 1;
+            return `
+              <tr class="clickable-row" data-code="${SWINGINV.esc(r.종목코드)}" data-name="${SWINGINV.esc(r.종목명)}">
+                <td>${rank}</td>
+                <td class="clickable-name" data-code="${SWINGINV.esc(r.종목코드)}" data-name="${SWINGINV.esc(r.종목명)}">${SWINGINV.esc(r.종목명)}</td>
+                <td>${SWINGINV.esc(r.종목코드)}</td>
+                <td class="number-cell">$${SWINGINV.nf(r.현재가)}</td>
+                <td>${SWINGINV.fmtPct(r.수익률)}</td>
+              </tr>
+            `;
+          }).join("");
+
+          if (page === 0) tbody.innerHTML = ""; // 첫 페이지 로드 시 "로딩 중" 메시지 제거
+          tbody.insertAdjacentHTML("beforeend", newRows);
+
+          bindStockClickEvents();
+
+          // 더 이상 로드할 데이터가 없으면 '더보기' 버튼 숨김
+          if (data.length < PAGE_SIZE) {
+            loadMoreBtn.style.display = "none";
+          }
+        } catch (err) {
+          console.error("❌ 데이터 로드 오류:", err);
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:red;">❌ 불러오기 실패: ${err.message}</td></tr>`;
+        } finally {
+          isLoading = false;
+          loadMoreBtn.textContent = "더보기";
+          loadMoreBtn.disabled = false;
         }
-
-        // 3️⃣ 수익률 계산 (예시: 시작가 100)
-        tbody.innerHTML = allRecords.map((r,i)=>{
-          const startPrice = 100; 
-          const rate = r.price ? ((r.price - startPrice)/startPrice*100) : null;
-          const rateColor = rate>=0 ? "#d32f2f" : "#1976d2";
-          const rateSign = rate>=0 ? "▲" : "▼";
-          return `
-            <tr class="clickable-row" data-code="${r.code}" data-name="${r.name}">
-              <td>${i+1}</td>
-              <td>${r.name}</td>
-              <td>${r.code}</td>
-              <td>${r.price ? r.price.toLocaleString() : "-"}</td>
-              <td style="color:${rateColor}; font-weight:500;">${rate!=null ? rateSign + Math.abs(rate).toFixed(2) + "%" : "-"}</td>
-            </tr>
-          `;
-        }).join("");
-
-        // 4️⃣ 클릭 시 detail.html 이동
-        document.querySelectorAll(".clickable-row").forEach(row=>{
-          row.addEventListener("click",()=>{
-            const code = row.dataset.code;
-            const name = row.dataset.name;
-            location.href = `detail.html?code=${encodeURIComponent(code)}&name=${encodeURIComponent(name)}`;
-          });
-        });
-
-      } catch(err){
-        console.error("❌ 데이터 로드 오류:", err);
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:red;">❌ 불러오기 실패: ${err.message}</td></tr>`;
       }
+
+      // '더보기' 버튼 클릭 이벤트
+      loadMoreBtn.addEventListener("click", () => {
+        currentPage++;
+        loadTotalReturn(currentPage);
+      });
+
+      // 첫 페이지 데이터 로드
+      loadTotalReturn(currentPage);
     });
   </script>
+  <script src="./us_modal.js"></script>
 </body>
 </html>

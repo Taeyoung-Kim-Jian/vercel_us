@@ -49,12 +49,11 @@
   <!-- Header -->
   <div id="header-container"></div>
   <script>
-    fetch("./header.html")
+    fetch("./us_header.html")
       .then(r => r.text())
       .then(html => {
         document.getElementById("header-container").innerHTML = html;
-        if (typeof SWINGINV_updateHeaderAuthUI === "function")
-          SWINGINV_updateHeaderAuthUI();
+        if (typeof SWINGINV_updateHeaderAuthUI === "function") SWINGINV_updateHeaderAuthUI();
       });
   </script>
 

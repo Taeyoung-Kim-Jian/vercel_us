@@ -1,1 +1,150 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>US 실시간 시세 | SWING INVESTOR</title>
+    <link rel="stylesheet" href="../style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../common.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5"></script>
+</head>
+<body>
+    <!-- ✅ 공통 헤더 -->
+    <div id="header-container"></div>
+    <script>
+      fetch("./us_header.html")
+        .then(r => r.text())
+        .then(html => {
+          document.getElementById("header-container").innerHTML = html;
+          if (typeof SWINGINV_updateHeaderAuthUI === "function") SWINGINV_updateHeaderAuthUI();
+        });
+    </script>
 
+    <main class="content">
+        <h2>📊 US 종목 실시간 시세</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>종목명</th>
+                        <th>종목코드</th>
+                        <th>현재가</th>
+                        <th>최신 업데이트</th>
+                    </tr>
+                </thead>
+                <tbody id="stock-tbody">
+                    <tr><td colspan="4" style="text-align:center;">⏳ 데이터를 불러오는 중...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="load-more-container">
+            <button id="loadMoreBtn">더보기</button>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            // SWINGINV.db가 로드될 때까지 대기
+            await new Promise(resolve => {
+                const interval = setInterval(() => {
+                    if (window.SWINGINV?.db) {
+                        clearInterval(interval);
+                        resolve();
+                    }
+                }, 100);
+            });
+
+            const tbody = document.getElementById("stock-tbody");
+            const loadMoreBtn = document.getElementById("loadMoreBtn");
+            const PAGE_SIZE = 20;
+            let currentPage = 0;
+            let isLoading = false;
+
+            async function loadStocks(page) {
+                if (isLoading) return;
+                isLoading = true;
+                loadMoreBtn.textContent = "⏳ 로딩 중...";
+                loadMoreBtn.disabled = true;
+
+                try {
+                    const from = page * PAGE_SIZE;
+                    const to = from + PAGE_SIZE - 1;
+
+                    // 1. 20개씩 주식 목록을 가져옵니다.
+                    const { data: stocks, error: stocksError } = await SWINGINV.db
+                        .from("us_stocks")
+                        .select("종목코드, 종목명")
+                        .order("종목명", { ascending: true })
+                        .range(from, to);
+
+                    if (stocksError) throw stocksError;
+
+                    if (page === 0 && (!stocks || stocks.length === 0)) {
+                        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">📭 표시할 데이터가 없습니다.</td></tr>`;
+                        loadMoreBtn.style.display = "none";
+                        return;
+                    }
+
+                    // 2. 각 주식의 최신 가격 정보를 가져옵니다.
+                    const pricePromises = stocks.map(stock =>
+                        SWINGINV.db
+                            .from("us_prices")
+                            .select("종가, 날짜")
+                            .eq("종목코드", stock.종목코드)
+                            .order("날짜", { ascending: false })
+                            .limit(1)
+                            .single()
+                    );
+                    const priceResults = await Promise.all(pricePromises);
+
+                    // 3. 주식 정보와 가격 정보를 합칩니다.
+                    const combinedData = stocks.map((stock, index) => ({
+                        ...stock,
+                        현재가: priceResults[index].data?.종가,
+                        날짜: priceResults[index].data?.날짜,
+                    })).filter(item => item.현재가 != null);
+
+                    // 4. 테이블에 데이터를 추가로 렌더링합니다.
+                    const newRows = combinedData.map(stock => `
+                        <tr class="clickable-row" data-code="${encodeURIComponent(stock.종목코드)}" data-name="${encodeURIComponent(stock.종목명)}">
+                            <td>${SWINGINV.esc(stock.종목명)}</td>
+                            <td>${SWINGINV.esc(stock.종목코드)}</td>
+                            <td class="number-cell">$${SWINGINV.nf(stock.현재가)}</td>
+                            <td>${SWINGINV.fmtDate(stock.날짜)}</td>
+                        </tr>
+                    `).join('');
+
+                    if (page === 0) tbody.innerHTML = ""; // 첫 페이지 로드 시 기존 "로딩 중" 메시지 제거
+                    tbody.insertAdjacentHTML("beforeend", newRows);
+                    
+                    bindStockClickEvents();
+
+                    // 더 이상 로드할 데이터가 없으면 '더보기' 버튼 숨김
+                    if (stocks.length < PAGE_SIZE) {
+                        loadMoreBtn.style.display = "none";
+                    }
+
+                } catch (err) {
+                    console.error("❌ 데이터 로드 오류:", err);
+                    tbody.innerHTML = `<tr><td colspan="4" style="color:red;text-align:center;">❌ 데이터를 불러오는 데 실패했습니다: ${err.message}</td></tr>`;
+                } finally {
+                    isLoading = false;
+                    loadMoreBtn.textContent = "더보기";
+                    loadMoreBtn.disabled = false;
+                }
+            }
+
+            // '더보기' 버튼 클릭 이벤트
+            loadMoreBtn.addEventListener("click", () => {
+                currentPage++;
+                loadStocks(currentPage);
+            });
+
+            // 첫 페이지 로드
+            loadStocks(currentPage);
+        });
+    </script>
+    <script src="./us_modal.js"></script>
+</body>
+</html>
