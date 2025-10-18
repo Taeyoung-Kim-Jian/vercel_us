@@ -96,14 +96,7 @@
           )
           .join("");
 
-        // ✅ 클릭 시 detail.html로 이동
-        document.querySelectorAll(".clickable-row").forEach((row) => {
-          row.addEventListener("click", () => {
-            const name = row.dataset.name;
-            const code = row.dataset.code;
-            location.href = `detail.html?name=${encodeURIComponent(name)}&code=${code}`;
-          });
-        });
+
 
         // ✅ 패턴 필터 기능
         document.querySelectorAll('.pattern-filter button').forEach(btn => {
