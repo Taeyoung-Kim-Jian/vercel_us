@@ -189,11 +189,11 @@ async function loadStockDetailData(code, name) {
     watchToggle.parentElement.title = '로그인 후 이용 가능';
   }
 
+  // ✅ 패턴 예측 정보 로드 (차트보다 먼저)
+  await loadPredictionData(code);
+
   // 차트 렌더링
   renderModalChart(mergedData, name, toggleB.checked, btData);
-
-  // ✅ 패턴 예측 정보 로드
-  await loadPredictionData(code);
 
   // B가격 토글 이벤트
   const handleToggleB = () => {
@@ -288,7 +288,7 @@ async function loadPredictionData(code) {
           ${data.신뢰도.toFixed(1)}%
         </td>
         <td style="font-weight: 600; color: ${returnColor};">
-          ${data.평균_예상수익률.toFixed(2)}%
+          ${data.평균_예상수익률.toFixed(1)}%
           <div style="font-size: 11px; color: #9ca3af;">
             (${data.최소_예상수익률.toFixed(1)}% ~ ${data.최대_예상수익률.toFixed(1)}%)
           </div>
@@ -300,7 +300,64 @@ async function loadPredictionData(code) {
         </td>
         <td>${data.현재_경과일수}일</td>
       </tr>
+      <tr style="background: #f9fafb;">
+        <td colspan="7" style="padding: 15px; font-size: 13px;">
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+            <div>
+              <strong style="color: #1f2937;">📊 평균 매수가:</strong>
+              <span style="color: #2563eb; font-weight: 600; margin-left: 5px;">
+                ${data.평균_매수가?.toLocaleString() || '-'}원
+              </span>
+            </div>
+            <div>
+              <strong style="color: #1f2937;">🎯 목표가:</strong>
+              <span style="color: #10b981; font-weight: 600; margin-left: 5px;">
+                ${data.목표가?.toLocaleString() || '-'}원
+              </span>
+              <span style="font-size: 11px; color: #6b7280; margin-left: 3px;">
+                (+${data.목표_수익률?.toFixed(1) || '0'}%)
+              </span>
+            </div>
+            <div>
+              <strong style="color: #1f2937;">💰 현재가:</strong>
+              <span style="font-weight: 600; margin-left: 5px;">
+                ${data.현재가?.toLocaleString() || '-'}원
+              </span>
+            </div>
+          </div>
+          <details style="margin-top: 10px;">
+            <summary style="cursor: pointer; color: #6b7280; font-size: 12px;">
+              🔽 5분할 매수 단가 보기
+            </summary>
+            <div style="margin-top: 8px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; font-size: 12px;">
+              <div style="text-align: center; padding: 6px; background: white; border-radius: 4px;">
+                <div style="color: #6b7280;">1차 (-2%)</div>
+                <div style="font-weight: 600; color: #2563eb;">${data.매수1?.toLocaleString() || '-'}원</div>
+              </div>
+              <div style="text-align: center; padding: 6px; background: white; border-radius: 4px;">
+                <div style="color: #6b7280;">2차 (-4%)</div>
+                <div style="font-weight: 600; color: #2563eb;">${data.매수2?.toLocaleString() || '-'}원</div>
+              </div>
+              <div style="text-align: center; padding: 6px; background: white; border-radius: 4px;">
+                <div style="color: #6b7280;">3차 (-6%)</div>
+                <div style="font-weight: 600; color: #2563eb;">${data.매수3?.toLocaleString() || '-'}원</div>
+              </div>
+              <div style="text-align: center; padding: 6px; background: white; border-radius: 4px;">
+                <div style="color: #6b7280;">4차 (-8%)</div>
+                <div style="font-weight: 600; color: #2563eb;">${data.매수4?.toLocaleString() || '-'}원</div>
+              </div>
+              <div style="text-align: center; padding: 6px; background: white; border-radius: 4px;">
+                <div style="color: #6b7280;">5차 (-10%)</div>
+                <div style="font-weight: 600; color: #2563eb;">${data.매수5?.toLocaleString() || '-'}원</div>
+              </div>
+            </div>
+          </details>
+        </td>
+      </tr>
     `;
+
+    // ✅ 차트에 매수가와 목표가 표시 (전역 변수에 저장)
+    window.currentPredictionData = data;
   } catch (err) {
     console.error('❌ 예측 데이터 로드 오류:', err);
     predictionDiv.style.display = 'none';
@@ -382,6 +439,65 @@ function renderModalChart(data, name, showB, btData) {
         symbol: 'none',
         data: markLines,
       };
+    }
+  }
+
+  // ✅ 매수가와 목표가 표시 (예측 데이터가 있는 경우)
+  if (window.currentPredictionData) {
+    const pred = window.currentPredictionData;
+
+    // 평균 매수가 라인
+    if (pred.평균_매수가) {
+      if (!series[0].markLine) series[0].markLine = { silent: false, symbol: 'none', data: [] };
+      series[0].markLine.data.push({
+        name: '평균 매수가',
+        yAxis: pred.평균_매수가,
+        label: {
+          formatter: '📊 평균 매수가: {c}원',
+          position: 'insideEndTop',
+          color: '#2563eb',
+          fontSize: 11,
+          fontWeight: 'bold',
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          padding: [4, 8],
+          borderRadius: 4,
+          borderColor: '#2563eb',
+          borderWidth: 1,
+        },
+        lineStyle: {
+          color: '#2563eb',
+          width: 2,
+          type: 'solid',
+          opacity: 0.8,
+        },
+      });
+    }
+
+    // 목표가 라인
+    if (pred.목표가) {
+      if (!series[0].markLine) series[0].markLine = { silent: false, symbol: 'none', data: [] };
+      series[0].markLine.data.push({
+        name: '목표가',
+        yAxis: pred.목표가,
+        label: {
+          formatter: '🎯 목표가: {c}원',
+          position: 'insideEndTop',
+          color: '#10b981',
+          fontSize: 11,
+          fontWeight: 'bold',
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          padding: [4, 8],
+          borderRadius: 4,
+          borderColor: '#10b981',
+          borderWidth: 1,
+        },
+        lineStyle: {
+          color: '#10b981',
+          width: 2,
+          type: 'solid',
+          opacity: 0.8,
+        },
+      });
     }
   }
 
