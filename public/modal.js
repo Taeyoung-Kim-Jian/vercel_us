@@ -25,6 +25,34 @@ function initStockModal() {
 
         <div id="modal-chart"></div>
         <div id="modal-error-box" style="display:none;"></div>
+
+        <!-- 패턴 예측 정보 테이블 -->
+        <div id="modal-prediction" style="margin-top: 30px; display:none;">
+          <h3 style="font-size: 16px; color: #1f2937; margin-bottom: 15px;">
+            📊 AI 패턴 분석 결과
+          </h3>
+          <div class="prediction-table-wrap">
+            <table class="prediction-table">
+              <thead>
+                <tr>
+                  <th>투자점수</th>
+                  <th>신뢰도</th>
+                  <th>예상수익률</th>
+                  <th>예상기간</th>
+                  <th>유사패턴</th>
+                  <th>현재수익률</th>
+                  <th>경과일수</th>
+                </tr>
+              </thead>
+              <tbody id="prediction-tbody">
+                <tr><td colspan="7" style="text-align:center;padding:15px;">분석 중...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size: 11px; color: #9ca3af; margin-top: 10px; text-align: center;">
+            * 과거 유사 패턴 분석 기반 예측으로, 실제 결과와 다를 수 있습니다.
+          </p>
+        </div>
       </div>
     </div>
   `;
@@ -164,6 +192,9 @@ async function loadStockDetailData(code, name) {
   // 차트 렌더링
   renderModalChart(mergedData, name, toggleB.checked, btData);
 
+  // ✅ 패턴 예측 정보 로드
+  await loadPredictionData(code);
+
   // B가격 토글 이벤트
   const handleToggleB = () => {
     renderModalChart(mergedData, name, toggleB.checked, btData);
@@ -211,6 +242,69 @@ async function loadStockDetailData(code, name) {
   };
   watchToggle.removeEventListener('change', handleWatchToggle);
   watchToggle.addEventListener('change', handleWatchToggle);
+}
+
+// 패턴 예측 데이터 로드
+async function loadPredictionData(code) {
+  const predictionDiv = document.getElementById('modal-prediction');
+  const predictionTbody = document.getElementById('prediction-tbody');
+
+  try {
+    // pattern_predictions 테이블에서 데이터 조회
+    const { data, error } = await SWINGINV.db
+      .from('pattern_predictions')
+      .select('*')
+      .eq('종목코드', code)
+      .order('분석일시', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error || !data) {
+      // 예측 데이터 없음
+      predictionDiv.style.display = 'none';
+      return;
+    }
+
+    // 데이터가 있으면 테이블 표시
+    predictionDiv.style.display = 'block';
+
+    // 투자점수에 따른 색상
+    const getScoreColor = (score) => {
+      if (score >= 70) return '#10b981'; // 녹색
+      if (score >= 50) return '#f59e0b'; // 주황
+      return '#ef4444'; // 빨강
+    };
+
+    const scoreColor = getScoreColor(data.투자점수);
+    const returnColor = data.평균_예상수익률 >= 0 ? '#10b981' : '#ef4444';
+    const currentReturnColor = data.현재_수익률 >= 0 ? '#10b981' : '#ef4444';
+
+    predictionTbody.innerHTML = `
+      <tr>
+        <td style="font-weight: 700; font-size: 18px; color: ${scoreColor};">
+          ${data.투자점수.toFixed(1)}<span style="font-size: 12px; color: #6b7280;">/100</span>
+        </td>
+        <td style="font-weight: 600;">
+          ${data.신뢰도.toFixed(1)}%
+        </td>
+        <td style="font-weight: 600; color: ${returnColor};">
+          ${data.평균_예상수익률.toFixed(2)}%
+          <div style="font-size: 11px; color: #9ca3af;">
+            (${data.최소_예상수익률.toFixed(1)}% ~ ${data.최대_예상수익률.toFixed(1)}%)
+          </div>
+        </td>
+        <td>${data.평균_예상기간}일</td>
+        <td>${data.유사패턴_개수}개</td>
+        <td style="font-weight: 600; color: ${currentReturnColor};">
+          ${data.현재_수익률.toFixed(2)}%
+        </td>
+        <td>${data.현재_경과일수}일</td>
+      </tr>
+    `;
+  } catch (err) {
+    console.error('❌ 예측 데이터 로드 오류:', err);
+    predictionDiv.style.display = 'none';
+  }
 }
 
 // ECharts 차트 렌더링

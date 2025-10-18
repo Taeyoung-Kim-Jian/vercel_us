@@ -427,3 +427,59 @@ footer {
   color: #1d4ed8;
   text-decoration: underline;
 }
+
+/* ===============================
+   📊 PREDICTION TABLE (모달 예측 정보)
+================================ */
+.prediction-table-wrap {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: white;
+}
+
+.prediction-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 600px;
+}
+
+.prediction-table thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+}
+
+.prediction-table th {
+  padding: 12px 10px;
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+}
+
+.prediction-table td {
+  padding: 15px 10px;
+  text-align: center;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: middle;
+}
+
+.prediction-table tbody tr {
+  transition: background 0.2s;
+}
+
+.prediction-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+@media (max-width: 768px) {
+  .prediction-table {
+    font-size: 11px;
+  }
+
+  .prediction-table th,
+  .prediction-table td {
+    padding: 8px 6px;
+  }
+}
